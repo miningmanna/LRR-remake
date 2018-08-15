@@ -149,14 +149,24 @@ public class RockRaidersRebirth {
 		m.identity();
 		m.translate(new Vector3f(0, 0, 5));
 		
-		File dir = new File("Toolstation");
+		/**
+		*	TODO:
+		*	TODO:
+		*	TODO:
+		*	Change the lwsFileName and the lwsDir, to match the wished models lws files name and dir.
+		*	The sharedDir should be left as is. In all cases (i think) it is the right choice.
+		*	Maybe the vehicles are a bit different, they have a shared folder as well.
+		*
+		*/
+		String lwsFileName = "ToolStnTele";
+		File lwsDir = new File("Toolstation");
 		File sharedDir = new File("Shared");
 		
-		RockRaiderPathFilter filter = new RockRaiderPathFilter(dir, sharedDir);
+		RockRaiderPathFilter filter = new RockRaiderPathFilter(lwsDir, sharedDir);
 		
 		LwsAnimation animation = null;
 		try {
-			LwsFileData lwsData = LwsFileData.getLwsFileData(new File(dir, "ToolStnTele.lws"));
+			LwsFileData lwsData = LwsFileData.getLwsFileData(new File(lwsDir, lwsFileName));
 			animation = LwsAnimation.getAnimation(lwsData, loader, filter);
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
