@@ -142,6 +142,7 @@ public class RockRaidersRebirth {
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_TEXTURE_2D);
 		glEnable(GL_BLEND);
+		glEnable(GL_CULL_FACE);
 		
 		testShader = new Shader(new File("test.vert"), new File("test.frag"));
 		
@@ -158,8 +159,8 @@ public class RockRaidersRebirth {
 		*	Maybe the vehicles are a bit different, they have a shared folder as well.
 		*
 		*/
-		String lwsFileName = "ToolStnTele";
-		File lwsDir = new File("Toolstation");
+		String lwsFileName = "Ref_Refine.lws";
+		File lwsDir = new File("PowerStation");
 		File sharedDir = new File("Shared");
 		
 		RockRaiderPathFilter filter = new RockRaiderPathFilter(lwsDir, sharedDir);
@@ -173,31 +174,7 @@ public class RockRaidersRebirth {
 			e1.printStackTrace();
 		}
 		
-		
-//		CTexModel model = null;
-//		try {
-//			model = loader.getCtexModelFromLwobFile(new File(dir, "VLPHead.lwo"), filter);
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-		
-//		Set<String> keys = loader.texs.keySet();
-//		for(int i = 0; i < model.texs.length; i++) {
-//			System.out.println(model.surfLen[i]);
-//			for(String key : keys) {
-//				if(loader.texs.get(key) == model.texs[i]) {
-//					System.out.println(key);
-//					continue;
-//				}
-//			}
-//		}
-		
-		
-		glDepthFunc(GL_LESS);
-		glEnable(GL_CULL_FACE);
-		
-		boolean animate = true;
+		float speed = 1.0f;
 		float delta = 0;
 		long nano = 0, _nano = 0;
 		while(!glfwWindowShouldClose(window)) {
@@ -227,10 +204,11 @@ public class RockRaidersRebirth {
 				renderer.surfi++;
 			if(input.justReleased[GLFW_KEY_DOWN])
 				renderer.surfi--;
-			
-			if(input.justReleased[GLFW_KEY_E]) {
-				animate = !animate;
-			}
+
+			if(input.justReleased[GLFW_KEY_E])
+				speed *= 1.2f;
+			if(input.justReleased[GLFW_KEY_Q])
+				speed /= 1.2f;
 			
 			camera.update();
 			
@@ -251,7 +229,7 @@ public class RockRaidersRebirth {
 			delta = (float) (_nano - nano) / 1000000000;
 			nano = _nano;
 			
-			animation.step(delta);
+			animation.step(delta*speed);
 			
 			input.update();
 			glfwPollEvents();

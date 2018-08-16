@@ -27,9 +27,12 @@ public class LwsFileData {
 		BufferedReader br = new BufferedReader(new FileReader(f));
 		String line;
 		
+		LinkedList<ObjectAlphaKeyFrames> _objAlphaFrames = new LinkedList<>();
 		LinkedList<ObjectKeyFrames> _objKeyFrames = new LinkedList<>();
 		LinkedList<String> _objFiles = new LinkedList<>();
 		LinkedList<Integer> _objParent = new LinkedList<>();
+		
+		ObjectAlphaKeyFrames lastAlphaFrames = null;
 		
 		int lobjects = 0;
 		int frames = 0;
@@ -60,6 +63,11 @@ public class LwsFileData {
 				line = br.readLine();
 				
 				ObjectKeyFrames of = new ObjectKeyFrames();
+				ObjectAlphaKeyFrames oaf = new ObjectAlphaKeyFrames();
+				lastAlphaFrames = oaf;
+				oaf.frames = new int[] {res.firstFrame, res.lastFrame};
+				oaf.alpha = new float[] {1,1};
+				
 				int lframes = Integer.parseInt(line.substring(2));
 				of.lframes = lframes;
 				of.frames = new int[lframes];
@@ -112,26 +120,53 @@ public class LwsFileData {
 				}
 				
 				_objKeyFrames.add(of);
+				_objAlphaFrames.add(oaf);
 				
 			}
+			
+			if(line.startsWith("ObjDissolve (envelope)")) {
+				
+				for(int i = 0; i < 2; i++)
+					line = br.readLine();
+				int lframes = Integer.parseInt(line.substring(2));
+				
+				lastAlphaFrames.lframes = lframes;
+				lastAlphaFrames.frames = new int[lframes];
+				lastAlphaFrames.alpha = new float[lframes];
+				for(int i = 0; i < lframes; i++) {
+					
+					line = br.readLine();
+					lastAlphaFrames.alpha[i] = 1.0f-Float.parseFloat(line.substring(2));
+					line = br.readLine();
+					lastAlphaFrames.frames[i] = Integer.parseInt(line.substring(2).split(" ")[0]);
+					
+				}
+				
+			}
+			
 		}
 		br.close();
 		
 		res.objFiles = new String[lobjects];
 		res.parent = new int[lobjects];
 		ObjectKeyFrames[] okfs = new ObjectKeyFrames[lobjects];
+		ObjectAlphaKeyFrames[] oakfs = new ObjectAlphaKeyFrames[lobjects];
 		for(int i = 0; i < lobjects; i++) {
 			res.objFiles[i] = _objFiles.pop();
 			res.parent[i] = _objParent.pop();
 			okfs[i] = _objKeyFrames.pop();
+			oakfs[i] = _objAlphaFrames.pop();
 		}
 		
 		
 		res.frames = new Frame[frames];
-		int[] lastKeyFrame = new int[lobjects];
+		int[] lastKeyFrameIndex = new int[lobjects];
+		int[] lastAlphaKeyFramesIndex = new int[lobjects];
 		for(int i = 0; i < frames; i++) {
 			Frame frame = res.makeFrame();
 			res.frames[i] = frame;
+			frame.relalpha = new float[lobjects];
+			frame.alpha = new float[lobjects];
 			frame.transform = new Matrix4f[lobjects];
 			frame.objectRelPos = new Vector3f[lobjects];
 			frame.position = new Vector3f[lobjects];
@@ -141,13 +176,14 @@ public class LwsFileData {
 			frame.parent = res.parent;
 			int lastIndex = 0;
 			ObjectKeyFrames okf;
+			ObjectAlphaKeyFrames oakf;
 			float scalar = 1.0f;
 			for(int j = 0; j < lobjects; j++) {
 				okf = okfs[j];
 				int ind = 0;
 				if(( ind = contains(okf.frames, i)) != -1)
-					lastKeyFrame[j] = ind;
-				lastIndex = lastKeyFrame[j];
+					lastKeyFrameIndex[j] = ind;
+				lastIndex = lastKeyFrameIndex[j];
 				if(lastIndex+1 < okf.lframes) {
 					scalar = (float) ((float) (okf.frames[lastIndex] - i)) / ((float) (okf.frames[lastIndex+1] - okf.frames[lastIndex]));
 					frame.objectRelPos[j] = new Vector3f(okf.relPos[lastIndex]).add(new Vector3f(okf.relPos[lastIndex]).sub(okf.relPos[lastIndex+1]).mul(scalar));
@@ -159,11 +195,23 @@ public class LwsFileData {
 					frame.scales[j] = new Vector3f(okf.scales[lastIndex]);
 				}
 			}
+			for(int j = 0; j < lobjects; j++) {
+				oakf = oakfs[j];
+				int ind = 0;
+				if((ind = contains(oakf.frames, i)) != -1)
+					lastAlphaKeyFramesIndex[j] = ind;
+				lastIndex = lastAlphaKeyFramesIndex[j];
+				if(lastIndex+1 < oakf.lframes) {
+					scalar = (float) ((float) (oakf.frames[lastIndex] - i)) / ((float) (oakf.frames[lastIndex+1] - oakf.frames[lastIndex]));
+					frame.relalpha[j] = oakf.alpha[lastIndex] + (oakf.alpha[lastIndex] - oakf.alpha[lastIndex+1])*scalar;
+				} else {
+					frame.relalpha[j] = oakf.alpha[lastIndex];
+				}
+				
+				
+			}
 			
 			frame.genTransforms();
-			
-//			frame.genObjectsRot();
-//			frame.genObjectsPos();
 			
 		}
 		
@@ -185,6 +233,8 @@ public class LwsFileData {
 	public class Frame {
 		
 		public int[] parent;
+		public float[] relalpha;
+		public float[] alpha;
 		public Matrix4f[] transform;
 		public Vector3f[][] axis;
 		public Vector3f[] objectRelPos;
@@ -192,57 +242,6 @@ public class LwsFileData {
 		public Vector3f[] objectRelRot;
 		public Vector3f[] rotation;
 		public Vector3f[] scales;
-		
-		public void genObjectsRot() {
-			rotation = new Vector3f[objectRelRot.length];
-			axis = new Vector3f[objectRelRot.length][3];
-			for(int i = 0; i < parent.length; i++)
-				genParentRot(i);
-		}
-		
-		public void genParentRot(int i) {
-			if(rotation[i] == null) {
-				if(parent[i] == -1) {
-					rotation[i] = new Vector3f(objectRelRot[i]);
-				} else {
-					genParentRot(parent[i]);
-					rotation[i] = new Vector3f(rotation[parent[i]]).add(new Vector3f(objectRelRot[i]));
-					axis[i][0] = new Vector3f(1, 0, 0)
-								.rotateX(rotation[i].x)
-								.rotateY(rotation[i].y)
-								.rotateZ(rotation[i].z);
-					axis[i][1] = new Vector3f(0, 1, 0)
-								.rotateX(rotation[i].x)
-								.rotateY(rotation[i].y)
-								.rotateZ(rotation[i].z);
-					axis[i][2] = new Vector3f(0, 0, 1)
-								.rotateX(rotation[i].x)
-								.rotateY(rotation[i].y)
-								.rotateZ(rotation[i].z);
-				}
-			}
-		}
-		
-		public void genObjectsPos() {
-			position = new Vector3f[objectRelPos.length];
-			for(int i = 0; i < parent.length; i++)
-				genParentPos(i);
-		}
-		
-		public void genParentPos(int i) {
-			if(position[i] == null) {
-				if(parent[i] == -1) {
-					position[i] = new Vector3f(objectRelPos[i]);
-				} else {
-					genParentPos(parent[i]);
-					Vector3f relPos = new Vector3f(objectRelPos[i]);
-					relPos.rotateAxis(objectRelRot[parent[i]].x, axis[i][0].x, axis[i][0].y, axis[i][0].z);
-					relPos.rotateAxis(objectRelRot[parent[i]].y, axis[i][1].x, axis[i][1].y, axis[i][1].z);
-					relPos.rotateAxis(objectRelRot[parent[i]].z, axis[i][2].x, axis[i][2].y, axis[i][2].z);
-					position[i] = new Vector3f(position[parent[i]]).add(relPos);
-				}
-			}
-		}
 		
 		public void genTransforms() {
 			transform = new Matrix4f[objectRelPos.length];
@@ -260,13 +259,14 @@ public class LwsFileData {
 			m.translate(objectRelPos[i]);
 			m.rotateXYZ(objectRelRot[i]);
 			m.scale(scales[i]);
+			alpha[i] = relalpha[i];
 			if(parent[i] != -1) {
 				genTransform(parent[i]);
 				transform[parent[i]].mul(m, m);
+				alpha[i] *= alpha[parent[i]];
 			}
 			transform[i] = m;
 		}
-//		
 	}
 	
 	static private class ObjectKeyFrames {
@@ -275,6 +275,12 @@ public class LwsFileData {
 		public Vector3f[] relPos;
 		public Vector3f[] relRot;
 		public Vector3f[] scales;
+	}
+	
+	static private class ObjectAlphaKeyFrames {
+		public int lframes;
+		public int[] frames;
+		public float[] alpha;
 	}
 	
 }

@@ -8,33 +8,38 @@ out vec4 outColor;
 
 uniform mat4 transform;
 uniform mat4 cam;
+uniform float framealpha;
 uniform vec3 aColor;
 uniform sampler2D tex;
 uniform bool calcAlpha;
 uniform bool useTex;
 
+bool eps(vec3 v1, vec3 v2, float epsilon) {
+	return (abs(v1.x-v2.x) < epsilon) && (abs(v1.y-v2.y) < epsilon) && (abs(v1.z-v2.z) < epsilon);
+}
+
 void main()
 {
 	vec4 texColor = texture(tex, mTexPos);
 	if(aColor.x >= 0 && aColor.y >= 0 && aColor.z >= 0) {
-		bool isAlpha = (abs(texColor.x-aColor.x) < 0.00001) && (abs(texColor.y-aColor.y) < 0.00001) && (abs(texColor.z-aColor.z) < 0.00001);
+		bool isAlpha = eps(texColor.xyz, aColor, 0.00001);
 		if(isAlpha) {
 			discard;
 		} else {
 			float alpha = length(texColor.xyz-aColor)/sqrt(3);
 			if(!calcAlpha)
 				alpha = 1;
-			outColor = vec4(texColor.xyz, alpha);
+			outColor = vec4(texColor.xyz, alpha*framealpha);
 		}
 	} else {
 		if(aColor.x > 0) {
-			outColor = texColor;
+			outColor = vec4(texColor.xyz, framealpha);
 		} else {
-			outColor = vec4(mColor, 1);
+			outColor = vec4(mColor, framealpha);
 		}
 	}
 	
 	if(!useTex)
-		outColor = vec4(mColor, 1);
+		outColor = vec4(mColor, framealpha);
 	
 }

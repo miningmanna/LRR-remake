@@ -129,6 +129,7 @@ public class Renderer {
 			
 			if(anim.models[i] != null) {
 				s.setUniMatrix4f("transform", anim.transforms[i]);
+				s.setUniFloat("framealpha", anim.alpha[i]);
 				anim.models[i].texIndex = anim.frame;
 				render(anim.models[i], s);
 			}

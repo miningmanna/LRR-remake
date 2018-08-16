@@ -66,7 +66,17 @@ public class Shader {
 		return shader;
 		
 	}
+
+	public void setUniFloat(int pos, float f) {
+		glUniform1f(pos, f);
+	}
 	
+	public void setUniFloat(String name, float f) {
+		if(name == null)
+			throw new IllegalArgumentException("Name cant be null!");
+		setUniFloat(glGetUniformLocation(program, name), f);
+	}
+
 	public void setUniVector2f(int pos, Vector2f v) {
 		if(v == null)
 			throw new IllegalArgumentException("Vector cant be null!");

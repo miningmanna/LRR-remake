@@ -14,8 +14,10 @@ public class LwsAnimation {
 	public int framestep;
 	public int lobjects;
 	public Matrix4f[][] frametrans;
+	public float[][] framealpha;
 	public CTexModel[] models;
 	public Matrix4f[] transforms;
+	public float[] alpha;
 	public float time, runlen;
 	public int frame;
 	public int nextframe;
@@ -27,8 +29,10 @@ public class LwsAnimation {
 		frame = (int) Math.floor(time*fps)%frames;
 		nextframe = (int) Math.ceil(time*fps)%frames;
 		float s = (float) (time*fps - Math.floor(time*fps));
-		for(int i = 0; i < lobjects; i++)
+		for(int i = 0; i < lobjects; i++) {
 			this.transforms[i].set(frametrans[frame][i]).lerp(frametrans[nextframe][i], s);
+			this.alpha[i] = framealpha[frame][i] + (framealpha[nextframe][i] - framealpha[frame][i])*s;
+		}
 		
 	}
 	
@@ -46,8 +50,10 @@ public class LwsAnimation {
 		res.transforms = new Matrix4f[res.lobjects];
 		for(int i = 0; i < res.transforms.length; i++)
 			res.transforms[i] = new Matrix4f();
+		res.alpha = new float[res.lobjects];
 		res.models = new CTexModel[res.lobjects];
-		res.frametrans = new Matrix4f[res.lastframe-res.firstframe][res.lobjects];
+		res.frametrans = new Matrix4f[res.frames][res.lobjects];
+		res.framealpha = new float[res.frames][res.lobjects];
 		
 		for(int i = 0; i < res.lobjects; i++) {
 			
@@ -56,9 +62,12 @@ public class LwsAnimation {
 			
 		}
 		
-		for(int i = 0; i < res.frames; i++)
-			for(int j = 0; j < res.lobjects; j++)
+		for(int i = 0; i < res.frames; i++) {
+			for(int j = 0; j < res.lobjects; j++) {
 				res.frametrans[i][j] = new Matrix4f(lws.frames[i].transform[j]);
+				res.framealpha[i][j] = lws.frames[i].alpha[j];
+			}
+		}
 		
 		return res;
 		
