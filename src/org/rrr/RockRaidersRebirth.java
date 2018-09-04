@@ -162,15 +162,15 @@ public class RockRaidersRebirth {
 		EntityEngine eng = new EntityEngine();
 		
 		Entity.setLoader(loader);
-		Entity.setSharedFolder(new File("Shared"));
-		Entity.loadEntity(new File("CAPTAIN"), "captain");
-		Entity.loadEntity(new File("Slug"), "slug");
-		Entity.loadEntity(new File("Pilot"), "Pilot");
+		Entity.setSharedFolder(new File("LegoRR0/World/Shared"));
+		Entity.loadEntity(new File("LegoRR0/Mini-Figures/CAPTAIN"), "captain");
+		Entity.loadEntity(new File("LegoRR0/Creatures/Slug"), "slug");
+		Entity.loadEntity(new File("LegoRR0/Mini-Figures/Pilot"), "Pilot");
 		Entity ent = null;
 		try {
 			entities.add(0, Entity.getEntity("slug"));
 			ent = Entity.getEntity("slug");
-			eng.bindScript(ent, "d = delta()\n"
+			eng.bindScript(ent, "d = delta()\n" // Delta time
 								+ "move(0, 0, 5*d)\n"
 								+ "turn(d)"); // Lua script
 			ent.pos.z = 5;
@@ -181,7 +181,7 @@ public class RockRaidersRebirth {
 		
 		MapData data = null;
 		try {
-			data = MapData.getMapData(new File("Level01"));
+			data = MapData.getMapData(new File("LegoRR0/Levels/GameLevels/Level01"));
 		} catch (Exception e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
