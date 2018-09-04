@@ -1,48 +1,39 @@
 package org.rrr;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.nio.IntBuffer;
-import java.util.LinkedList;
-import java.util.Set;
-
-
-
-import org.lwjgl.glfw.GLFWCursorPosCallbackI;
-import org.lwjgl.glfw.GLFWErrorCallback;
-import org.lwjgl.glfw.GLFWVidMode;
-import org.lwjgl.opengl.GL;
-import org.lwjgl.system.MemoryStack;
-import org.newdawn.slick.opengl.Texture;
-import org.newdawn.slick.opengl.TextureLoader;
-import org.joml.Matrix4f;
-import org.joml.Vector3f;
-import org.rrr.model.CTexModel;
-import org.rrr.model.FullModel;
-import org.rrr.model.Loader;
-import org.rrr.model.LwobFileData;
-import org.rrr.model.LwsAnimation;
-import org.rrr.model.LwsFileData;
-import org.rrr.model.ObjFileData;
-import org.rrr.model.TestData;
-import org.rrr.model.PathConverter;
-import org.rrr.model.UvFileData;
-import org.rrr.model.LwobFileData.Surface;
-
 import static org.lwjgl.glfw.Callbacks.*;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryStack.*;
 import static org.lwjgl.system.MemoryUtil.*;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.IntBuffer;
+import java.util.ArrayList;
+
+import org.joml.Matrix4f;
+import org.joml.Vector3f;
+import org.lwjgl.glfw.GLFWCursorPosCallbackI;
+import org.lwjgl.glfw.GLFWErrorCallback;
+import org.lwjgl.glfw.GLFWVidMode;
+import org.lwjgl.opengl.GL;
+import org.lwjgl.system.MemoryStack;
+import org.rrr.map.MapData;
+import org.rrr.model.Loader;
+import org.rrr.model.LwsAnimation;
+import org.rrr.model.LwsFileData;
+import org.rrr.model.MapMesh;
+
+import de.mm.entity.Entity;
+import de.mm.entity.EntityEngine;
+
 
 public class RockRaidersRebirth {
 	
 	private long window;
 	
-	public static final String version = "0.1";
-	public static final String TITLE = "Rock Raiders rebirth v."+version;
+	public static final String VERSION = "0.1";
+	public static final String TITLE = "Rock Raiders remake v."+VERSION;
 	public static final int WIDTH = 800;
 	public static final int HEIGHT = 600;
 	
@@ -133,7 +124,8 @@ public class RockRaidersRebirth {
 		glfwShowWindow(window);
 	}
 	
-	Shader testShader;
+	Shader entityShader;
+	Shader mapShader;
 	private void run() {
 		
 		GL.createCapabilities();
@@ -144,11 +136,13 @@ public class RockRaidersRebirth {
 		glEnable(GL_BLEND);
 		glEnable(GL_CULL_FACE);
 		
-		testShader = new Shader(new File("test.vert"), new File("test.frag"));
+		entityShader = new Shader(new File("entityShader.vert"), new File("entityShader.frag"));
+		mapShader = new Shader(new File("mapShader.vert"), new File("mapShader.frag"));
 		
 		Matrix4f m = new Matrix4f();
 		m.identity();
 		m.translate(new Vector3f(0, 0, 5));
+		
 		
 		/**
 		*	TODO:
@@ -159,20 +153,40 @@ public class RockRaidersRebirth {
 		*	Maybe the vehicles are a bit different, they have a shared folder as well.
 		*
 		*/
-		String lwsFileName = "Ref_Refine.lws";
-		File lwsDir = new File("PowerStation");
+		String lwsFileName = "NEW_Captain_Point_CALL_T_ARMS.lws";
+		File lwsDir = new File("CAPTAIN");
 		File sharedDir = new File("Shared");
 		
-		RockRaiderPathFilter filter = new RockRaiderPathFilter(lwsDir, sharedDir);
+		ArrayList<Entity> entities = new ArrayList<>();
 		
-		LwsAnimation animation = null;
+		EntityEngine eng = new EntityEngine();
+		
+		Entity.setLoader(loader);
+		Entity.setSharedFolder(new File("Shared"));
+		Entity.loadEntity(new File("CAPTAIN"), "captain");
+		Entity.loadEntity(new File("Slug"), "slug");
+		Entity.loadEntity(new File("Pilot"), "Pilot");
+		Entity ent = null;
 		try {
-			LwsFileData lwsData = LwsFileData.getLwsFileData(new File(lwsDir, lwsFileName));
-			animation = LwsAnimation.getAnimation(lwsData, loader, filter);
-		} catch (IOException e1) {
+			entities.add(0, Entity.getEntity("slug"));
+			ent = Entity.getEntity("slug");
+			eng.bindScript(ent, "d = delta()\n"
+								+ "move(0, 0, 5*d)\n"
+								+ "turn(d)"); // Lua script
+			ent.pos.z = 5;
+			entities.add(1, ent);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		MapData data = null;
+		try {
+			data = MapData.getMapData(new File("Level01"));
+		} catch (Exception e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
+		MapMesh mapMesh = new MapMesh(loader, data, data.width, data.height);
 		
 		float speed = 1.0f;
 		float delta = 0;
@@ -200,36 +214,58 @@ public class RockRaidersRebirth {
 				move.mul(10);
 			camera.move(move);
 			
-			if(input.justReleased[GLFW_KEY_UP])
-				renderer.surfi++;
-			if(input.justReleased[GLFW_KEY_DOWN])
-				renderer.surfi--;
-
 			if(input.justReleased[GLFW_KEY_E])
 				speed *= 1.2f;
 			if(input.justReleased[GLFW_KEY_Q])
 				speed /= 1.2f;
 			
+			if(input.justReleased[GLFW_KEY_UP])
+				ent.pos.add(0, 0, 1);
+			if(input.justReleased[GLFW_KEY_DOWN])
+				ent.pos.add(0, 0, -1);
+			if(input.justReleased[GLFW_KEY_RIGHT])
+				ent.pos.add(1, 0, 0);
+			if(input.justReleased[GLFW_KEY_LEFT])
+				ent.pos.add(-1, 0, 0);
+			if(input.justReleased[GLFW_KEY_R])
+				ent.rot.rotateY((float) (Math.PI/8));
+			
+			if(input.justReleased[GLFW_KEY_UP])
+				ent.currentAnimation = (ent.currentAnimation +1)%ent.anims.length;
+			
 			camera.update();
 			
-			testShader.start();
-			testShader.setUniMatrix4f("cam", camera.combined);
-			testShader.setUniMatrix4f("transform", m);
-			testShader.setUniBoolean("useTex", true);
+			mapShader.start();
+			mapShader.setUniMatrix4f("cam", camera.combined);
+			m.identity();
+			m.scale(10);
+			mapShader.setUniMatrix4f("mapTrans", m);
+//			renderer.render(mapMesh);
+			mapShader.stop();
 			
-//			renderer.render(model, testShader);
+			entityShader.start();
+			entityShader.setUniMatrix4f("cam", camera.combined);
+			entityShader.setUniMatrix4f("modelTrans", m);
 			
-			renderer.render(animation, testShader);
+			for(int i = 0; i < entities.size(); i++) {
+				renderer.render(entities.get(i), entityShader);
+			}
 			
-			testShader.stop();
-			
+			entityShader.stop();
+				
 			glfwSwapBuffers(window);
 			
 			_nano = System.nanoTime();
 			delta = (float) (_nano - nano) / 1000000000;
 			nano = _nano;
 			
-			animation.step(delta*speed);
+			if(delta < 1.0f) {
+				eng.step(delta*speed);
+				for(Entity e : entities) {
+					e.step(delta*speed);
+					eng.call(e);
+				}
+			}
 			
 			input.update();
 			glfwPollEvents();

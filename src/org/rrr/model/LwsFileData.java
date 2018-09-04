@@ -31,8 +31,10 @@ public class LwsFileData {
 		LinkedList<ObjectKeyFrames> _objKeyFrames = new LinkedList<>();
 		LinkedList<String> _objFiles = new LinkedList<>();
 		LinkedList<Integer> _objParent = new LinkedList<>();
+		LinkedList<Vector3f> _objPivot = new LinkedList<>();
 		
 		ObjectAlphaKeyFrames lastAlphaFrames = null;
+		Vector3f lastPivot = null;
 		
 		int lobjects = 0;
 		int frames = 0;
@@ -65,6 +67,9 @@ public class LwsFileData {
 				ObjectKeyFrames of = new ObjectKeyFrames();
 				ObjectAlphaKeyFrames oaf = new ObjectAlphaKeyFrames();
 				lastAlphaFrames = oaf;
+				Vector3f pivot = new Vector3f(0, 0, 0);
+				lastPivot = pivot;
+				_objPivot.add(pivot);
 				oaf.frames = new int[] {res.firstFrame, res.lastFrame};
 				oaf.alpha = new float[] {1,1};
 				
@@ -104,12 +109,23 @@ public class LwsFileData {
 														Float.parseFloat(s[7]),
 														Float.parseFloat(s[8]));
 					}
+					
 					line = br.readLine();
 					line = line.substring(2);
 					of.frames[i] = Integer.parseInt(line.split(" ")[0]);
 					
 				}
 				while((line = br.readLine()) != null) {
+					if(line.startsWith("LockedChannels")) {
+						int channels = Integer.parseInt(line.split(" ")[1]);
+						// TODO: LockedChannels
+					}
+					if(line.startsWith("PivotPoint")) {
+						String[] split = line.split(" ");
+						lastPivot.x = Float.parseFloat(split[1]);
+						lastPivot.y = Float.parseFloat(split[2]);
+						lastPivot.z = Float.parseFloat(split[3]);
+					}
 					if(line.startsWith("ParentObject")) {
 						_objParent.add(Integer.parseInt(line.substring(13))-1);
 						break;
@@ -121,7 +137,21 @@ public class LwsFileData {
 				
 				_objKeyFrames.add(of);
 				_objAlphaFrames.add(oaf);
-				
+				continue;
+			}
+			
+			if(line.startsWith("LockedChannels")) {
+				int channels = Integer.parseInt(line.split(" ")[1]);
+				// TODO: LockedChannels
+				continue;
+			}
+			
+			if(line.startsWith("PivotPoint")) {
+				String[] split = line.split(" ");
+				lastPivot.x = Float.parseFloat(split[1]);
+				lastPivot.y = Float.parseFloat(split[2]);
+				lastPivot.z = Float.parseFloat(split[3]);
+				continue;
 			}
 			
 			if(line.startsWith("ObjDissolve (envelope)")) {
@@ -141,7 +171,7 @@ public class LwsFileData {
 					lastAlphaFrames.frames[i] = Integer.parseInt(line.substring(2).split(" ")[0]);
 					
 				}
-				
+				continue;
 			}
 			
 		}
@@ -151,11 +181,13 @@ public class LwsFileData {
 		res.parent = new int[lobjects];
 		ObjectKeyFrames[] okfs = new ObjectKeyFrames[lobjects];
 		ObjectAlphaKeyFrames[] oakfs = new ObjectAlphaKeyFrames[lobjects];
+		Vector3f[] objectPivot = new Vector3f[lobjects];
 		for(int i = 0; i < lobjects; i++) {
 			res.objFiles[i] = _objFiles.pop();
 			res.parent[i] = _objParent.pop();
 			okfs[i] = _objKeyFrames.pop();
 			oakfs[i] = _objAlphaFrames.pop();
+			objectPivot[i] = _objPivot.pop();
 		}
 		
 		
@@ -173,6 +205,7 @@ public class LwsFileData {
 			frame.objectRelRot = new Vector3f[lobjects];
 			frame.rotation = new Vector3f[lobjects];
 			frame.scales = new Vector3f[lobjects];
+			frame.objectPivot = objectPivot;
 			frame.parent = res.parent;
 			int lastIndex = 0;
 			ObjectKeyFrames okf;
@@ -238,6 +271,7 @@ public class LwsFileData {
 		public Matrix4f[] transform;
 		public Vector3f[][] axis;
 		public Vector3f[] objectRelPos;
+		public Vector3f[] objectPivot;
 		public Vector3f[] position;
 		public Vector3f[] objectRelRot;
 		public Vector3f[] rotation;
@@ -257,7 +291,11 @@ public class LwsFileData {
 			Matrix4f m = new Matrix4f();
 			m.identity();
 			m.translate(objectRelPos[i]);
-			m.rotateXYZ(objectRelRot[i]);
+//			m.rotateAround(new Quaternionf().rotateAxis(objectRelRot[i].x, new Vector3f(1,0,0)), objectPivot[i].x, objectPivot[i].y, objectPivot[i].z);
+//			m.rotateAround(new Quaternionf().rotateAxis(objectRelRot[i].y, new Vector3f(0,1,0)), objectPivot[i].x, objectPivot[i].y, objectPivot[i].z);
+//			m.rotateAround(new Quaternionf().rotateAxis(objectRelRot[i].z, new Vector3f(0,0,1)), objectPivot[i].x, objectPivot[i].y, objectPivot[i].z);
+			m.rotateYXZ(objectRelRot[i]);
+//			m.translate(objectPivot[i].x, objectPivot[i].y, objectPivot[i].z);
 			m.scale(scales[i]);
 			alpha[i] = relalpha[i];
 			if(parent[i] != -1) {

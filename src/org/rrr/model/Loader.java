@@ -26,7 +26,7 @@ public class Loader {
 	
 	private ArrayList<Integer> vaos, vbos;
 	private HashMap<String, CTexModel> ctexmodels;
-	public HashMap<String, Texture> texs;
+	private HashMap<String, Texture> texs;
 	
 	public Loader() {
 		vaos = new ArrayList<>();
@@ -65,6 +65,26 @@ public class Loader {
 		FullModel model = new FullModel(vao, inds.length);
 		return model;
 		
+	}
+	
+	public void bufferMapMesh(MapMesh mapMesh) {
+		int vao = glGenVertexArrays();
+		glBindVertexArray(vao);
+		vaos.add(vao);
+		
+		loadVertexIntoVBO(0, mapMesh.points, 3);
+		loadVertexIntoVBO(1, new float[mapMesh.points.length], 3);
+		loadVertexIntoVBO(2, mapMesh.surfType, 1);
+		
+		int indVbo = glGenBuffers();
+		vbos.add(indVbo);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indVbo);
+		IntBuffer intBuff = BufferUtils.createIntBuffer(mapMesh.inds.length);
+		intBuff.put(mapMesh.inds);
+		intBuff.flip();
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, intBuff, GL_STATIC_READ);
+		
+		mapMesh.vao = vao;
 	}
 	
 	public CTexModel getCtexModelFromLwobFile(File f, PathConverter finder) throws IOException {
@@ -185,14 +205,12 @@ public class Loader {
 					System.out.println("over 9000?????");
 				while(getTexs) {
 					File texFile = new File(prefix + String.format("%0" + lzeros + "d", texOffset+texNum) + "." + extension);
-					System.out.println(texFile.getName());
 					if(!texFile.exists()) {
 						break;
 					}
 					_texs.add(getTexture(extension, texFile));
 					texNum++;
 				}
-				System.out.println("Found sequenced texs: " + texNum);
 				ctm.texs[i] = new Texture[texNum];
 				for(int j = 0; j < texNum; j++) {
 					ctm.texs[i][j] = _texs.pop();
@@ -209,7 +227,6 @@ public class Loader {
 			}
 			
 			String fName = new File(path).getName();
-			System.out.println("texslength (" + fName + "): " + ctm.texs[i].length);
 			
 			if(fName.matches("[Aa]\\d{3}.+$")) {
 				
@@ -234,10 +251,6 @@ public class Loader {
 		int r = 0x000000FF&bc[2];
 		int g = 0x000000FF&bc[1];
 		int b = 0x000000FF&bc[0];
-		System.out.println(r);
-		System.out.println(g);
-		System.out.println(b);
-		System.out.println("---------");
 		raf.close();
 		Vector3f c = new Vector3f();
 		c.x = r/255.0f;
@@ -263,7 +276,6 @@ public class Loader {
 		return vbo;
 	}
 	
-	@SuppressWarnings("unused")
 	private int loadIntegerIntoVBO(int pos, int[] ints, int dim) {
 		int vbo = glGenBuffers();
 		glBindBuffer(GL_ARRAY_BUFFER, vbo);

@@ -4,15 +4,33 @@ import org.newdawn.slick.opengl.Texture;
 import org.rrr.model.CTexModel;
 import org.rrr.model.FullModel;
 import org.rrr.model.LwsAnimation;
+import org.rrr.model.MapMesh;
+
+import de.mm.entity.Entity;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL13.*;
 import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL30.*;
 
+import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
 public class Renderer {
+	
+	public void render(MapMesh mesh) {
+		
+		glBindVertexArray(mesh.vao);
+		glEnableVertexAttribArray(0);
+		glEnableVertexAttribArray(1);
+		glEnableVertexAttribArray(2);
+		glDrawElements(GL_TRIANGLES, mesh.indCount, GL_UNSIGNED_INT, 0);
+		glDisableVertexAttribArray(0);
+		glDisableVertexAttribArray(1);
+		glDisableVertexAttribArray(2);
+		glBindVertexArray(0);
+		
+	}
 	
 	public void render(FullModel model) {
 		
@@ -46,24 +64,6 @@ public class Renderer {
 		glEnableVertexAttribArray(0);
 		glEnableVertexAttribArray(1);
 		glEnableVertexAttribArray(2);
-		
-//		int offset = 0;
-//		for(int j = 0; j < cmodel.surfLen.length; j++) {
-//			if(cmodel.texs[j] != null)
-//				glBindTexture(GL_TEXTURE_2D, cmodel.texs[j].getTextureID());
-//			if(cmodel.additive[j]) {
-//				s.setUniBoolean("calcAlpha", false);
-//				glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-//				glDepthMask(false);
-//			} else {
-//				s.setUniBoolean("calcAlpha", false);
-//				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-//				glDepthMask(true);
-//			}
-//			s.setUniVector2f(0, cmodel.alpha[j]);
-//			glDrawElements(GL_TRIANGLES, cmodel.surfLen[j], GL_UNSIGNED_INT, offset*4);
-//			offset += cmodel.surfLen[j];
-//		}
 		
 		s.setUniBoolean("calcAlpha", false);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -122,16 +122,27 @@ public class Renderer {
 		glBindVertexArray(0);
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
-
+	
+	public void render(Entity e, Shader s) {
+		
+		Matrix4f temp = new Matrix4f(e.rot);
+		temp._m30(temp.m30()+e.pos.x);
+		temp._m31(temp.m31()+e.pos.y);
+		temp._m32(temp.m32()+e.pos.z);
+		s.setUniMatrix4f("modelTrans", temp);
+		render(e.anims[e.currentAnimation], s);
+		
+	}
+	
 	public void render(LwsAnimation anim, Shader s) {
 		
-		for(int i = 0; i < anim.lobjects; i++) {
+		for(int i = 0; i < anim.bd.lobjects; i++) {
 			
-			if(anim.models[i] != null) {
-				s.setUniMatrix4f("transform", anim.transforms[i]);
+			if(anim.bd.models[i] != null) {
+				s.setUniMatrix4f("animTrans", anim.transforms[i]);
 				s.setUniFloat("framealpha", anim.alpha[i]);
-				anim.models[i].texIndex = anim.frame;
-				render(anim.models[i], s);
+				anim.bd.models[i].texIndex = anim.frame;
+				render(anim.bd.models[i], s);
 			}
 			
 		}
