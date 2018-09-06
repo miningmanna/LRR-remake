@@ -129,7 +129,7 @@ public class MapData {
 	public static void main(String[] args) {
 		
 		try {
-			data = getMapData(new File("Level01"));
+			data = getMapData(new File("LegoRR0/Levels/GameLevels/Level01"));
 			
 			JFrame f = new JFrame("MapData");
 			

@@ -8,13 +8,12 @@ out vec4 outColor;
 
 uniform mat4 cam;
 uniform mat4 mapTrans;
-uniform sampler2D texs[16];
+uniform sampler2D tex;
+uniform bool lines;
 
 void main() {
-	
-	if(mSurfType > 4)
-		outColor = vec4(1, (mSurfType*0.15), 0, 1);
+	if(!lines)
+		outColor = texture(tex, mTexPos.xy);
 	else
-		outColor = vec4(0,0,0,1);
-	
+		outColor = vec4(1,0,0,1);
 }

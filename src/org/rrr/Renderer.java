@@ -18,13 +18,45 @@ import org.joml.Vector3f;
 
 public class Renderer {
 	
-	public void render(MapMesh mesh) {
+	public void render(MapMesh mesh, Shader s) {
 		
 		glBindVertexArray(mesh.vao);
 		glEnableVertexAttribArray(0);
 		glEnableVertexAttribArray(1);
 		glEnableVertexAttribArray(2);
-		glDrawElements(GL_TRIANGLES, mesh.indCount, GL_UNSIGNED_INT, 0);
+		s.setUniVector3f("pos", mesh.pos);
+		glActiveTexture(GL_TEXTURE0);
+		int texIndex = 0;
+		s.setUniBoolean("lines", false);
+		for(int i = 0; i < mesh.height; i++) {
+			for(int j = 0; j < mesh.width; j++) {
+				switch (mesh.surf[j][i]) {
+				case 1:
+					texIndex = 5;
+					break;
+				case 2:
+				case 3:
+				case 4:
+					texIndex = mesh.surf[j][i]-1;
+					break;
+				case 5:
+					texIndex = 0;
+					break;
+				case 6:
+					texIndex = 28;
+					break;
+					
+				default:
+					texIndex = mesh.surf[j][i];
+					break;
+				}
+				glBindTexture(GL_TEXTURE_2D, mesh.texs[texIndex].getTextureID());
+				glDrawElements(GL_TRIANGLES, 4*3, GL_UNSIGNED_INT, (i*mesh.width+j)*3*4*4);
+			}
+		}
+		s.setUniBoolean("lines", true);
+		for(int i = 0; i < mesh.height; i++)
+			glDrawElements(GL_LINE_STRIP, mesh.indCount/mesh.height, GL_UNSIGNED_INT, i*mesh.width*3*4*4);
 		glDisableVertexAttribArray(0);
 		glDisableVertexAttribArray(1);
 		glDisableVertexAttribArray(2);
@@ -146,6 +178,10 @@ public class Renderer {
 			}
 			
 		}
+		
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glEnable(GL_CULL_FACE);
+		glCullFace(GL_BACK);
 		
 	}
 	

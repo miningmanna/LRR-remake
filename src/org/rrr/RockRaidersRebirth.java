@@ -3,6 +3,8 @@ package org.rrr;
 import static org.lwjgl.glfw.Callbacks.*;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL13.GL_TEXTURE0;
+import static org.lwjgl.opengl.GL13.glActiveTexture;
 import static org.lwjgl.system.MemoryStack.*;
 import static org.lwjgl.system.MemoryUtil.*;
 
@@ -18,10 +20,9 @@ import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.system.MemoryStack;
+import org.newdawn.slick.opengl.Texture;
 import org.rrr.map.MapData;
 import org.rrr.model.Loader;
-import org.rrr.model.LwsAnimation;
-import org.rrr.model.LwsFileData;
 import org.rrr.model.MapMesh;
 
 import de.mm.entity.Entity;
@@ -64,8 +65,7 @@ public class RockRaidersRebirth {
 		camera = new Camera();
 		input = new Input();
 		float aspect = (float)WIDTH / (HEIGHT);
-		camera.setFrustum(30, aspect, 0.1f, 1000);
-		System.out.println(camera.frustrum);
+		camera.setFrustum(30, aspect, 0.1f, 10000);
 		camera.update();
 		GLFWErrorCallback.createPrint(System.out).set();
 		
@@ -120,7 +120,7 @@ public class RockRaidersRebirth {
 		}
 		
 		glfwMakeContextCurrent(window);
-		glfwSwapInterval(1);
+//		glfwSwapInterval(1);
 		glfwShowWindow(window);
 	}
 	
@@ -153,40 +153,36 @@ public class RockRaidersRebirth {
 		*	Maybe the vehicles are a bit different, they have a shared folder as well.
 		*
 		*/
-		String lwsFileName = "NEW_Captain_Point_CALL_T_ARMS.lws";
-		File lwsDir = new File("CAPTAIN");
-		File sharedDir = new File("Shared");
-		
 		ArrayList<Entity> entities = new ArrayList<>();
-		
 		EntityEngine eng = new EntityEngine();
 		
 		Entity.setLoader(loader);
 		Entity.setSharedFolder(new File("LegoRR0/World/Shared"));
 		Entity.loadEntity(new File("LegoRR0/Mini-Figures/CAPTAIN"), "captain");
-		Entity.loadEntity(new File("LegoRR0/Creatures/Slug"), "slug");
-		Entity.loadEntity(new File("LegoRR0/Mini-Figures/Pilot"), "Pilot");
+		Entity.loadEntity(new File("LegoRR0/Creatures/Slug"), 		"slug");
+		Entity.loadEntity(new File("LegoRR0/Mini-Figures/Pilot"), 	"Pilot");
 		Entity ent = null;
 		try {
-			entities.add(0, Entity.getEntity("slug"));
+			entities.add(0, Entity.getEntity("captain"));
 			ent = Entity.getEntity("slug");
 			eng.bindScript(ent, "d = delta()\n" // Delta time
-								+ "move(0, 0, 5*d)\n"
-								+ "turn(d)"); // Lua script
+								+ "move(0, 0, 5*d)"); // Lua script
 			ent.pos.z = 5;
 			entities.add(1, ent);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		
-		MapData data = null;
+		MapMesh mapMesh = null;
 		try {
-			data = MapData.getMapData(new File("LegoRR0/Levels/GameLevels/Level01"));
-		} catch (Exception e1) {
+			mapMesh = new MapMesh(loader, new File("LegoRR0/Levels/GameLevels/Level02"));
+		} catch (Exception e2) {
 			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			e2.printStackTrace();
 		}
-		MapMesh mapMesh = new MapMesh(loader, data, data.width, data.height);
+		
+		float time = 0;
+		int frames = 0;
 		
 		float speed = 1.0f;
 		float delta = 0;
@@ -238,9 +234,10 @@ public class RockRaidersRebirth {
 			mapShader.start();
 			mapShader.setUniMatrix4f("cam", camera.combined);
 			m.identity();
-			m.scale(10);
+			m.scale(50);
+			m.translate(-10, 1, -10);
 			mapShader.setUniMatrix4f("mapTrans", m);
-//			renderer.render(mapMesh);
+			renderer.render(mapMesh, mapShader);
 			mapShader.stop();
 			
 			entityShader.start();
@@ -265,6 +262,14 @@ public class RockRaidersRebirth {
 					e.step(delta*speed);
 					eng.call(e);
 				}
+			}
+			
+			frames++;
+			time += delta;
+			if(time > 1.0f) {
+				time %= 1.0f;
+				System.out.println("FPS: " + frames);
+				frames = 0;
 			}
 			
 			input.update();

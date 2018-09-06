@@ -8,13 +8,14 @@ out vec3 mPos;
 out vec3 mTexPos;
 out float mSurfType;
 
+uniform vec3 transPos;
 uniform mat4 cam;
 uniform mat4 mapTrans;
-uniform sampler2D texs[16];
+uniform sampler2D tex;
 
 void main() {
 	
-	gl_Position = cam * mapTrans * vec4(pos + vec3(0, -1, 5), 1);
+	gl_Position = cam * mapTrans * vec4(pos.xyz, 1);
 	mTexPos = texPos;
 	mSurfType = surfType;
 	mPos = pos;

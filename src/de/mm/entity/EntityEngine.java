@@ -45,7 +45,6 @@ public class EntityEngine {
 		globals.set("move", new ThreeArgFunction() {
 			@Override
 			public LuaValue call(LuaValue arg0, LuaValue arg1, LuaValue arg2) {
-				System.out.println(arg2);
 				entity.pos.add(arg0.tofloat(), arg1.tofloat(), arg2.tofloat());
 				return null;
 			}

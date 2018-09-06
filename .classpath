@@ -6,7 +6,7 @@
 	<classpathentry kind="lib" path="C:/Users/USER/Desktop/Programming/Java libs/slick-util3.jar"/>
 	<classpathentry kind="lib" path="C:/Users/USER/Desktop/Programming/Java libs/lwjgl 3.0.0/jar/lwjgl.jar">
 		<attributes>
-			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="C:/Users/User/Desktop/Programming/Java libs/lwjgl 3.0.0/native"/>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="C:/Users/USER/Desktop/Programming/Java libs/lwjgl 3.0.0/native"/>
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="lib" path="C:/Users/USER/Desktop/Programming/Java libs/luaj-3.0.1/lib/luaj-jse-3.0.1.jar"/>

@@ -73,7 +73,7 @@ public class Loader {
 		vaos.add(vao);
 		
 		loadVertexIntoVBO(0, mapMesh.points, 3);
-		loadVertexIntoVBO(1, new float[mapMesh.points.length], 3);
+		loadVertexIntoVBO(1, mapMesh.texPos, 3);
 		loadVertexIntoVBO(2, mapMesh.surfType, 1);
 		
 		int indVbo = glGenBuffers();
