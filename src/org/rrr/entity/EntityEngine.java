@@ -1,4 +1,4 @@
-package de.mm.entity;
+package org.rrr.entity;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -83,6 +83,7 @@ public class EntityEngine {
 	public void call(Entity e) {
 		entity = e;
 		if(e.script != null) {
+			globals.set("m", e.mVars);
 			e.script.call();
 		}
 	}

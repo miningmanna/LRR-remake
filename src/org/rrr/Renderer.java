@@ -1,12 +1,11 @@
 package org.rrr;
 
 import org.newdawn.slick.opengl.Texture;
+import org.rrr.entity.Entity;
 import org.rrr.model.CTexModel;
 import org.rrr.model.FullModel;
 import org.rrr.model.LwsAnimation;
 import org.rrr.model.MapMesh;
-
-import de.mm.entity.Entity;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL13.*;
@@ -54,9 +53,9 @@ public class Renderer {
 				glDrawElements(GL_TRIANGLES, 4*3, GL_UNSIGNED_INT, (i*mesh.width+j)*3*4*4);
 			}
 		}
-		s.setUniBoolean("lines", true);
-		for(int i = 0; i < mesh.height; i++)
-			glDrawElements(GL_LINE_STRIP, mesh.indCount/mesh.height, GL_UNSIGNED_INT, i*mesh.width*3*4*4);
+//		s.setUniBoolean("lines", true);
+//		for(int i = 0; i < mesh.height; i++)
+//			glDrawElements(GL_LINE_STRIP, mesh.indCount/mesh.height, GL_UNSIGNED_INT, i*mesh.width*3*4*4);
 		glDisableVertexAttribArray(0);
 		glDisableVertexAttribArray(1);
 		glDisableVertexAttribArray(2);
@@ -84,6 +83,7 @@ public class Renderer {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		render(model);
 		glBindTexture(GL_TEXTURE_2D, 0);
+		
 		
 	}
 	

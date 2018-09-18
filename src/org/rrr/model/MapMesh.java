@@ -2,7 +2,6 @@ package org.rrr.model;
 
 import java.io.File;
 import java.util.LinkedList;
-import java.util.Random;
 
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -19,6 +18,7 @@ public class MapMesh {
 	
 	public int[] inds;
 	public float[] points;
+	public float[] surfNorms;
 	public float[] texPos;
 	public float[] surfType;
 	public int vao;
@@ -29,7 +29,7 @@ public class MapMesh {
 	private MapData data;
 	
 	
-	public static final float HDIV = 10.0f;
+	public static final float HDIV = 14.0f;
 	public MapMesh(Loader l, File dir) throws Exception {
 		
 		File texDir = new File("LegoRR0/World/WorldTextures/RockSplit");
@@ -59,8 +59,9 @@ public class MapMesh {
 		this.height = data.height;
 		
 		this.points = new float[w*h*5*3];
+		this.surfNorms = new float[w*h*3*4];
 		this.texPos = new float[this.points.length];
-		this.surfType = new float[w*h*5];
+		this.surfType = new float[w*h];
 		this.inds = new int[w*h*4*3];
 		this.indCount = inds.length;
 		
@@ -69,22 +70,15 @@ public class MapMesh {
 		
 		for(int i = 0; i < h; i++) {
 			for(int j = 0; j < w; j++) {
-				setBaseMeshAndSurf(j, i, surf[j][i]);
-				if(surf[j][i] <= 4) {
-					checkNeighbours(surf, j, i);
-				}
-				int offset = (i*w+j)*15;
-				points[offset+(0*3)+1] += hMap[j][i]/HDIV;
-				if(i != h-1)points[offset+(1*3)+1] += hMap[j][i+1]/HDIV;
-				if(j != w-1) {
-					points[offset+(3*3)+1] += hMap[j+1][i]/HDIV;
-					if(i != h-1)
-						points[offset+(4*3)+1] += hMap[j+1][i+1]/HDIV;
-				}
-				
-				points[offset+(2*3)+1] += hMap[j][i]/HDIV;
+				setBaseMesh(j, i);
+				if(surf[j][i] <= 4)
+					createCliffForm(surf, j, i);
 			}
 		}
+		
+		for(int i = 0; i < h; i++)
+			for(int j = 0; j < w; j++)
+				genNormals(j, i);
 		
 		l.bufferMapMesh(this);
 		
@@ -94,99 +88,46 @@ public class MapMesh {
 		for(int i = 0; i < height; i++)
 			for(int j = 0; j < width; j++)
 				if(surf[j][i] <= 4)
-					checkNeighbours(surf, j, i);
+					createCliffForm(surf, j, i);
 	}
 	
-	private void checkNeighbours(int[][] surf, int x, int y) {
-		int offset = (y*width + x)*5;
-		boolean slope = false;
-		if(y != 0) {
-			if(x != 0) {
-				if(surf[x-1][y-1] > 4) {
-					slope = true;
-					points[(offset + 0)*3 + 1] = 0;
-				}
-			}
-			if(surf[x][y-1] > 4) {
-				slope = true;
-				points[(offset + 0)*3 + 1] = 0;
-				points[(offset + 3)*3 + 1] = 0;
-			}
-		}
-		if(x != 0) {
-			if(y != height-1) {
-				if(surf[x-1][y+1] > 4) {
-					slope = true;
-					points[(offset + 1)*3 + 1] = 0;
-				}
-			}
-			if(surf[x-1][y] > 4) {
-				slope = true;
-				points[(offset + 0)*3 + 1] = 0;
-				points[(offset + 1)*3 + 1] = 0;
-			}
-		}
-		if(y != height-1) {
-			if(x != width-1) {
-				if(surf[x+1][y+1] > 4) {
-					slope = true;
-					points[(offset + 4)*3 + 1] = 0;
-				}
-			}
-			if(surf[x][y+1] > 4) {
-				slope = true;
-				points[(offset + 1)*3 + 1] = 0;
-				points[(offset + 4)*3 + 1] = 0;
-			}
-		}
-		if(x != width-1) {
-			if(y != 0) {
-				if(surf[x+1][y-1] > 4) {
-					slope = true;
-					points[(offset + 3)*3 + 1] = 0;
-				}
-			}
-			if(surf[x+1][y] > 4) {
-				slope = true;
-				points[(offset + 4)*3 + 1] = 0;
-				points[(offset + 3)*3 + 1] = 0;
-			}
-		}
-		if(slope) {
-			points[(offset + 2)*3 + 1] = 0.5f;
-		}
+	private void createCliffForm(int[][] surf, int x, int y) {
+		
+		
+		
 	}
 	
 	private static final float[] BASE_MESH = {
 			0, 0, 0,
 			0, 0, 1,
-			0.5f, 0, 0.5f,
+			1, 0, 1,
 			1, 0, 0,
-			1, 0, 1
+			0.5f, 0, 0.5f
 	};
 	private static final int[] BASE_INDS = {
-			0, 2, 1,
-			1, 2, 4,
-			4, 2, 3,
-			3, 2, 0
+			0, 4, 1,
+			1, 4, 2,
+			2, 4, 3,
+			3, 4, 0
 	};
-	private void setBaseMeshAndSurf(int x, int y, int surf) {
-		int offset = y*width + x;
+	private void setBaseMesh(int x, int y) {
+		int offset = (x+y*width)*3*5;
 		for(int i = 0; i < 5; i++) {
-			surfType[offset*5 + i] = surf;
-			points[(offset*5 + i)*3 + 0] = x+BASE_MESH[i*3 + 0];
-			if(surf > 4)
-				points[(offset*5 + i)*3 + 1] = BASE_MESH[i*3 + 1];
-			else
-				points[(offset*5 + i)*3 + 1] = 1+BASE_MESH[i*3 + 1];
-				
-			points[(offset*5 + i)*3 + 2] = y+BASE_MESH[i*3 + 2];
-			texPos[(offset*5 + i)*3 + 0] = BASE_MESH[i*3 + 0];
-			texPos[(offset*5 + i)*3 + 1] = BASE_MESH[i*3 + 2];
+			points[offset+i*3+0] = BASE_MESH[i*3+0] + x;
+			points[offset+i*3+1] = BASE_MESH[i*3+1];
+			points[offset+i*3+2] = BASE_MESH[i*3+2] + y;
 		}
-		for(int i = 0; i < BASE_INDS.length; i++) {
-			inds[offset*4*3 + i] = offset*5 + BASE_INDS[i];
+	}
+	
+	private void genNormals(int x, int y) {
+		
+		int offset = (x+y*width)*3*5;
+		int off4 = offset + 4*3;
+		for(int i = 0; i < 4; i++) {
+			
+			offset += 3;
 		}
+		
 	}
 	
 }

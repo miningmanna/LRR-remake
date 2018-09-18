@@ -21,20 +21,18 @@ import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.system.MemoryStack;
 import org.newdawn.slick.opengl.Texture;
+import org.rrr.entity.Entity;
+import org.rrr.entity.EntityEngine;
 import org.rrr.map.MapData;
 import org.rrr.model.Loader;
 import org.rrr.model.MapMesh;
 
-import de.mm.entity.Entity;
-import de.mm.entity.EntityEngine;
 
-
-public class RockRaidersRebirth {
+public class RockRaidersRemake {
 	
 	private long window;
 	
-	public static final String VERSION = "0.1";
-	public static final String TITLE = "Rock Raiders remake v."+VERSION;
+	public static final String TITLE = "Rock Raiders remake";
 	public static final int WIDTH = 800;
 	public static final int HEIGHT = 600;
 	
@@ -120,7 +118,7 @@ public class RockRaidersRebirth {
 		}
 		
 		glfwMakeContextCurrent(window);
-//		glfwSwapInterval(1);
+		glfwSwapInterval(1);
 		glfwShowWindow(window);
 	}
 	
@@ -165,8 +163,8 @@ public class RockRaidersRebirth {
 		try {
 			entities.add(0, Entity.getEntity("captain"));
 			ent = Entity.getEntity("slug");
-			eng.bindScript(ent, "d = delta()\n" // Delta time
-								+ "move(0, 0, 5*d)"); // Lua script
+//			eng.bindScript(ent, new File("script.lua")); // Lua script
+//			eng.bindScript(entities.get(0), new File("script2.lua"));
 			ent.pos.z = 5;
 			entities.add(1, ent);
 		} catch (IOException e) {
@@ -207,7 +205,7 @@ public class RockRaidersRebirth {
 			if(input.isDown[GLFW_KEY_SPACE])
 				move.y += -0.1f;
 			if(input.isDown[GLFW_KEY_LEFT_SHIFT])
-				move.mul(10);
+				move.mul(40);
 			camera.move(move);
 			
 			if(input.justReleased[GLFW_KEY_E])
@@ -234,8 +232,7 @@ public class RockRaidersRebirth {
 			mapShader.start();
 			mapShader.setUniMatrix4f("cam", camera.combined);
 			m.identity();
-			m.scale(50);
-			m.translate(-10, 1, -10);
+			m.scale(40);
 			mapShader.setUniMatrix4f("mapTrans", m);
 			renderer.render(mapMesh, mapShader);
 			mapShader.stop();
@@ -279,7 +276,7 @@ public class RockRaidersRebirth {
 	}
 	
 	public static void main(String[] args) {
-		new RockRaidersRebirth().start();
+		new RockRaidersRemake().start();
 	}
 	
 }

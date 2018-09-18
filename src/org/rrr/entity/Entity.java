@@ -1,4 +1,4 @@
-package de.mm.entity;
+package org.rrr.entity;
 
 import java.io.File;
 import java.io.IOException;
@@ -7,6 +7,7 @@ import java.util.LinkedList;
 
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
+import org.luaj.vm2.LuaTable;
 import org.luaj.vm2.LuaValue;
 import org.rrr.RockRaiderPathFilter;
 import org.rrr.model.Loader;
@@ -26,10 +27,12 @@ public class Entity {
 	public int currentAnimation;
 	public LwsAnimation[] anims;
 	public LuaValue script;
+	public LuaTable mVars;
 	
 	public Entity() {
 		pos = new Vector3f();
 		rot = new Matrix4f().identity();
+		mVars = new LuaTable();
 	}
 	
 	public void step(float delta) {

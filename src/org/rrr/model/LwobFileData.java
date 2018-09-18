@@ -442,6 +442,7 @@ public class LwobFileData {
 	}
 	
 	public static class Surface {
+		
 		public String name;
 		public Vector3f color;
 		public short flags;
