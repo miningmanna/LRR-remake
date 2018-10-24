@@ -6,10 +6,12 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 
+import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
@@ -116,7 +118,6 @@ public class FLHFile {
 	private static void parseDTA_BRUN(FLHFile flh, byte[] seg, int offset, int len, int imageIndex) {
 		
 		BufferedImage res = new BufferedImage(flh.width, flh.height, BufferedImage.TYPE_INT_ARGB);
-		System.out.println(imageIndex);
 		
 		int x = 0;
 		int y = 0;
@@ -129,18 +130,7 @@ public class FLHFile {
 			if(repeat < 0) {
 				repeat = (byte) (repeat * -1);
 				for(int i = 0; i < repeat; i++) {
-					int rgb = 0x000000FF & seg[offset+i*2+2];
-					rgb = rgb << 8;
-					rgb |= 0x000000FF & seg[offset+i*2+1];
-					int r = (int) ((rgb >> 10) * (255.0f/31.0f));
-					int g = (int) (((rgb >> 5) & 0b00011111) * (255.0f/31.0f));
-					int b = (int) ((rgb & 0b00011111) * (255.0f/31.0f));
-					
-					rgb = 0x0000FF00 | r;
-					rgb = rgb << 8;
-					rgb |= g;
-					rgb = rgb << 8;
-					rgb |= b;
+					int rgb = getARGBFrom555RGB(seg, offset+i*2+1);
 					
 					res.setRGB(x, y, rgb);
 					x++;
@@ -148,18 +138,7 @@ public class FLHFile {
 				offset += repeat*2+1;
 			} else {
 				
-				int rgb = 0x000000FF & seg[offset+2];
-				rgb = rgb << 8;
-				rgb |= 0x000000FF & seg[offset+1];
-				int r = (int) ((rgb >> 10) * (255.0f/31.0f));
-				int g = (int) (((rgb >> 5) & 0b00011111) * (255.0f/31.0f));
-				int b = (int) ((rgb & 0b00011111) * (255.0f/31.0f));
-				
-				rgb = 0x0000FF00 | r;
-				rgb = rgb << 8;
-				rgb |= g;
-				rgb = rgb << 8;
-				rgb |= b;
+				int rgb = getARGBFrom555RGB(seg, offset+1);
 				
 				for(int i = 0; i < repeat; i++) {
 					res.setRGB(x, y, rgb);
@@ -176,6 +155,12 @@ public class FLHFile {
 				offset++;
 			}
 			
+		}
+		for(; y < flh.height; y++) {
+			for(; x < w; x++) {
+				res.setRGB(x, y, 0xFF000000);
+			}
+			x = 0;
 		}
 		
 		flh.frames.add(imageIndex, res);
@@ -200,8 +185,6 @@ public class FLHFile {
 			}
 			
 			int packCount = -1;
-			byte lastPixel = 0;
-			boolean hasLastPixel = false;
 			while(packCount == -1) {
 				short opcode = getShortLE(seg, offset);
 				offset += 2;
@@ -211,8 +194,7 @@ public class FLHFile {
 					packCount = opcode;
 					break;
 				case 2:
-					lastPixel = (byte) (opcode & 0x000000FF);
-					hasLastPixel = true;
+					System.out.println("Last Pixel?");
 					break;
 				case 3:
 					y += Math.abs(opcode) & 0x000000FF;
@@ -232,19 +214,7 @@ public class FLHFile {
 				if(repeat < 0) {
 					repeat = (byte) (-1*repeat);
 					
-					int rgb = 0x000000FF & seg[offset+1];
-					rgb = rgb << 8;
-					rgb |= 0x000000FF & seg[offset];
-					int r = (int) ((rgb >> 10) * (255.0f/31.0f));
-					int g = (int) (((rgb >> 5) & 0b00011111) * (255.0f/31.0f));
-					int b = (int) ((rgb & 0b00011111) * (255.0f/31.0f));
-					
-					rgb = 0x0000FF00 | r;
-					rgb = rgb << 8;
-					rgb |= g;
-					rgb = rgb << 8;
-					rgb |= b;
-					
+					int rgb = getARGBFrom555RGB(seg, offset);
 					for(int j = 0; j < repeat; j++) {
 						res.setRGB(x, y, rgb);
 						x++;
@@ -253,23 +223,7 @@ public class FLHFile {
 					offset += 2;
 				} else {
 					for(int j = 0; j < repeat; j++) {
-						
-						int rgb = 0x000000FF;
-						rgb &= seg[offset+j*2+1];
-						rgb = rgb << 8;
-						rgb |= 0x000000FF & lastPixel;
-						rgb |= 0x000000FF & seg[offset+j*2];
-						
-						int r = (int) ((rgb >> 10) * (255.0f/31.0f));
-						int g = (int) (((rgb >> 5) & 0b00011111) * (255.0f/31.0f));
-						int b = (int) ((rgb & 0b00011111) * (255.0f/31.0f));
-						
-						rgb = 0x0000FF00 | r;
-						rgb = rgb << 8;
-						rgb |= g;
-						rgb = rgb << 8;
-						rgb |= b;
-						
+						int rgb = getARGBFrom555RGB(seg, offset+j*2);
 						res.setRGB(x, y, rgb);
 						x++;
 					}
@@ -279,8 +233,8 @@ public class FLHFile {
 			}
 			y++;
 			
-			if(hasLastPixel)
-				offset--;
+//			if(hasLastPixel)
+//				offset--;
 			
 			linesDone++;
 			
@@ -290,8 +244,24 @@ public class FLHFile {
 		flh.frames.add(imageIndex, res);
 	}
 	
-	public int getARGBFrom555RGB(byte[] a, int offset) {
+	private static int getARGBFrom555RGB(byte[] a, int offset) {
 		
+		int rgb = 0x000000FF;
+		rgb &= a[offset+1];
+		rgb = rgb << 8;
+		rgb |= 0x000000FF & a[offset];
+		
+		int r = (int) ((rgb >> 10) * (255.0f/31.0f));
+		int g = (int) (((rgb >> 5) & 0b00011111) * (255.0f/31.0f));
+		int b = (int) ((rgb & 0b00011111) * (255.0f/31.0f));
+		
+		rgb = 0x0000FF00 | r;
+		rgb = rgb << 8;
+		rgb |= g;
+		rgb = rgb << 8;
+		rgb |= b;
+		
+		return rgb;
 	}
 	
 	private static short getShortLE(byte[] b, int off) {
@@ -325,7 +295,7 @@ public class FLHFile {
 	public static void main(String[] args) {
 		
 		try {
-			FileInputStream fin = new FileInputStream("CAPTY.FLH");
+			FileInputStream fin = new FileInputStream("DRILL.FLH");
 			FLHFile f = getFLHFile(fin);
 			fin.close();
 			
@@ -344,9 +314,9 @@ public class FLHFile {
 				
 				@Override
 				public void paint(Graphics arg0) {
-					arg0.drawImage(img, 0, 0, null);
-//					arg0.drawImage(img, 0, 0, 120, 120, null);
-					frame.repaint();
+//					arg0.drawImage(img, 0, 0, null);
+					arg0.drawImage(img, 0, 0, 120, 120, null);
+//					frame.repaint();
 				}
 				
 			});
@@ -405,6 +375,10 @@ public class FLHFile {
 			frame.pack();
 			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 			frame.setVisible(true);
+			
+			FileOutputStream out = new FileOutputStream("out.png");
+			ImageIO.write(img, "png", out);
+			out.close();
 			
 		} catch(IOException e) { 	
 			// TODO Auto-generated catch block

@@ -3,12 +3,11 @@ package org.rrr;
 import static org.lwjgl.glfw.Callbacks.*;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL13.GL_TEXTURE0;
-import static org.lwjgl.opengl.GL13.glActiveTexture;
 import static org.lwjgl.system.MemoryStack.*;
 import static org.lwjgl.system.MemoryUtil.*;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
@@ -20,10 +19,11 @@ import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.system.MemoryStack;
-import org.newdawn.slick.opengl.Texture;
+import org.rrr.cfg.LegoConfig;
+import org.rrr.cfg.LegoConfig.Node;
 import org.rrr.entity.Entity;
 import org.rrr.entity.EntityEngine;
-import org.rrr.map.MapData;
+import org.rrr.gui.Cursor;
 import org.rrr.model.Loader;
 import org.rrr.model.MapMesh;
 
@@ -38,9 +38,17 @@ public class RockRaidersRemake {
 	
 	private Loader loader;
 	private Renderer renderer;
+	private LegoConfig cfg;
 	
 	private Camera camera;
 	private Input input;
+	private Cursor cursor;
+	
+	private Shader entityShader;
+	private Shader mapShader;
+	private Shader uiShader;
+	
+	private Level currentLevel;
 	
 	public void start() {
 		
@@ -58,6 +66,15 @@ public class RockRaidersRemake {
 	}
 	
 	private void init() {
+		
+		
+		try {
+			FileInputStream in = new FileInputStream("LegoRR1/Lego.cfg");
+			cfg = LegoConfig.getConfig(in);
+			in.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		loader = new Loader();
 		renderer = new Renderer();
 		camera = new Camera();
@@ -65,6 +82,12 @@ public class RockRaidersRemake {
 		float aspect = (float)WIDTH / (HEIGHT);
 		camera.setFrustum(30, aspect, 0.1f, 10000);
 		camera.update();
+		cursor = new Cursor();
+		cursor.init((Node) cfg.get("Lego*/Pointers"), loader);
+		
+		
+		
+		// ----------------- GLFW INIT --------------
 		GLFWErrorCallback.createPrint(System.out).set();
 		
 		if(!glfwInit())
@@ -122,8 +145,6 @@ public class RockRaidersRemake {
 		glfwShowWindow(window);
 	}
 	
-	Shader entityShader;
-	Shader mapShader;
 	private void run() {
 		
 		GL.createCapabilities();
@@ -133,52 +154,36 @@ public class RockRaidersRemake {
 		glEnable(GL_TEXTURE_2D);
 		glEnable(GL_BLEND);
 		glEnable(GL_CULL_FACE);
+		glCullFace(GL_FRONT);
 		
 		entityShader = new Shader(new File("entityShader.vert"), new File("entityShader.frag"));
 		mapShader = new Shader(new File("mapShader.vert"), new File("mapShader.frag"));
+		uiShader = new Shader(new File("uiShader.vert"), new File("uiShader.frag"));
 		
 		Matrix4f m = new Matrix4f();
 		m.identity();
 		m.translate(new Vector3f(0, 0, 5));
 		
 		
-		/**
-		*	TODO:
-		*	TODO:
-		*	TODO:
-		*	Change the lwsFileName and the lwsDir, to match the wished models lws files name and dir.
-		*	The sharedDir should be left as is. In all cases (i think) it is the right choice.
-		*	Maybe the vehicles are a bit different, they have a shared folder as well.
-		*
-		*/
 		ArrayList<Entity> entities = new ArrayList<>();
 		EntityEngine eng = new EntityEngine();
 		
 		Entity.setLoader(loader);
 		Entity.setSharedFolder(new File("LegoRR0/World/Shared"));
 		Entity.loadEntity(new File("LegoRR0/Mini-Figures/CAPTAIN"), "captain");
-		Entity.loadEntity(new File("LegoRR0/Creatures/Slug"), 		"slug");
-		Entity.loadEntity(new File("LegoRR0/Mini-Figures/Pilot"), 	"Pilot");
-		Entity ent = null;
-		try {
-			entities.add(0, Entity.getEntity("captain"));
-			ent = Entity.getEntity("slug");
-//			eng.bindScript(ent, new File("script.lua")); // Lua script
-//			eng.bindScript(entities.get(0), new File("script2.lua"));
-			ent.pos.z = 5;
-			entities.add(1, ent);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		Entity.loadEntity(new File("LegoRR0/Buildings/Barracks"), 		"barracks");
 		
-		MapMesh mapMesh = null;
+		Node l2cfg = (Node) cfg.get("Lego*/Levels/Level01");
+		
 		try {
-			mapMesh = new MapMesh(loader, new File("LegoRR0/Levels/GameLevels/Level02"));
+			currentLevel = new Level(this, l2cfg);
+			currentLevel.spawn("captain");
 		} catch (Exception e2) {
 			// TODO Auto-generated catch block
 			e2.printStackTrace();
 		}
 		
+		// FPS Counting
 		float time = 0;
 		int frames = 0;
 		
@@ -186,6 +191,7 @@ public class RockRaidersRemake {
 		float delta = 0;
 		long nano = 0, _nano = 0;
 		while(!glfwWindowShouldClose(window)) {
+			
 			glDepthMask(true);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			
@@ -213,42 +219,31 @@ public class RockRaidersRemake {
 			if(input.justReleased[GLFW_KEY_Q])
 				speed /= 1.2f;
 			
-			if(input.justReleased[GLFW_KEY_UP])
-				ent.pos.add(0, 0, 1);
-			if(input.justReleased[GLFW_KEY_DOWN])
-				ent.pos.add(0, 0, -1);
-			if(input.justReleased[GLFW_KEY_RIGHT])
-				ent.pos.add(1, 0, 0);
-			if(input.justReleased[GLFW_KEY_LEFT])
-				ent.pos.add(-1, 0, 0);
-			if(input.justReleased[GLFW_KEY_R])
-				ent.rot.rotateY((float) (Math.PI/8));
-			
-			if(input.justReleased[GLFW_KEY_UP])
-				ent.currentAnimation = (ent.currentAnimation +1)%ent.anims.length;
+//			if(input.justReleased[GLFW_KEY_UP])
+//				ent.pos.add(0, 0, 1);
+//			if(input.justReleased[GLFW_KEY_DOWN])
+//				ent.pos.add(0, 0, -1);
+//			if(input.justReleased[GLFW_KEY_RIGHT])
+//				ent.pos.add(1, 0, 0);
+//			if(input.justReleased[GLFW_KEY_LEFT])
+//				ent.pos.add(-1, 0, 0);
+//			if(input.justReleased[GLFW_KEY_R])
+//				ent.rot.rotateY((float) (Math.PI/8));
+//			
+//			if(input.justReleased[GLFW_KEY_UP])
+//				ent.currentAnimation = (ent.currentAnimation +1)%ent.anims.length;
 			
 			camera.update();
 			
-			mapShader.start();
-			mapShader.setUniMatrix4f("cam", camera.combined);
-			m.identity();
-			m.scale(40);
-			mapShader.setUniMatrix4f("mapTrans", m);
-			renderer.render(mapMesh, mapShader);
-			mapShader.stop();
 			
-			entityShader.start();
-			entityShader.setUniMatrix4f("cam", camera.combined);
-			entityShader.setUniMatrix4f("modelTrans", m);
+			currentLevel.step(delta);
+			currentLevel.render();
 			
-			for(int i = 0; i < entities.size(); i++) {
-				renderer.render(entities.get(i), entityShader);
-			}
 			
-			entityShader.stop();
-				
 			glfwSwapBuffers(window);
 			
+			
+			// Delta Time
 			_nano = System.nanoTime();
 			delta = (float) (_nano - nano) / 1000000000;
 			nano = _nano;
@@ -261,6 +256,7 @@ public class RockRaidersRemake {
 				}
 			}
 			
+			// FPS Counting
 			frames++;
 			time += delta;
 			if(time > 1.0f) {
@@ -277,6 +273,46 @@ public class RockRaidersRemake {
 	
 	public static void main(String[] args) {
 		new RockRaidersRemake().start();
+	}
+
+	public Loader getLoader() {
+		return loader;
+	}
+
+	public Renderer getRenderer() {
+		return renderer;
+	}
+
+	public LegoConfig getCfg() {
+		return cfg;
+	}
+
+	public Camera getCamera() {
+		return camera;
+	}
+
+	public Input getInput() {
+		return input;
+	}
+
+	public Cursor getCursor() {
+		return cursor;
+	}
+
+	public Shader getEntityShader() {
+		return entityShader;
+	}
+
+	public Shader getMapShader() {
+		return mapShader;
+	}
+
+	public Shader getUiShader() {
+		return uiShader;
+	}
+
+	public Level getCurrentLevel() {
+		return currentLevel;
 	}
 	
 }

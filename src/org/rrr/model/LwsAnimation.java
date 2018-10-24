@@ -19,6 +19,9 @@ public class LwsAnimation {
 	public int nextframe;
 	
 	public void step(float delta) {
+		if(bd.frames == 0) {
+			return;
+		}
 		time += delta;
 		time -= (Math.floor(time/bd.runlen) * bd.runlen);
 		frame = (int) Math.floor(time*bd.fps)%bd.frames;

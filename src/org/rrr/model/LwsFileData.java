@@ -7,7 +7,9 @@ import java.io.IOException;
 import java.util.LinkedList;
 
 import org.joml.Matrix4f;
+import org.joml.Quaternionf;
 import org.joml.Vector3f;
+import org.lwjglx.util.vector.Quaternion;
 
 public class LwsFileData {
 	
@@ -288,15 +290,21 @@ public class LwsFileData {
 			if(transform[i] != null)
 				return;
 			
-			Matrix4f m = new Matrix4f();
-			m.identity();
-			m.translate(objectRelPos[i]);
-//			m.rotateAround(new Quaternionf().rotateAxis(objectRelRot[i].x, new Vector3f(1,0,0)), objectPivot[i].x, objectPivot[i].y, objectPivot[i].z);
-//			m.rotateAround(new Quaternionf().rotateAxis(objectRelRot[i].y, new Vector3f(0,1,0)), objectPivot[i].x, objectPivot[i].y, objectPivot[i].z);
-//			m.rotateAround(new Quaternionf().rotateAxis(objectRelRot[i].z, new Vector3f(0,0,1)), objectPivot[i].x, objectPivot[i].y, objectPivot[i].z);
-			m.rotateYXZ(objectRelRot[i]);
-//			m.translate(objectPivot[i].x, objectPivot[i].y, objectPivot[i].z);
-			m.scale(scales[i]);
+			Matrix4f m = new Matrix4f().identity();
+			
+			Quaternionf rot = new Quaternionf();
+			rot.rotateYXZ(objectRelRot[i].y, objectRelRot[i].x, objectRelRot[i].z);
+//			m.scale(scales[i]);
+			m.rotateAround(rot, objectPivot[i].x, objectPivot[i].y, objectPivot[i].z);
+//			m.origin(new Vector3f(0));
+			
+			m.scaleAround(scales[i].x, scales[i].y, scales[i].z, objectPivot[i].x, objectPivot[i].y, objectPivot[i].z);
+			m._m30(objectRelPos[i].x);
+			m._m31(objectRelPos[i].y);
+			m._m32(objectRelPos[i].z);
+			
+//			m.translate(objectRelPos[i]);
+			
 			alpha[i] = relalpha[i];
 			if(parent[i] != -1) {
 				genTransform(parent[i]);

@@ -2,8 +2,8 @@ package org.rrr.map;
 
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Graphics;import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
+import java.awt.Graphics;
+import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 
 import javax.swing.JLabel;
@@ -11,23 +11,9 @@ import javax.swing.JPanel;
 
 public class MapVis extends JPanel {
 	
-	public int[][] data;
-	private Color[] colors = {
-			Color.BLACK,
-			Color.BLUE,
-			Color.RED,
-			Color.GREEN,
-			Color.MAGENTA,
-			Color.YELLOW,
-			Color.CYAN,
-			Color.PINK,
-			Color.GRAY,
-			Color.WHITE,
-			Color.ORANGE,
-			Color.LIGHT_GRAY,
-			Color.DARK_GRAY
-	};
+	private static final long serialVersionUID = -7895659645758561024L;
 	
+	public int[][] data;
 	private JLabel surfNum;
 	
 	public MapVis(int[][] data) {

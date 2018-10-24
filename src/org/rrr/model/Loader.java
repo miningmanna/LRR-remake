@@ -14,19 +14,21 @@ import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.Vector;
 
-import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
 import org.newdawn.slick.opengl.Texture;
 import org.newdawn.slick.opengl.TextureLoader;
+import org.rrr.cfg.LegoConfig.Node;
+import org.rrr.gui.Cursor;
 
 public class Loader {
 	
 	private ArrayList<Integer> vaos, vbos;
 	private HashMap<String, CTexModel> ctexmodels;
 	private HashMap<String, Texture> texs;
+	
+	private int guiVao;
 	
 	public Loader() {
 		vaos = new ArrayList<>();
@@ -45,7 +47,7 @@ public class Loader {
 		}
 	}
 	
-	public FullModel getFullModel(float[] verts, float[] colors, int[] inds) {
+	public ColorModel getColorModel(float[] verts, float[] colors, int[] inds) {
 		
 		int vao = glGenVertexArrays();
 		glBindVertexArray(vao);
@@ -62,19 +64,20 @@ public class Loader {
 		intBuff.flip();
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, intBuff, GL_STATIC_READ);
 		
-		FullModel model = new FullModel(vao, inds.length);
+		ColorModel model = new ColorModel(vao, inds.length);
 		return model;
 		
 	}
 	
 	public void bufferMapMesh(MapMesh mapMesh) {
+		
 		int vao = glGenVertexArrays();
 		glBindVertexArray(vao);
 		vaos.add(vao);
 		
 		loadVertexIntoVBO(0, mapMesh.points, 3);
 		loadVertexIntoVBO(1, mapMesh.norms, 3);
-		loadVertexIntoVBO(2, mapMesh.texPos, 3);
+		loadVertexIntoVBO(2, mapMesh.texPos, 2);
 		loadVertexIntoVBO(3, mapMesh.surfType, 1);
 		
 		int indVbo = glGenBuffers();
@@ -277,6 +280,7 @@ public class Loader {
 		return vbo;
 	}
 	
+	@SuppressWarnings("unused")
 	private int loadIntegerIntoVBO(int pos, int[] ints, int dim) {
 		int vbo = glGenBuffers();
 		glBindBuffer(GL_ARRAY_BUFFER, vbo);

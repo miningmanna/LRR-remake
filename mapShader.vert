@@ -2,12 +2,12 @@
 
 layout(location = 0) in vec3 pos;
 layout(location = 1) in vec3 norm;
-layout(location = 2) in vec3 texPos;
+layout(location = 2) in vec2 texPos;
 layout(location = 3) in float surfType;
 
 out vec3 mPos;
 out vec3 mNorm;
-out vec3 mTexPos;
+out vec2 mTexPos;
 out float mSurfType;
 
 uniform mat4 cam;

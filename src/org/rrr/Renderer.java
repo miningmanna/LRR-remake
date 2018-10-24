@@ -2,8 +2,9 @@ package org.rrr;
 
 import org.newdawn.slick.opengl.Texture;
 import org.rrr.entity.Entity;
+import org.rrr.gui.Cursor;
 import org.rrr.model.CTexModel;
-import org.rrr.model.FullModel;
+import org.rrr.model.ColorModel;
 import org.rrr.model.LwsAnimation;
 import org.rrr.model.MapMesh;
 
@@ -27,29 +28,11 @@ public class Renderer {
 		glActiveTexture(GL_TEXTURE0);
 		int texIndex = 0;
 		s.setUniBoolean("lines", false);
+		
 		for(int i = 0; i < mesh.height; i++) {
 			for(int j = 0; j < mesh.width; j++) {
-				switch (mesh.surf[j][i]) {
-				case 1:
-					texIndex = 5;
-					break;
-				case 2:
-				case 3:
-				case 4:
-					texIndex = mesh.surf[j][i]-1;
-					break;
-				case 5:
-					texIndex = 0;
-					break;
-				case 6:
-					texIndex = 28;
-					break;
-					
-				default:
-					texIndex = mesh.surf[j][i];
-					break;
-				}
-				glBindTexture(GL_TEXTURE_2D, mesh.texs[texIndex].getTextureID());
+				texIndex = mesh.tex[j][i];
+				glBindTexture(GL_TEXTURE_2D, mesh.texs.get(texIndex).getTextureID());
 				glDrawElements(GL_TRIANGLES, 4*3, GL_UNSIGNED_INT, (i*mesh.width+j)*3*4*4);
 			}
 		}
@@ -63,7 +46,7 @@ public class Renderer {
 		
 	}
 	
-	public void render(FullModel model) {
+	public void render(ColorModel model) {
 		
 		glBindVertexArray(model.vao);
 		glEnableVertexAttribArray(0);
@@ -75,7 +58,7 @@ public class Renderer {
 		
 	}
 	
-	public void render(FullModel model, Texture tex, int frame) {
+	public void render(ColorModel model, Texture tex, int frame) {
 		
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, tex.getTextureID());
@@ -181,7 +164,11 @@ public class Renderer {
 		
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_CULL_FACE);
-		glCullFace(GL_BACK);
+		glCullFace(GL_FRONT);
+		
+	}
+
+	public void render(Cursor cursor) {
 		
 	}
 	
