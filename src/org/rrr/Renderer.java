@@ -3,8 +3,10 @@ package org.rrr;
 import org.newdawn.slick.opengl.Texture;
 import org.rrr.entity.Entity;
 import org.rrr.gui.Cursor;
+import org.rrr.gui.Cursor.CursorAnimation;
 import org.rrr.model.CTexModel;
 import org.rrr.model.ColorModel;
+import org.rrr.model.Loader;
 import org.rrr.model.LwsAnimation;
 import org.rrr.model.MapMesh;
 
@@ -14,9 +16,22 @@ import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL30.*;
 
 import org.joml.Matrix4f;
+import org.joml.Vector2f;
 import org.joml.Vector3f;
 
 public class Renderer {
+	
+	public float pWidth = RockRaidersRemake.WIDTH, pHeight = RockRaidersRemake.HEIGHT;
+	
+	private int uiVao;
+	public void init(Loader l) {
+		
+		
+		System.out.println("VAO BEFORE: " + uiVao);
+		uiVao = l.getUiModel();
+		System.out.println("VAO AFTER " + uiVao);
+		
+	}
 	
 	public void render(MapMesh mesh, Shader s) {
 		
@@ -70,7 +85,6 @@ public class Renderer {
 		
 	}
 	
-	public int surfi = 0;
 	public void render(CTexModel cmodel, Shader s) {
 		
 		glActiveTexture(GL_TEXTURE0);
@@ -167,9 +181,54 @@ public class Renderer {
 		glCullFace(GL_FRONT);
 		
 	}
-
-	public void render(Cursor cursor) {
+	
+	public void render(Cursor cursor, Shader s) {
 		
+		s.setUniMatrix4f("trans", new Matrix4f().identity());
+		Vector2f scale = new Vector2f(transWidth(cursor.w), transHeight(cursor.h));
+		s.setUniVector2f("scale", scale);
+		Vector3f translate = new Vector3f(transWidth(cursor.x)-1f, 1f-transHeight(cursor.y), 0);
+		s.setUniVector3f("translate", translate);
+		glDisable(GL_CULL_FACE);
+		
+		glBindVertexArray(uiVao);
+		glEnableVertexAttribArray(0);
+		glEnableVertexAttribArray(1);
+		if(cursor.curAnimation == -1) {
+			cursor.base.bind();
+			glBindTexture(GL_TEXTURE_2D, cursor.base.getTextureID());
+			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		} else {
+			CursorAnimation anim = cursor.animations[cursor.curAnimation];
+			if(anim.usesBaseTex) {
+				glBindTexture(GL_TEXTURE_2D, cursor.base.getTextureID());
+				glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+			}
+			
+			glBindTexture(GL_TEXTURE_2D, anim.texs[anim.frame].getTextureID());
+			
+			scale.x = transWidth(anim.w);
+			scale.y = transHeight(anim.h);
+			translate.x = transWidth(cursor.x+anim.x)-1f;
+			translate.y = 1f-transHeight(cursor.y+anim.y);
+			s.setUniVector2f("scale", scale);
+			s.setUniVector3f("translate", translate);
+			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		}
+		
+		glDisableVertexAttribArray(0);
+		glDisableVertexAttribArray(1);
+		glBindVertexArray(0);
+		
+		glEnable(GL_CULL_FACE);
+		glCullFace(GL_FRONT);
 	}
 	
+	public float transWidth(int x) {
+		return x*2.0f/pWidth;
+	}
+	public float transHeight(int y) {
+		return y*2.0f/pHeight;
+	}
+
 }

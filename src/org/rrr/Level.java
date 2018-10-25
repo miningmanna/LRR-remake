@@ -1,8 +1,6 @@
 package org.rrr;
 
-import static org.lwjgl.opengl.GL11.GL_DEPTH;
-import static org.lwjgl.opengl.GL11.glDisable;
-import static org.lwjgl.opengl.GL11.glEnable;
+import static org.lwjgl.opengl.GL11.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -37,6 +35,7 @@ public class Level {
 		this.uiShader = par.getUiShader();
 		this.entityShader = par.getEntityShader();
 		this.camera = par.getCamera();
+		this.cursor = par.getCursor();
 		entities = new ArrayList<>();
 		
 	}
@@ -53,6 +52,13 @@ public class Level {
 		
 	}
 	
+	public void incrementIndex() {
+		cursor.curAnimation += 1;
+		cursor.curAnimation %= cursor.animations.length;
+		cursor.animations[cursor.curAnimation].frame = 0;
+		System.out.println("Cursor: " + cursor.animations[cursor.curAnimation].name);
+	}
+	
 	public void render() {
 		
 		mapShader.start();
@@ -61,6 +67,8 @@ public class Level {
 		m.identity();
 		m.scale(40);
 		mapShader.setUniMatrix4f("mapTrans", m);
+		cursor.animations[cursor.curAnimation].frame++;
+		cursor.animations[cursor.curAnimation].frame %= cursor.animations[cursor.curAnimation].texs.length;
 		renderer.render(mapMesh, mapShader);
 		mapShader.stop();
 		
@@ -77,7 +85,7 @@ public class Level {
 		// Draw UI
 		glDisable(GL_DEPTH);
 		uiShader.start();
-		renderer.render(cursor);
+		renderer.render(cursor, uiShader);
 		uiShader.stop();
 		glEnable(GL_DEPTH);
 		

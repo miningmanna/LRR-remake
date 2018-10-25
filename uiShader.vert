@@ -12,8 +12,8 @@ uniform mat4 trans;
 
 void main() {
 	
-	vec3 _scale = vec3(scale, 1.0),
-	gl_Position = ((trans * vec4(pos*_scale, 1)) + vec4(translate, 0)).xyz;
+	vec3 _scale = vec3(scale, 1.0);
+	gl_Position = ((trans * vec4(pos*_scale, 1)) + vec4(translate, 0));
 	
 	mTexPos = texPos;
 	

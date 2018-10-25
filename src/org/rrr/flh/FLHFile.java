@@ -59,6 +59,7 @@ public class FLHFile {
 		while((flength - offset) > 0) {
 			in.read(segHeader);
 			int segLen = -6 + getIntLE(segHeader, 0);
+			System.out.println("segLen: " + segLen);
 			byte[] seg = new byte[segLen];
 			in.read(seg);
 			offset += segLen + 6;
@@ -69,8 +70,7 @@ public class FLHFile {
 				System.out.println("Segment table present!");
 				break;
 			case (short) 0xF1FA:
-				parseFRAME_TYPE(flh, seg, imageIndex);
-				imageIndex++;
+				imageIndex += parseFRAME_TYPE(flh, seg, imageIndex);
 				break;
 			default:
 				System.out.println("Unknown chunk type: " + Integer.toHexString(segType));
@@ -83,17 +83,25 @@ public class FLHFile {
 		return flh;
 	}
 	
-	
-	private static void parseFRAME_TYPE(FLHFile flh, byte[] seg, int imageIndex) {
-		
+	static int _curFrame = 0;
+	private static int parseFRAME_TYPE(FLHFile flh, byte[] seg, int imageIndex) {
+		System.out.println(seg.length);
 		int offset = 0;
 		short lchunks = getShortLE(seg, offset);
+		System.out.println("frames: " + flh.lframes + " " + _curFrame);
+		System.out.println("chunks: " + Integer.toHexString(lchunks));
+		_curFrame++;
 		if(lchunks > 1)
 			System.out.println("More than one sub-chunk");
 		offset += 2;
 		offset += 2;
 		offset += 2; // reserver = 0
 		offset += 4; // width and height should be 0
+		
+		if(seg.length < 16) {
+			flh.lframes -= 1;
+			return 0;
+		}
 		
 		int subLen = getIntLE(seg, offset);
 		subLen -= 6;
@@ -112,7 +120,7 @@ public class FLHFile {
 			System.out.println("Unsupported sub-chunk type: " + chunkType);
 			break;
 		}
-		
+		return 1;
 	}
 	
 	private static void parseDTA_BRUN(FLHFile flh, byte[] seg, int offset, int len, int imageIndex) {
@@ -295,7 +303,7 @@ public class FLHFile {
 	public static void main(String[] args) {
 		
 		try {
-			FileInputStream fin = new FileInputStream("DRILL.FLH");
+			FileInputStream fin = new FileInputStream("LegoRR0/Interface/Pointers/PIKUPORE.FLH");
 			FLHFile f = getFLHFile(fin);
 			fin.close();
 			

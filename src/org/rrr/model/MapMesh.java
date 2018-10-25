@@ -96,10 +96,11 @@ public class MapMesh {
 		
 		for(int i = 0; i < h; i++) {
 			for(int j = 0; j < w; j++) {
-				if(surf[j][i] > 4)
-					genDiagonal(j, i, true);
-				else
-					createCliffForm(j, i);
+//				if(surf[j][i] > 4)
+				createCliffForm(j, i);
+				genDiagonal(j, i, true);
+//				else
+					
 				genNormals(j, i);
 			}
 		}
@@ -114,6 +115,24 @@ public class MapMesh {
 					createCliffForm(j, i);
 	}
 	
+	
+	private static class TileChange {
+		int x, y, type;
+	}
+	private void updateCaveMap() {
+		
+		LinkedList<TileChange> changes = new LinkedList<>();
+		
+		for(int i = 0; i < height; i++) {
+			for(int j = 0; j < width; j++) {
+				if(surf[j][i] <= 4) {
+					
+				}
+			}
+		}
+		
+	}
+	
 	private void createCliffForm(int x, int y) {
 		if(x >= width-1 || y >= height-1)
 			return;
@@ -123,14 +142,13 @@ public class MapMesh {
 				hMap[x+1][y+1] / HDIV,
 				hMap[x+1][y] / HDIV
 		};
-		boolean isCave = false;
-		boolean zeroTwo = true;
+		boolean isCave = caveMap[x][y] == 1;
 		for(int i = 0; i < 4; i++) {
 			
 			if(!isGround(x, y, i)) {
 				setVertY(x, y, i, temp[i]+1);
 			} else {
-				isCave = true;
+				isCave = isCave && true;
 			}
 			
 		}
@@ -138,6 +156,7 @@ public class MapMesh {
 		if(isCave) {
 			
 		} else {
+//			tex[x][y] = 76;
 			System.out.println("not cave");
 		}
 	}
@@ -286,7 +305,7 @@ public class MapMesh {
 	
 	private int getTexIndex(int x, int y) {
 		
-		boolean isCave = caveMap[x][y] != 0;
+		boolean isCave = true;//caveMap[x][y] == 1;
 		boolean hasGround = false;
 		for(int i = 0; i < 4; i++) {
 			if(isGround(x, y, i)) {
@@ -298,9 +317,9 @@ public class MapMesh {
 		if(x == 11 && y == 5)
 			System.out.println("Has Ground: " + hasGround);
 		
-		isCave = isCave || hasGround;
+		isCave = isCave && hasGround;
 		
-		if(hasGround) {
+		if(isCave) {
 			
 			if(surf[x][y] < 5) {
 				

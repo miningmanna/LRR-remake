@@ -36,6 +36,8 @@ public class RockRaidersRemake {
 	public static final int WIDTH = 800;
 	public static final int HEIGHT = 600;
 	
+	private int pWidth = WIDTH, pHeight = HEIGHT;
+	
 	private Loader loader;
 	private Renderer renderer;
 	private LegoConfig cfg;
@@ -83,7 +85,6 @@ public class RockRaidersRemake {
 		camera.setFrustum(30, aspect, 0.1f, 10000);
 		camera.update();
 		cursor = new Cursor();
-		cursor.init((Node) cfg.get("Lego*/Pointers"), loader);
 		
 		
 		
@@ -120,6 +121,11 @@ public class RockRaidersRemake {
 					first = false;
 					return;
 				}
+				
+				cursor.x += dx;
+				cursor.x = (int) clamp(cursor.x, 0, pWidth-cursor.w);
+				cursor.y += dy;
+				cursor.y = (int) clamp(cursor.y, 0, pHeight-cursor.h);
 				
 				camera.rotateY((float) (-dy * 0.001f));
 				camera.rotateX((float) (-dx * 0.001f));
@@ -183,6 +189,9 @@ public class RockRaidersRemake {
 			e2.printStackTrace();
 		}
 		
+		cursor.init((Node) cfg.get("Lego*/Pointers"), loader);
+		renderer.init(loader);
+		
 		// FPS Counting
 		float time = 0;
 		int frames = 0;
@@ -219,8 +228,8 @@ public class RockRaidersRemake {
 			if(input.justReleased[GLFW_KEY_Q])
 				speed /= 1.2f;
 			
-//			if(input.justReleased[GLFW_KEY_UP])
-//				ent.pos.add(0, 0, 1);
+			if(input.justReleased[GLFW_KEY_UP])
+				currentLevel.incrementIndex();
 //			if(input.justReleased[GLFW_KEY_DOWN])
 //				ent.pos.add(0, 0, -1);
 //			if(input.justReleased[GLFW_KEY_RIGHT])
@@ -238,7 +247,6 @@ public class RockRaidersRemake {
 			
 			currentLevel.step(delta);
 			currentLevel.render();
-			
 			
 			glfwSwapBuffers(window);
 			
@@ -269,6 +277,10 @@ public class RockRaidersRemake {
 			glfwPollEvents();
 		}
 		
+	}
+	
+	public static float clamp(float val, float min, float max) {
+		return Math.max(min, Math.min(max, val));
 	}
 	
 	public static void main(String[] args) {

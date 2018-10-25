@@ -5,10 +5,12 @@ import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL30.*;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
@@ -17,6 +19,7 @@ import java.util.LinkedList;
 
 import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
+import org.lwjgl.opengl.GL;
 import org.newdawn.slick.opengl.Texture;
 import org.newdawn.slick.opengl.TextureLoader;
 import org.rrr.cfg.LegoConfig.Node;
@@ -45,6 +48,37 @@ public class Loader {
 			texs.put(f.getAbsolutePath(), t);
 			return t;
 		}
+	}
+	
+	public Texture getTexture(BufferedImage img) {
+		
+		int id;
+		
+		id = glGenTextures();
+		glBindTexture(GL_TEXTURE_2D, id);
+		
+		int[] pixels = new int[img.getHeight()*img.getWidth()];
+		img.getRGB(0, 0, img.getWidth(), img.getHeight(), pixels, 0, img.getWidth());
+		ByteBuffer buffer = BufferUtils.createByteBuffer(img.getWidth() * img.getHeight() * 4); //4 for RGBA, 3 for RGB
+		for(int y = 0; y < img.getHeight(); y++){
+			for(int x = 0; x < img.getWidth(); x++){
+				int pixel = pixels[y * img.getWidth() + x];
+				buffer.put((byte) ((pixel >> 16) & 0xFF));
+				buffer.put((byte) ((pixel >> 8) & 0xFF));
+				buffer.put((byte) (pixel & 0xFF));
+				buffer.put((byte) ((pixel >> 24) & 0xFF));
+			}
+		}
+		
+		buffer.flip();
+		
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, img.getWidth(), img.getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+		
+		glBindTexture(GL_TEXTURE_2D, 0);
+		
+		return new MTexture(id);
 	}
 	
 	public ColorModel getColorModel(float[] verts, float[] colors, int[] inds) {
@@ -308,6 +342,49 @@ public class Loader {
 	
 	public ObjFileData getObjFileData(File f) throws IOException {
 		return ObjFileData.getObjFileData(f);
+	}
+
+	public int getUiModel() {
+		
+		float[] verts = {
+				0, 0, 0,
+				1, 0, 0,
+				0, -1, 0,
+				0, -1, 0,
+				1, -1, 0,
+				1, 0, 0
+		};
+		float[] texpos = {
+				0, 0,
+				1, 0,
+				0, 1,
+				0, 1,
+				1, 1,
+				1, 0,
+		};
+		int[] inds = {
+				0, 1, 2,
+				3, 4, 5,
+		};
+		
+		int vao = glGenVertexArrays();
+		glBindVertexArray(vao);
+		vaos.add(vao);
+		
+		loadVertexIntoVBO(0, verts, 3);
+		loadVertexIntoVBO(1, texpos, 2);
+		
+		int indVbo = glGenBuffers();
+		vbos.add(indVbo);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indVbo);
+		IntBuffer intBuff = BufferUtils.createIntBuffer(inds.length);
+		intBuff.put(inds);
+		intBuff.flip();
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, intBuff, GL_STATIC_READ);
+		
+		glBindVertexArray(0);
+		
+		return vao;
 	}
 	
 }
