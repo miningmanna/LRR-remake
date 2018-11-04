@@ -1,7 +1,11 @@
 package org.rrr;
 
+import java.io.UnsupportedEncodingException;
+
+import org.lwjgl.opengl.GL11;
 import org.newdawn.slick.opengl.Texture;
 import org.rrr.entity.Entity;
+import org.rrr.gui.BitMapFont;
 import org.rrr.gui.Cursor;
 import org.rrr.gui.Cursor.CursorAnimation;
 import org.rrr.model.CTexModel;
@@ -46,7 +50,7 @@ public class Renderer {
 		
 		for(int i = 0; i < mesh.height; i++) {
 			for(int j = 0; j < mesh.width; j++) {
-				texIndex = mesh.tex[j][i];
+				texIndex = mesh.tex[i][j];
 				glBindTexture(GL_TEXTURE_2D, mesh.texs.get(texIndex).getTextureID());
 				glDrawElements(GL_TRIANGLES, 4*3, GL_UNSIGNED_INT, (i*mesh.width+j)*3*4*4);
 			}
@@ -187,6 +191,10 @@ public class Renderer {
 		s.setUniMatrix4f("trans", new Matrix4f().identity());
 		Vector2f scale = new Vector2f(transWidth(cursor.w), transHeight(cursor.h));
 		s.setUniVector2f("scale", scale);
+		Vector2f texScale = new Vector2f(1, 1);
+		s.setUniVector2f("texScale", texScale);
+		Vector2f texPos = new Vector2f(0, 0);
+		s.setUniVector2f("texOffset", texPos);
 		Vector3f translate = new Vector3f(transWidth(cursor.x)-1f, 1f-transHeight(cursor.y), 0);
 		s.setUniVector3f("translate", translate);
 		glDisable(GL_CULL_FACE);
@@ -224,11 +232,64 @@ public class Renderer {
 		glCullFace(GL_FRONT);
 	}
 	
-	public float transWidth(int x) {
+	public void drawString(Shader s, int x, int y, BitMapFont f, String str, float scalef) {
+		
+		byte[] inds = null;
+		try {
+			inds = str.getBytes("Cp850");
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+		
+		glDisable(GL_CULL_FACE);
+		
+		glBindVertexArray(uiVao);
+		glEnableVertexAttribArray(0);
+		glEnableVertexAttribArray(1);
+		
+		Vector3f trans = new Vector3f();
+		Vector2f tScale = new Vector2f(1, 1);
+		Vector2f tPos = new Vector2f();
+		Vector2f scale = new Vector2f(transWidth(f.blockLength)*scalef, transHeight(f.blockLength)*scalef);
+		int px = 0;
+		glBindTexture(GL_TEXTURE_2D, f.atlas.getTextureID());
+		f.atlas.setTextureFilter(GL11.GL_NEAREST);
+		tScale.y = f.glBlockLengthY;
+		for(int i = 0; i < inds.length; i++) {
+			
+			trans.x = transWidth(x + (px*scalef))-1f;
+			trans.y = 1f-transHeight(y);
+			
+			int ind = (0x00FF & inds[i])-32;
+			
+			scale.x = transWidth(f.widths[ind])*scalef;
+			
+			tScale.x = f.glWidths[ind];
+			
+			tPos.x = (ind%10)*f.glBlockLengthX;
+			tPos.y = (Math.floorDiv(ind, 10))*f.glBlockLengthY;
+			
+			s.setUniVector3f("translate", trans);
+			s.setUniVector2f("scale", scale);
+			s.setUniVector2f("texScale", tScale);
+			s.setUniVector2f("texOffset", tPos);
+			
+			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+			
+			px += f.widths[ind];
+		}
+		glDisableVertexAttribArray(0);
+		glDisableVertexAttribArray(1);
+		glBindVertexArray(0);
+		
+		glEnable(GL_CULL_FACE);
+		glCullFace(GL_FRONT);
+	}
+	
+	public float transWidth(float x) {
 		return x*2.0f/pWidth;
 	}
-	public float transHeight(int y) {
+	public float transHeight(float y) {
 		return y*2.0f/pHeight;
 	}
-
 }

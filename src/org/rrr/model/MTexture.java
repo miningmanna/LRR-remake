@@ -69,12 +69,13 @@ public class MTexture implements Texture {
 
 	@Override
 	public void release() {
+		// TODO clean up
 	}
 
 	@Override
 	public void setTextureFilter(int filter) {
-		glTexParameteri(id, GL_TEXTURE_MAG_FILTER, filter);
-		glTexParameteri(id, GL_TEXTURE_MIN_FILTER, filter);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
 	}
 
 }

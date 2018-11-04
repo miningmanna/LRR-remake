@@ -59,7 +59,6 @@ public class FLHFile {
 		while((flength - offset) > 0) {
 			in.read(segHeader);
 			int segLen = -6 + getIntLE(segHeader, 0);
-			System.out.println("segLen: " + segLen);
 			byte[] seg = new byte[segLen];
 			in.read(seg);
 			offset += segLen + 6;
@@ -85,11 +84,8 @@ public class FLHFile {
 	
 	static int _curFrame = 0;
 	private static int parseFRAME_TYPE(FLHFile flh, byte[] seg, int imageIndex) {
-		System.out.println(seg.length);
 		int offset = 0;
 		short lchunks = getShortLE(seg, offset);
-		System.out.println("frames: " + flh.lframes + " " + _curFrame);
-		System.out.println("chunks: " + Integer.toHexString(lchunks));
 		_curFrame++;
 		if(lchunks > 1)
 			System.out.println("More than one sub-chunk");

@@ -21,7 +21,7 @@ public class MapVis extends JPanel {
 		surfNum = new JLabel("asdasf");
 		surfNum.setBounds(0, 0, data.length*10, 20);
 		this.data = data;
-		setPreferredSize(new Dimension(this.data.length*10, this.data[0].length*10+20));
+		setPreferredSize(new Dimension(this.data[0].length*10, this.data.length*10+20));
 		addMouseMotionListener(new MouseMotionListener() {
 			
 			@Override
@@ -30,7 +30,7 @@ public class MapVis extends JPanel {
 				int y = (int) Math.floor((e.getY() - 20) / 10.0f);
 				if(y < 0)
 					return;
-				surfNum.setText("" + MapVis.this.data[x][y]);
+				surfNum.setText("" + MapVis.this.data[y][data[0].length-1-x]);
 				repaint();
 			}
 			
@@ -49,8 +49,8 @@ public class MapVis extends JPanel {
 			
 			for(int j = 0; j < data[i].length; j++) {
 				
-				g.setColor(new Color(data[i][j]*5, data[i][j]*5, data[i][j]*5));
-				g.fillRect(i*10, 20+j*10, 10, 10);
+				g.setColor(new Color(data[i][data[0].length-1-j]*5, data[i][data[0].length-1-j]*5, data[i][data[0].length-1-j]*5));
+				g.fillRect(j*10, 20+i*10, 10, 10);
 				
 			}
 			

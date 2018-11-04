@@ -89,103 +89,50 @@ public class MapMesh {
 		for(int i = 0; i < h; i++) {
 			for(int j = 0; j < w; j++) {
 				setBaseMesh(j, i);
-				setVertY(j, i, 0, hMap[j][i]/HDIV);
-				tex[j][i] = getTexIndex(j, i);
+				setVertY(j, i, 3, 1.0f+hMap[i][j]/HDIV);
+				tex[i][j] = 70;
 			}
 		}
 		
 		for(int i = 0; i < h; i++) {
 			for(int j = 0; j < w; j++) {
-//				if(surf[j][i] > 4)
-				createCliffForm(j, i);
-				genDiagonal(j, i, true);
-//				else
-					
-				genNormals(j, i);
-			}
-		}
-		
-		l.bufferMapMesh(this);
-	}
-	
-	private void update() {
-		for(int i = 0; i < height; i++)
-			for(int j = 0; j < width; j++)
-				if(surf[j][i] <= 4)
-					createCliffForm(j, i);
-	}
-	
-	
-	private static class TileChange {
-		int x, y, type;
-	}
-	private void updateCaveMap() {
-		
-		LinkedList<TileChange> changes = new LinkedList<>();
-		
-		for(int i = 0; i < height; i++) {
-			for(int j = 0; j < width; j++) {
-				if(surf[j][i] <= 4) {
-					
-				}
-			}
-		}
-		
-	}
-	
-	private void createCliffForm(int x, int y) {
-		if(x >= width-1 || y >= height-1)
-			return;
-		float[] temp = {
-				hMap[x][y] / HDIV,
-				hMap[x][y+1] / HDIV,
-				hMap[x+1][y+1] / HDIV,
-				hMap[x+1][y] / HDIV
-		};
-		boolean isCave = caveMap[x][y] == 1;
-		for(int i = 0; i < 4; i++) {
-			
-			if(!isGround(x, y, i)) {
-				setVertY(x, y, i, temp[i]+1);
-			} else {
-				isCave = isCave && true;
-			}
-			
-		}
-		
-		if(isCave) {
-			
-		} else {
-//			tex[x][y] = 76;
-			System.out.println("not cave");
-		}
-	}
-	
-	public boolean isGround(int x, int y, int vert) {
-		
-		switch (vert) {
-		case 1:
-			return isGround(x, y+1, 0);
-		case 2:
-			return isGround(x+1, y+1, 0);
-		case 3:
-			return isGround(x+1, y, 0);
-		}
-		
-		if(x >= width || y >= height || x < 0 || y < 0)
-			return false;
-		
-		for(int i = 0; i < 2; i++) {
-			for(int j = 0; j < 2; j++) {
-				if(x-i >= 0) {
-					if(y-j >= 0) {
-						int s = surf[x-i][y-j];
-						if(s >= 5)
-							return true;
+				if(caveMap[i][j] == 1) {
+					if(surf[i][j] < 5) {
+						System.out.println("CAVE BUT NOT GROUND");
+						surf[i][j] = 5;
+					}
+					for(int g = 0; g < 4; g++) {
+						setVertY(j, i, g, hMap[i][j]/HDIV);
+					}
+					for(int x = -1; x < 2; x++) {
+						for(int y = -1; y < 2; y++) {
+							setTexIndex(j+x, i+y);
+						}
 					}
 				}
 			}
 		}
+		
+		// Points are defined. Calculate normals
+		for(int i = 0; i < h; i++) {
+			for(int j = 0; j < w; j++) {
+				genDiagonal(j, i, true);
+				genNormals(j, i);
+			}
+		}
+		
+		
+		l.bufferMapMesh(this);
+	}
+	
+
+	private void createCliffForm(int x, int y) {
+		
+		
+		
+	}
+	
+	public boolean isGround(int x, int y, int vert) {
 		
 		return false;
 	}
@@ -240,18 +187,18 @@ public class MapMesh {
 	}
 	
 	private static final float[] BASE_MESH = {
-			0, 0, 0,
-			0, 0, 1,
-			0.5f, 0, 0.5f,
-			0, 0, 1,
-			1, 0, 1,
-			0.5f, 0, 0.5f,
-			1, 0, 1,
-			1, 0, 0,
-			0.5f, 0, 0.5f,
-			1, 0, 0,
-			0, 0, 0,
-			0.5f, 0, 0.5f
+			0,		0,		0,
+			0,		0,		1,
+			0.5f,	0,		0.5f,
+			0,		0,		1,
+			1,		0,		1,
+			0.5f,	0,		0.5f,
+			1,		0,		1,
+			1,		0,		0,
+			0.5f,	0,		0.5f,
+			1,		0,		0,
+			0,		0,		0,
+			0.5f,	0,		0.5f
 	};
 	
 	private void setBaseMesh(int x, int y) {
@@ -260,7 +207,7 @@ public class MapMesh {
 		for(int i = 0; i < 4*3; i++) {
 			inds[off+i] = off+i;
 			points[(off+i)*3]	= BASE_MESH[i*3]  +x;
-			points[(off+i)*3+1]	= BASE_MESH[i*3+1];
+			//points[(off+i)*3+1]	= BASE_MESH[i*3+1];
 			points[(off+i)*3+2]	= BASE_MESH[i*3+2]+y;
 			texPos[(off+i)*2]	= BASE_MESH[i*3];
 			texPos[(off+i)*2+1]	= BASE_MESH[i*3+2];
@@ -305,56 +252,30 @@ public class MapMesh {
 	
 	private int getTexIndex(int x, int y) {
 		
-		boolean isCave = true;//caveMap[x][y] == 1;
-		boolean hasGround = false;
-		for(int i = 0; i < 4; i++) {
-			if(isGround(x, y, i)) {
-				hasGround = true;
-				break;
-			}
+		int s = surf[y][x];
+		if(s < 5) {
+			return 6-s;
 		}
 		
-		if(x == 11 && y == 5)
-			System.out.println("Has Ground: " + hasGround);
-		
-		isCave = isCave && hasGround;
-		
-		if(isCave) {
-			
-			if(surf[x][y] < 5) {
-				
-				// TODO: Cliff textures
-				
-				int state = 0;
-				int type = 5;
-				switch (surf[x][y]) {
-				case 3:
-				case 4:
-				case 5:
-					type = surf[x][y]-2;
-					break;
-				default:
-					type = 5;
-					break;
-				}
-				
-				return type+state*10;
-				
-			} else {
-				
-				switch (surf[x][y]) {
-				case 5:
-					return 0;
-				case 6:
-					return 46;
-				default:
-					return 0;
-				}
-				
-			}
-			
+		switch (s) {
+		case 5:
+			return 0;
+		case 6:
+			return 46;
+		default:
+			break;
 		}
+		
 		return 70;
+	}
+	
+	private void setTexIndex(int x, int y) {
+		
+		if(y < 0 || x < 0 || y >= height || x >= width)
+			return;
+		
+		tex[y][x] = getTexIndex(x, y);
+		
 	}
 	
 	public void genDiagonal(int x, int y, boolean zeroTwo) {

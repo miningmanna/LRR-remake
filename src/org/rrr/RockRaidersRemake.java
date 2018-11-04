@@ -6,6 +6,7 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryStack.*;
 import static org.lwjgl.system.MemoryUtil.*;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -23,6 +24,7 @@ import org.rrr.cfg.LegoConfig;
 import org.rrr.cfg.LegoConfig.Node;
 import org.rrr.entity.Entity;
 import org.rrr.entity.EntityEngine;
+import org.rrr.gui.BitMapFont;
 import org.rrr.gui.Cursor;
 import org.rrr.model.Loader;
 import org.rrr.model.MapMesh;
@@ -179,7 +181,7 @@ public class RockRaidersRemake {
 		Entity.loadEntity(new File("LegoRR0/Mini-Figures/CAPTAIN"), "captain");
 		Entity.loadEntity(new File("LegoRR0/Buildings/Barracks"), 		"barracks");
 		
-		Node l2cfg = (Node) cfg.get("Lego*/Levels/Level01");
+		Node l2cfg = (Node) cfg.get("Lego*/Levels/Level02");
 		
 		try {
 			currentLevel = new Level(this, l2cfg);
@@ -191,6 +193,9 @@ public class RockRaidersRemake {
 		
 		cursor.init((Node) cfg.get("Lego*/Pointers"), loader);
 		renderer.init(loader);
+		
+		
+		BitMapFont font = BitMapFont.getFont(new File("LegoRR0/Interface/Fonts/FONT4.BMP"), loader);
 		
 		// FPS Counting
 		float time = 0;
@@ -247,6 +252,10 @@ public class RockRaidersRemake {
 			
 			currentLevel.step(delta);
 			currentLevel.render();
+			
+			uiShader.start();
+			renderer.drawString(uiShader, 200, 200, font, "Hello World!#+-.,", 1.5f);
+			uiShader.stop();
 			
 			glfwSwapBuffers(window);
 			

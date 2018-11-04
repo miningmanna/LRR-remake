@@ -69,10 +69,10 @@ public class MapData {
 		
 		int[][] data = loadMapFileData(f);
 		if(width == 0 && height == 0) {
-			width = data.length;
-			height = data[0].length;
+			height = data.length;
+			width = data[0].length;
 		} else {
-			if(data.length != width || data[0].length != height)
+			if(data.length != height || data[0].length != width)
 				throw new Exception("Different map sizes!");
 		}
 		
@@ -83,7 +83,7 @@ public class MapData {
 	private void ensureAllData() {
 		for(int i = 0; i < 9; i++) {
 			if(maps[i] == null)
-				maps[i] = new int[width][height];
+				maps[i] = new int[height][width];
 		}
 	}
 	
@@ -99,12 +99,12 @@ public class MapData {
 		
 		int w = getIntLE(buff, 0);
 		int h = getIntLE(buff, 4);
-		int[][] res = new int[w][h];
+		int[][] res = new int[h][w];
 		
 		int offset = 6;
 		for(int i = 0; i < h; i++)
 			for(int j = 0; j < w; j++)
-				res[j][i] = getShortLE(buff, (offset += 2));
+				res[i][w-1-j] = getShortLE(buff, (offset += 2));
 		
 		return res;
 	}
@@ -129,7 +129,7 @@ public class MapData {
 	public static void main(String[] args) {
 		
 		try {
-			data = getMapData(new File("LegoRR0/Levels/GameLevels/Level03"));
+			data = getMapData(new File("LegoRR0/Levels/GameLevels/Level02"));
 			
 			JFrame f = new JFrame("MapData");
 			

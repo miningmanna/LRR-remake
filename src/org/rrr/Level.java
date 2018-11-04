@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 import org.rrr.cfg.LegoConfig;
 import org.rrr.cfg.LegoConfig.Node;
 import org.rrr.entity.Entity;
@@ -16,6 +17,7 @@ import org.rrr.model.MapMesh;
 
 public class Level {
 	
+	
 	private Shader mapShader, uiShader, entityShader;
 	private Renderer renderer;
 	private Loader loader;
@@ -24,11 +26,13 @@ public class Level {
 	private MapMesh mapMesh;
 	private Camera camera;
 	private Cursor cursor;
+	private RockRaidersRemake par;
 	
 	private float speed = 1.0f;
 	
 	public Level(RockRaidersRemake par) {
 		
+		this.par = par;
 		this.loader = par.getLoader();
 		this.renderer = par.getRenderer();
 		this.mapShader = par.getMapShader();
@@ -67,10 +71,13 @@ public class Level {
 		m.identity();
 		m.scale(40);
 		mapShader.setUniMatrix4f("mapTrans", m);
+		mapShader.setUniVector3f("lightDirect", new Vector3f(camera.right).mul(-1).add(0, -1, 0).normalize());
 		cursor.animations[cursor.curAnimation].frame++;
 		cursor.animations[cursor.curAnimation].frame %= cursor.animations[cursor.curAnimation].texs.length;
 		renderer.render(mapMesh, mapShader);
 		mapShader.stop();
+		
+		mapShader.setUniVector3f("lightDirect", camera.right);
 		
 		entityShader.start();
 		entityShader.setUniMatrix4f("cam", camera.combined);

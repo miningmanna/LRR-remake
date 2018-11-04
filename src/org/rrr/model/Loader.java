@@ -5,10 +5,12 @@ import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL30.*;
 
+import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
@@ -16,6 +18,10 @@ import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
+
+import javax.imageio.plugins.bmp.BMPImageWriteParam;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
 
 import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
@@ -385,6 +391,97 @@ public class Loader {
 		glBindVertexArray(0);
 		
 		return vao;
+	}
+	
+	public static BufferedImage getBMP(File f) {
+		
+		BufferedImage img = null;
+		try {
+			InputStream in = new FileInputStream(f);
+			byte[] header = new byte[54];
+			
+			in.read(header);
+			
+			int w = getIntLE(header, 18);
+			int h = getIntLE(header, 22);
+			
+			
+			int paletteSize = (int) Math.sqrt(getIntLE(header, 46));
+			
+			System.out.println("Palette: " + paletteSize);
+			
+			int[] palette = new int[paletteSize*paletteSize];
+			
+			byte[] bpalette = new byte[paletteSize*paletteSize*4];
+			
+			in.read(bpalette);
+			
+			int x = 0, y = 0;
+			for(int i = 0; i < bpalette.length; i += 4) {
+				int rgb = 0;
+				rgb |= (0xFF & (255-bpalette[i+3])) << 24;
+				rgb |= (0xFF & bpalette[i+2]) << 16;
+				rgb |= (0xFF & bpalette[i+1]) << 8;
+				rgb |= (0xFF & bpalette[i]);
+				palette[i/4] = rgb;
+			}
+			
+			img = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+			
+			short bitsPerPix = getShortLE(header, 28);
+			if(bitsPerPix != 8)
+				System.out.println("UNUSUAL BITS PER PIX");
+			
+			int compression = getIntLE(header, 30);
+			if(compression != 0)
+				System.out.println("USES COMPRESSION");
+			
+			int rowSize = (int) Math.ceil((bitsPerPix*w)/32)*4;
+			
+			for(int i = 0; i < h; i++) {
+				
+				byte[] row = new byte[rowSize];
+				in.read(row);
+				for(int j = 0; j < w; j++) {
+					img.setRGB(j, h-1-i, palette[0x00FF & row[j]]);
+				}
+				
+			}
+			
+			in.close();
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
+		}
+		
+		return img;
+	}
+	
+	private static short getShortLE(byte[] b, int off) {
+		
+		int res = 0;
+		for(int i = 0; i < 2; i++) {
+			res = res | (0x000000FF & b[off+1-i]);
+			if(i != 1)
+				res = res << 8;
+		}
+		
+		return (short) res;
+		
+	}
+	
+	private static int getIntLE(byte[] b, int off) {
+		
+		int res = 0;
+		for(int i = 0; i < 4; i++) {
+			res = res | (0x000000FF & b[off+3-i]);
+			if(i != 3)
+				res = res << 8;
+		}
+		
+		return res;
+		
 	}
 	
 }
