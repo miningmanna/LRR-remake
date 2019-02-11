@@ -1,6 +1,6 @@
 package org.rrr.gui;
 
-import org.rrr.cfg.LegoConfig.Node;
+import org.rrr.assets.LegoConfig.Node;
 
 public class SliderItem extends MenuItem {
 	
@@ -8,9 +8,12 @@ public class SliderItem extends MenuItem {
 	public int loLim, hiLim;
 	
 	public SliderItem(String key, Node cfg) {
+		this(key, cfg.getValue(key));
+	}
+	
+	public SliderItem(String key, String cfgStr) {
 		
 		name = key;
-		String cfgStr = cfg.getValue(key);
 		
 		String[] split = cfgStr.split(":");
 		

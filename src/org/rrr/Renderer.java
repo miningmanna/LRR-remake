@@ -4,15 +4,19 @@ import java.io.UnsupportedEncodingException;
 
 import org.lwjgl.opengl.GL11;
 import org.newdawn.slick.opengl.Texture;
-import org.rrr.entity.Entity;
+import org.rrr.assets.AssetManager;
+import org.rrr.assets.model.CTexModel;
+import org.rrr.assets.model.ColorModel;
+import org.rrr.assets.model.ModelLoader;
+import org.rrr.assets.model.LwsAnimation;
+import org.rrr.assets.model.MapMesh;
 import org.rrr.gui.BitMapFont;
 import org.rrr.gui.Cursor;
 import org.rrr.gui.Cursor.CursorAnimation;
-import org.rrr.model.CTexModel;
-import org.rrr.model.ColorModel;
-import org.rrr.model.Loader;
-import org.rrr.model.LwsAnimation;
-import org.rrr.model.MapMesh;
+import org.rrr.gui.Menu;
+import org.rrr.gui.MenuItem;
+import org.rrr.gui.NextItem;
+import org.rrr.level.Entity;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL13.*;
@@ -28,42 +32,43 @@ public class Renderer {
 	public float pWidth = RockRaidersRemake.WIDTH, pHeight = RockRaidersRemake.HEIGHT;
 	
 	private int uiVao;
-	public void init(Loader l) {
+	public void init(AssetManager am) {
 		
 		
 		System.out.println("VAO BEFORE: " + uiVao);
-		uiVao = l.getUiModel();
+		uiVao = am.getUiModel();
 		System.out.println("VAO AFTER " + uiVao);
 		
 	}
 	
-	public void render(MapMesh mesh, Shader s) {
-		
-		glBindVertexArray(mesh.vao);
-		glEnableVertexAttribArray(0);
-		glEnableVertexAttribArray(1);
-		glEnableVertexAttribArray(2);
-		s.setUniVector3f("pos", mesh.pos);
-		glActiveTexture(GL_TEXTURE0);
-		int texIndex = 0;
-		s.setUniBoolean("lines", false);
-		
-		for(int i = 0; i < mesh.height; i++) {
-			for(int j = 0; j < mesh.width; j++) {
-				texIndex = mesh.tex[i][j];
-				glBindTexture(GL_TEXTURE_2D, mesh.texs.get(texIndex).getTextureID());
-				glDrawElements(GL_TRIANGLES, 4*3, GL_UNSIGNED_INT, (i*mesh.width+j)*3*4*4);
-			}
-		}
-//		s.setUniBoolean("lines", true);
-//		for(int i = 0; i < mesh.height; i++)
-//			glDrawElements(GL_LINE_STRIP, mesh.indCount/mesh.height, GL_UNSIGNED_INT, i*mesh.width*3*4*4);
-		glDisableVertexAttribArray(0);
-		glDisableVertexAttribArray(1);
-		glDisableVertexAttribArray(2);
-		glBindVertexArray(0);
-		
-	}
+	// TODO - reimplement
+//	public void render(MapMesh mesh, Shader s) {
+//		
+//		glBindVertexArray(mesh.vao);
+//		glEnableVertexAttribArray(0);
+//		glEnableVertexAttribArray(1);
+//		glEnableVertexAttribArray(2);
+//		s.setUniVector3f("pos", mesh.pos);
+//		glActiveTexture(GL_TEXTURE0);
+//		int texIndex = 0;
+//		s.setUniBoolean("lines", false);
+//		
+//		for(int i = 0; i < mesh.height; i++) {
+//			for(int j = 0; j < mesh.width; j++) {
+//				texIndex = mesh.tex[i][j];
+//				glBindTexture(GL_TEXTURE_2D, mesh.texs.get(texIndex).getTextureID());
+//				glDrawElements(GL_TRIANGLES, 4*3, GL_UNSIGNED_INT, (i*mesh.width+j)*3*4*4);
+//			}
+//		}
+////		s.setUniBoolean("lines", true);
+////		for(int i = 0; i < mesh.height; i++)
+////			glDrawElements(GL_LINE_STRIP, mesh.indCount/mesh.height, GL_UNSIGNED_INT, i*mesh.width*3*4*4);
+//		glDisableVertexAttribArray(0);
+//		glDisableVertexAttribArray(1);
+//		glDisableVertexAttribArray(2);
+//		glBindVertexArray(0);
+//		
+//	}
 	
 	public void render(ColorModel model) {
 		
@@ -187,7 +192,7 @@ public class Renderer {
 	}
 	
 	public void render(Cursor cursor, Shader s) {
-		
+		glDepthFunc(GL_ALWAYS);
 		s.setUniMatrix4f("trans", new Matrix4f().identity());
 		Vector2f scale = new Vector2f(transWidth(cursor.w), transHeight(cursor.h));
 		s.setUniVector2f("scale", scale);
@@ -230,9 +235,68 @@ public class Renderer {
 		
 		glEnable(GL_CULL_FACE);
 		glCullFace(GL_FRONT);
+		glDepthFunc(GL_LESS);
+	}
+	
+	public void render(Menu menu, Shader s) {
+		
+		glDepthFunc(GL_ALWAYS);
+		
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glDepthMask(true);
+		
+		s.setUniMatrix4f("trans", new Matrix4f().identity());
+		System.out.println(menu.bgImage.getImageWidth() + ", " + menu.bgImage.getImageHeight());
+		Vector2f scale = new Vector2f(	transWidth(menu.bgImage.getImageWidth()),
+										transHeight(menu.bgImage.getImageHeight()));
+		s.setUniVector2f("scale", scale);
+		Vector2f texScale = new Vector2f(menu.bgImage.getWidth(), menu.bgImage.getHeight());
+		s.setUniVector2f("texScale", texScale);
+		Vector2f texPos = new Vector2f(0, 0);
+		s.setUniVector2f("texOffset", texPos);
+		Vector3f translate = new Vector3f(-1, 1, 0);
+		s.setUniVector3f("translate", translate);
+		
+		glDisable(GL_CULL_FACE);
+		glBindVertexArray(uiVao);
+		glEnableVertexAttribArray(0);
+		glEnableVertexAttribArray(1);
+		glBindTexture(GL_TEXTURE_2D, menu.bgImage.getTextureID());
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		glDisableVertexAttribArray(0);
+		glDisableVertexAttribArray(1);
+		glBindVertexArray(0);
+		
+		for(MenuItem item : menu.items) {
+			if(item instanceof NextItem) {
+				drawNextItem(menu, (NextItem) item, s);
+			}
+		}
+		
+		glEnable(GL_CULL_FACE);
+		glCullFace(GL_FRONT);
+		glDepthMask(false);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+		glDepthFunc(GL_LESS);
+	}
+	
+	private void drawNextItem(Menu menu, NextItem item, Shader s) {
+		
+		System.out.println("DRAWING NEXT ITEM: " + item.banner);
+		
+		int x = menu.x + item.x - (menu.menuFont.getPixLength(item.banner)/2);
+		int y = menu.y + item.y;
+		
+		drawString(s, x, y, menu.menuFont, item.banner, 1);
+		
 	}
 	
 	public void drawString(Shader s, int x, int y, BitMapFont f, String str, float scalef) {
+		
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glDepthMask(true);
+		
+		System.out.println(f.glBlockLengthY);
 		
 		byte[] inds = null;
 		try {
@@ -250,7 +314,7 @@ public class Renderer {
 		Vector3f trans = new Vector3f();
 		Vector2f tScale = new Vector2f(1, 1);
 		Vector2f tPos = new Vector2f();
-		Vector2f scale = new Vector2f(transWidth(f.blockLength)*scalef, transHeight(f.blockLength)*scalef);
+		Vector2f scale = new Vector2f(transWidth(f.blockLengthX)*scalef, transHeight(f.blockLengthY)*scalef);
 		int px = 0;
 		glBindTexture(GL_TEXTURE_2D, f.atlas.getTextureID());
 		f.atlas.setTextureFilter(GL11.GL_NEAREST);
@@ -284,6 +348,8 @@ public class Renderer {
 		
 		glEnable(GL_CULL_FACE);
 		glCullFace(GL_FRONT);
+		
+		glDepthMask(false);
 	}
 	
 	public float transWidth(float x) {

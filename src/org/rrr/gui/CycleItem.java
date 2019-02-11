@@ -1,6 +1,6 @@
 package org.rrr.gui;
 
-import org.rrr.cfg.LegoConfig.Node;
+import org.rrr.assets.LegoConfig.Node;
 
 public class CycleItem extends MenuItem {
 	
@@ -9,10 +9,12 @@ public class CycleItem extends MenuItem {
 	public int index;
 	
 	public CycleItem(String key, Node cfg) {
+		this(key, cfg.getValue(key));
+	}
+	
+	public CycleItem(String key, String cfgStr) {
 		
 		this.name = key;
-		
-		String cfgStr = cfg.getValue(key);
 		
 		String[] split = cfgStr.split(":");
 		

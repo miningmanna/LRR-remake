@@ -10,9 +10,9 @@ import java.io.InputStream;
 import java.util.LinkedList;
 
 import org.newdawn.slick.opengl.Texture;
-import org.rrr.cfg.LegoConfig.Node;
-import org.rrr.flh.FLHFile;
-import org.rrr.model.Loader;
+import org.rrr.assets.LegoConfig.Node;
+import org.rrr.assets.tex.FLHFile;
+import org.rrr.assets.tex.TexLoader;
 
 public class Cursor {
 	
@@ -22,7 +22,7 @@ public class Cursor {
 	public Texture base;
 	public CursorAnimation[] animations;
 	
-	public void init(Node cfg, Loader l) {
+	public void init(Node cfg, TexLoader l) {
 		
 		w = 32;
 		h = 32;
@@ -111,6 +111,8 @@ public class Cursor {
 			
 		}
 		
+		System.out.println("CURSOR CREATED!");
+		
 		animations = new CursorAnimation[lanims];
 		for(int i = 0; i < lanims; i++) {
 			animations[i] = anims.pop();
@@ -128,6 +130,11 @@ public class Cursor {
 		public Texture[] texs;
 		public int frame;
 		
+	}
+
+	public void update() {
+		animations[curAnimation].frame++;
+		animations[curAnimation].frame %= animations[curAnimation].texs.length;
 	}
 	
 }

@@ -1,6 +1,6 @@
 package org.rrr.gui;
 
-import org.rrr.cfg.LegoConfig.Node;
+import org.rrr.assets.LegoConfig.Node;
 
 public class TriggerItem extends MenuItem {
 	
@@ -8,9 +8,12 @@ public class TriggerItem extends MenuItem {
 	public int end;
 	
 	public TriggerItem(String key, Node cfg) {
+		this(key, cfg.getValue(key));
+	}
+	
+	public TriggerItem(String key, String cfgStr) {
 		
 		name = key;
-		String cfgStr = cfg.getValue(key);
 		
 		String[] split = cfgStr.split(":");
 		
