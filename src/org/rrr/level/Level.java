@@ -76,7 +76,8 @@ public class Level {
 	public void incrementIndex() { // TODO: remove test function
 		cursor.curAnimation += 1;
 		cursor.curAnimation %= cursor.animations.length;
-		cursor.animations[cursor.curAnimation].frame = 0;
+		if(!cursor.animations[cursor.curAnimation].stillFrame)
+			cursor.animations[cursor.curAnimation].anim.frame = 0;
 		System.out.println("Cursor: " + cursor.animations[cursor.curAnimation].name);
 	}
 	
@@ -104,7 +105,6 @@ public class Level {
 		
 		cursor.x = (int) input.mouse.x;
 		cursor.y = (int) input.mouse.y;
-		
 		
 		mapShader.start();
 		mapShader.setUniMatrix4f("cam", camera.combined);

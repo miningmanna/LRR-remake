@@ -11,6 +11,7 @@ import org.rrr.assets.model.ModelLoader;
 import org.rrr.assets.model.ModelPathConverter;
 import org.rrr.assets.model.PathConverter;
 import org.rrr.assets.sound.SoundLoader;
+import org.rrr.assets.tex.FLHAnimation;
 import org.rrr.assets.tex.TexLoader;
 import org.rrr.gui.BitMapFont;
 import org.rrr.gui.Cursor;
@@ -73,6 +74,10 @@ public class AssetManager {
 	public Shader getShader(String path) {
 		return new Shader(new File(path + ".vert"), new File(path + ".frag"));
 	}
+	
+	public FLHAnimation getFLHAnimation(File f) {
+		return tLoader.getAnimation(f);
+	}
 
 	public Texture getTexture(String tPath) {
 		File f = locateInLegoRR0(tPath);
@@ -125,5 +130,5 @@ public class AssetManager {
 		
 		return null;
 	}
-
+	
 }

@@ -1,16 +1,7 @@
 package org.rrr.assets.tex;
 
-import static org.lwjgl.opengl.GL11.GL_LINEAR;
-import static org.lwjgl.opengl.GL11.GL_RGBA;
-import static org.lwjgl.opengl.GL11.GL_RGBA8;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_MAG_FILTER;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_MIN_FILTER;
-import static org.lwjgl.opengl.GL11.GL_UNSIGNED_BYTE;
-import static org.lwjgl.opengl.GL11.glBindTexture;
-import static org.lwjgl.opengl.GL11.glGenTextures;
-import static org.lwjgl.opengl.GL11.glTexImage2D;
-import static org.lwjgl.opengl.GL11.glTexParameteri;
+import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL12.*;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -18,6 +9,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.joml.Vector3f;
@@ -27,10 +19,38 @@ import org.newdawn.slick.opengl.TextureLoader;
 
 public class TexLoader {
 	
+	private ArrayList<Integer> texsIds;
 	private HashMap<String, Texture> texs;
+	private HashMap<String, FLHAnimation.BaseData> flhAnims;
 	
 	public TexLoader() {
 		texs = new HashMap<>();
+		flhAnims = new HashMap<>();
+		texsIds = new ArrayList<>();
+	}
+	
+	public FLHAnimation getAnimation(File file) {
+		String key = file.getName();
+		if(flhAnims.containsKey(key))
+			return new FLHAnimation(flhAnims.get(key));
+		
+		FLHFile flh = null;
+		try {
+			FileInputStream in = new FileInputStream(file);
+			flh = FLHFile.getFLHFile(in);
+			in.close();
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		if(flh == null)
+			return null;
+		
+		
+		FLHAnimation.BaseData bd = FLHAnimation.getBaseData(this, flh);
+		flhAnims.put(key, bd);
+		
+		return new FLHAnimation(bd);
+		
 	}
 	
 	public Texture getTexture(String format, File f) throws IOException {
@@ -39,15 +59,14 @@ public class TexLoader {
 		} else {
 			Texture t = TextureLoader.getTexture(format, new FileInputStream(f));
 			texs.put(f.getAbsolutePath(), t);
+			texsIds.add(t.getTextureID());
 			return t;
 		}
 	}
 	
 	public Texture getTexture(BufferedImage img) {
 		
-		int id;
-		
-		id = glGenTextures();
+		int id = glGenTextures();
 		glBindTexture(GL_TEXTURE_2D, id);
 		
 		int[] pixels = new int[img.getHeight()*img.getWidth()];
@@ -71,6 +90,7 @@ public class TexLoader {
 		
 		glBindTexture(GL_TEXTURE_2D, 0);
 		
+		texsIds.add(id);
 		return new MTexture(id);
 	}
 	
@@ -91,8 +111,8 @@ public class TexLoader {
 	}
 	
 	public void destroy() {
-		for(String key : texs.keySet())
-			texs.get(key).release();
+		for(int id : texsIds)
+			glDeleteTextures(id);
 	}
 	
 }

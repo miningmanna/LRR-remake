@@ -7,11 +7,11 @@ public class SliderItem extends MenuItem {
 	public int x1, y1;
 	public int loLim, hiLim;
 	
-	public SliderItem(String key, Node cfg) {
-		this(key, cfg.getValue(key));
+	public SliderItem(String key, Node cfg, Menu menu) {
+		this(key, cfg.getValue(key), menu);
 	}
 	
-	public SliderItem(String key, String cfgStr) {
+	public SliderItem(String key, String cfgStr, Menu menu) {
 		
 		name = key;
 		

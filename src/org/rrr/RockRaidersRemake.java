@@ -54,6 +54,7 @@ public class RockRaidersRemake {
 	private Shader entityShader;
 	private Shader mapShader;
 	private Shader uiShader;
+	private Menu curMenu;
 	
 	private Level currentLevel;
 	
@@ -83,7 +84,7 @@ public class RockRaidersRemake {
 		}
 		am = new AssetManager(new File("LegoRR0/World/Shared"));
 		renderer = new Renderer();
-		input = new Input();
+		input = new Input(this);
 		
 		// ----------------- GLFW INIT --------------
 		GLFWErrorCallback.createPrint(System.out).set();
@@ -103,6 +104,8 @@ public class RockRaidersRemake {
 		
 		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 		glfwSetCursorPosCallback(window, input.getMsHook());
+		
+		glfwSetMouseButtonCallback(window, input.getMsClckHook());
 		
 		try (MemoryStack stack = stackPush()) {
 			IntBuffer pWidth = stack.mallocInt(1);
@@ -133,11 +136,8 @@ public class RockRaidersRemake {
 		glEnable(GL_CULL_FACE);
 		glCullFace(GL_FRONT);
 		
-		Node menu1Node = (Node) cfg.get("Lego*/Menu/MainMenuFull/Menu1");
-		menu1Node.printTree();
-		Menu menu1 = new Menu(am, menu1Node);
-		
 		cursor = am.getCursor((Node) cfg.get("Lego*/Pointers"));
+		cursor.setCursor("Standard");
 		
 		entityShader = am.getShader("entityShader");
 		mapShader = am.getShader("mapShader");
@@ -147,6 +147,8 @@ public class RockRaidersRemake {
 		m.identity();
 		m.translate(new Vector3f(0, 0, 5));
 		
+		Node mainMenuCfg = (Node) cfg.get("Lego*/Menu/MainMenuFull/Menu1");
+		setMenu(mainMenuCfg);
 		
 		ArrayList<Entity> entities = new ArrayList<>();
 		EntityEngine eng = new EntityEngine();
@@ -207,11 +209,13 @@ public class RockRaidersRemake {
 //			if(input.justReleased[GLFW_KEY_UP])
 //				ent.currentAnimation = (ent.currentAnimation +1)%ent.anims.length;
 			
+			curMenu.update();
+			
 			glDepthMask(true);
 			if(drawMenu) {
 				uiShader.start();
 				renderer.drawString(uiShader, 100, 100, font, " *4>", 1);
-				renderer.render(menu1, uiShader);
+				renderer.render(curMenu, uiShader);
 				uiShader.stop();
 			}
 			glDepthMask(false);
@@ -250,8 +254,9 @@ public class RockRaidersRemake {
 		
 	}
 	
-	public static float clamp(float val, float min, float max) {
-		return Math.max(min, Math.min(max, val));
+	public void setMenu(Node cfg) {
+		curMenu = new Menu(this, cfg);
+		curMenu.setInput(input);
 	}
 	
 	public static void main(String[] args) {

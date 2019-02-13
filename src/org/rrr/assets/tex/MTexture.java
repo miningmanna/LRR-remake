@@ -69,7 +69,6 @@ public class MTexture implements Texture {
 
 	@Override
 	public void release() {
-		// TODO clean up
 	}
 
 	@Override

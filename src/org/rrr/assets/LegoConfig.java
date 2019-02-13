@@ -1,6 +1,8 @@
 package org.rrr.assets;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -17,16 +19,39 @@ public class LegoConfig {
 	
 	public static LegoConfig getConfig(InputStream in) throws IOException {
 		
+		System.out.println("	;#extern:Test2.cfg".matches(EXTERN_REGEX));
+		
 		LegoConfig cfg = new LegoConfig();
+		
+		getToNode("./", in, cfg.superNode, 0);
+		
+		return cfg;
+		
+	}
+	
+	public static String EXTERN_REGEX = ".*(;#extern:)([\\w\\.]+).*";
+	public static void getToNode(String relPath, InputStream in, Node parent, int depth) throws IOException {
 		
 		BufferedReader br = new BufferedReader(new InputStreamReader(in));
 		String line;
 		String lastLine = null;
 		
-		int depth = 0;
-		Node currentNode = cfg.superNode;
+		Node currentNode = parent;
 		
 		while((line = br.readLine()) != null) {
+			System.out.println(line);
+			if(line.matches(EXTERN_REGEX)) {
+				System.out.println("MATCH");
+				try {
+					String path = relPath + line.split(":")[1];
+					File f = new File(path);
+					FileInputStream extIn = new FileInputStream(f);
+					getToNode(f.getParent(), extIn, currentNode, depth);
+					extIn.close();
+				} catch(Exception e) {
+					e.printStackTrace();
+				}
+			}
 			
 			if(line.contains(";")) {
 				String[] split = line.split(";");
@@ -77,8 +102,6 @@ public class LegoConfig {
 			
 			lastLine = line;
 		}
-		
-		return cfg;
 		
 	}
 	
@@ -198,6 +221,10 @@ public class LegoConfig {
 			this.depth = depth;
 			values = new HashMap<>();
 			subNodes = new HashMap<>();
+		}
+		
+		public Node getParent() {
+			return parent;
 		}
 		
 		public Node getSubNode(String name) {
@@ -345,5 +372,18 @@ public class LegoConfig {
 			
 			
 		}
+	}
+	
+	public static void main(String[] args) {
+		
+		try {
+			FileInputStream in = new FileInputStream("Test.cfg");
+			LegoConfig cfg = LegoConfig.getConfig(in);
+			cfg.superNode.printTree();
+			in.close();
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		
 	}
 }

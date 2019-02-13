@@ -299,7 +299,7 @@ public class FLHFile {
 	public static void main(String[] args) {
 		
 		try {
-			FileInputStream fin = new FileInputStream("LegoRR0/Interface/Pointers/PIKUPORE.FLH");
+			FileInputStream fin = new FileInputStream("LegoRR0/avi/PB5.flh");
 			FLHFile f = getFLHFile(fin);
 			fin.close();
 			
@@ -319,7 +319,7 @@ public class FLHFile {
 				@Override
 				public void paint(Graphics arg0) {
 //					arg0.drawImage(img, 0, 0, null);
-					arg0.drawImage(img, 0, 0, 120, 120, null);
+					arg0.drawImage(img, 0, 0, img.getWidth(), img.getHeight(), null);
 //					frame.repaint();
 				}
 				

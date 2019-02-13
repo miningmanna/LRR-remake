@@ -11,6 +11,7 @@ import java.util.LinkedList;
 
 import org.newdawn.slick.opengl.Texture;
 import org.rrr.assets.LegoConfig.Node;
+import org.rrr.assets.tex.FLHAnimation;
 import org.rrr.assets.tex.FLHFile;
 import org.rrr.assets.tex.TexLoader;
 
@@ -22,7 +23,7 @@ public class Cursor {
 	public Texture base;
 	public CursorAnimation[] animations;
 	
-	public void init(Node cfg, TexLoader l) {
+	public void init(Node cfg, TexLoader tLoader) {
 		
 		w = 32;
 		h = 32;
@@ -35,7 +36,7 @@ public class Cursor {
 			if(key.equals("Pointer_Blank")) {
 				
 				try {
-					base = l.getTexture("bmp", new File("LegoRR0/" + cfg.getValue(key)));
+					base = tLoader.getTexture("bmp", new File("LegoRR0/" + cfg.getValue(key)));
 					base.setTextureFilter(GL_NEAREST);
 				} catch (IOException e) {
 					e.printStackTrace();
@@ -46,12 +47,15 @@ public class Cursor {
 			}
 			
 			CursorAnimation anim = new CursorAnimation();
-			anim.name = key;
-			anim.frame = 0;
+			if(key.startsWith("Pointer_"))
+				anim.name = key.substring(8);
+			else
+				anim.name = key;
 			
 			String path = cfg.getValue(key);
 			if(path.contains(",")) {
 				anim.usesBaseTex = true;
+				anim.stillFrame = false;
 				String[] split = path.split(",");
 				if(split.length != 3) {
 					System.out.println("pointers: argument mismatch");
@@ -65,44 +69,21 @@ public class Cursor {
 					continue;
 				}
 				
-				// TODO: improved loading (static paths)
-				FLHFile flh = null;
-				try {
-					InputStream in = new FileInputStream("LegoRR0/" + split[0]);
-					System.out.println("Path: " + split[0]);
-					flh = FLHFile.getFLHFile(in);
-					in.close();
-				} catch (FileNotFoundException e) {
-					e.printStackTrace();
-					System.out.println("Couldnt find file: LegoRR0/" + split[0]);
-					continue;
-				} catch (Exception e) {
-					e.printStackTrace();
-					System.out.println("Couldnt load file: LegoRR0/" + split[0]);
-					continue;
-				}
-				
-				anim.w = flh.width;
-				anim.h = flh.height;
-				
-				anim.texs = new Texture[flh.lframes];
-				for(int i = 0; i < flh.lframes; i++) {
-					anim.texs[i] = l.getTexture(flh.frames.get(i));
-					anim.texs[i].setTextureFilter(GL_NEAREST);
-				}
+				// TODO Still static paths :(
+				anim.anim = tLoader.getAnimation(new File("LegoRR0/" + split[0]));
+				anim.w = anim.anim.data.w;
+				anim.h = anim.anim.data.h;
 				
 			} else {
 				anim.usesBaseTex = false;
-				anim.texs = new Texture[1];
-				// TODO: improved texture loading (static path)
+				anim.stillFrame = true;
 				try {
-					anim.texs[0] = l.getTexture("bmp", new File("LegoRR0/" + path));
-					anim.w = anim.texs[0].getImageWidth();
-					anim.h = anim.texs[0].getImageHeight();
+					// TODO Static paths :(
+					anim.tex = tLoader.getTexture("bmp", new File("LegoRR0/" + path));
+					anim.w = anim.tex.getImageWidth();
+					anim.h = anim.tex.getImageHeight();
 				} catch (IOException e) {
 					e.printStackTrace();
-					System.out.println("Failed to load texture for pointer: " + path);
-					continue;
 				}
 			}
 			
@@ -124,17 +105,27 @@ public class Cursor {
 	public static class CursorAnimation {
 		
 		public String name;
-		public int x, y;
-		public int w, h;
-		public boolean usesBaseTex;
-		public Texture[] texs;
-		public int frame;
+		public int x, y, w, h;
+		public boolean usesBaseTex, stillFrame;
+		public Texture tex;
+		public FLHAnimation anim;
 		
 	}
-
+	
+	public void setCursor(String name) {
+		for(int i = 0; i < animations.length; i++) {
+			if(animations[i].name.equals(name)) {
+				curAnimation = i;
+				return;
+			}
+		}
+	}
+	
 	public void update() {
-		animations[curAnimation].frame++;
-		animations[curAnimation].frame %= animations[curAnimation].texs.length;
+		if(!animations[curAnimation].stillFrame) {
+			System.out.println("Stepping!");
+			animations[curAnimation].anim.step(1);
+		}
 	}
 	
 }

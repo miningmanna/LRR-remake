@@ -8,11 +8,11 @@ public class CycleItem extends MenuItem {
 	public String[] items;
 	public int index;
 	
-	public CycleItem(String key, Node cfg) {
-		this(key, cfg.getValue(key));
+	public CycleItem(String key, Node cfg, Menu menu) {
+		this(key, cfg.getValue(key), menu);
 	}
 	
-	public CycleItem(String key, String cfgStr) {
+	public CycleItem(String key, String cfgStr, Menu menu) {
 		
 		this.name = key;
 		
