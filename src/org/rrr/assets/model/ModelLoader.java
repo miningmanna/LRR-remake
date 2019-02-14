@@ -5,6 +5,10 @@ import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL30.*;
 
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
@@ -15,6 +19,9 @@ import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
+
+import javax.swing.JFrame;
+import javax.swing.JPanel;
 
 import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
@@ -370,6 +377,70 @@ public class ModelLoader {
 		}
 		
 		return img;
+	}
+	
+	// TODO Remove main
+	public static BufferedImage img;
+	public static void main(String[] args) {
+		
+		img = null;
+		try {
+			InputStream in = new FileInputStream(new File("LegoRR0/Interface/Pointers/PointerOpen.bmp"));
+			byte[] header = new byte[54];
+			
+			in.read(header);
+			
+			int w = getIntLE(header, 18);
+			int h = getIntLE(header, 22);
+			
+			int paletteSize = (int) Math.sqrt(getIntLE(header, 46));
+			if(paletteSize == 0)
+				paletteSize = 16;
+			
+			byte[] bpalette = new byte[paletteSize*paletteSize*4];
+			in.read(bpalette);
+			img = new BufferedImage(paletteSize, paletteSize, BufferedImage.TYPE_INT_ARGB);
+			
+			for(int i = 0; i < bpalette.length; i += 4) {
+				int rgb = 0;
+				rgb |= (0xFF & (255-bpalette[i+3])) << 24;
+				rgb |= (0xFF & bpalette[i+2]) << 16;
+				rgb |= (0xFF & bpalette[i+1]) << 8;
+				rgb |= (0xFF & bpalette[i]);
+				System.out.println(i%paletteSize + ", " + Math.floorDiv(i, paletteSize));
+				System.out.println(i + "/" + bpalette.length);
+				img.setRGB((i/4)%paletteSize, Math.floorDiv(i/4, paletteSize), rgb);
+			}
+			in.close();
+			
+			JFrame frame = new JFrame("BMP color pallette");
+			
+			
+			frame.add(new JPanel() {
+				private static final long serialVersionUID = 1L;
+				
+				@Override
+				public Dimension getPreferredSize() {
+					return new Dimension(img.getWidth()*10, img.getWidth()*10);
+				}
+				
+				@Override
+				public void paint(Graphics arg0) {
+//					arg0.drawImage(img, 0, 0, null);
+					arg0.drawImage(img, 0, 0, img.getWidth()*10, img.getHeight()*10, null);
+//					frame.repaint();
+				}
+				
+			});
+			
+			frame.pack();
+			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+			frame.setVisible(true);
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
 	}
 	
 	private static short getShortLE(byte[] b, int off) {

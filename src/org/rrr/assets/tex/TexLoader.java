@@ -30,6 +30,7 @@ public class TexLoader {
 	}
 	
 	public FLHAnimation getAnimation(File file) {
+		System.out.println("FLH: " + file.getName());
 		String key = file.getName();
 		if(flhAnims.containsKey(key))
 			return new FLHAnimation(flhAnims.get(key), 25);
@@ -78,7 +79,7 @@ public class TexLoader {
 				buffer.put((byte) ((pixel >> 16) & 0xFF));
 				buffer.put((byte) ((pixel >> 8) & 0xFF));
 				buffer.put((byte) (pixel & 0xFF));
-				buffer.put((byte) ((pixel >> 24) & 0xFF));
+				buffer.put((byte) ((pixel >> 24) | 0xFF));
 			}
 		}
 		

@@ -25,11 +25,11 @@ public class AssetManager {
 	
 	private File mShared;
 	
-	public AssetManager(File mShared) {
+	public AssetManager(LegoConfig cfg, File mShared) {
 		this.mShared = mShared;
 		mLoader = new ModelLoader();
 		tLoader = new TexLoader();
-		sLoader = new SoundLoader();
+		sLoader = new SoundLoader((Node) cfg.get("Lego*/Samples"));
 	}
 	
 	public void destroy() {
@@ -95,12 +95,13 @@ public class AssetManager {
 	
 	public SoundClip getSound(File f) {
 		String ext = f.getName();
-		System.out.println(ext);
 		String[] split = ext.split("\\.");
 		System.out.println(split.length);
 		ext = split[split.length-1];
+		System.out.println(ext);
 		if(ext.equalsIgnoreCase("wav")) {
 			try {
+				System.out.println("Getting WAV: " + f);
 				return sLoader.getWavClip(f);
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -108,6 +109,20 @@ public class AssetManager {
 			}
 		}
 		return null;
+	}
+	
+	public SoundClip getSample(String name) {
+		
+		if(name.equals("SFX_NULL"))
+			return null;
+		
+		File f = sLoader.getSample(name);
+		System.out.println("SAMPLE: " + name + " = " + f);
+		if(f == null)
+			return null;
+		else
+			return getSound(f);
+		
 	}
 	
 	private File locateInLegoRR0(String path) {

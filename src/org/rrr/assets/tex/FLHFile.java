@@ -91,7 +91,7 @@ public class FLHFile {
 			System.out.println("More than one sub-chunk");
 		offset += 2;
 		offset += 2;
-		offset += 2; // reserver = 0
+		offset += 2; // reserved = 0
 		offset += 4; // width and height should be 0
 		
 		if(seg.length < 16) {
@@ -172,6 +172,7 @@ public class FLHFile {
 	}
 	
 	private static void parseDELTA_FLC(FLHFile flh, byte[] seg, int offset, int len, int imageIndex) {
+		System.out.println("DELTA FLC");
 		BufferedImage res = new BufferedImage(flh.width, flh.height, BufferedImage.TYPE_INT_ARGB);
 		if(imageIndex != 0)
 			res.getGraphics().drawImage(flh.frames.get(imageIndex-1), 0, 0, null);
@@ -299,7 +300,7 @@ public class FLHFile {
 	public static void main(String[] args) {
 		
 		try {
-			FileInputStream fin = new FileInputStream("LegoRR0/avi/PB5.flh");
+			FileInputStream fin = new FileInputStream("LegoRR0/avi/Sandwich.flh");
 			FLHFile f = getFLHFile(fin);
 			fin.close();
 			

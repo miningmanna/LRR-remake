@@ -284,6 +284,10 @@ public class Renderer {
 			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		}
 		
+		if(menu.displayTitle) {
+			drawString(s, menu.x-(menu.menuFont.getPixLength(menu.fullName)/2), menu.y, menu.loFont, menu.fullName, 1);
+		}
+		
 		glDisableVertexAttribArray(0);
 		glDisableVertexAttribArray(1);
 		glBindVertexArray(0);

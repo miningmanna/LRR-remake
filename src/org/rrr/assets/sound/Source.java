@@ -13,7 +13,10 @@ public class Source {
 	}
 	
 	public void play(SoundClip clip) {
-		
+		if(clip == null)
+			return;
+		AL10.alSourceStop(id);
+		AL10.alSourceUnqueueBuffers(id);
 		AL10.alSourceQueueBuffers(id, clip.buffer);
 		AL10.alSourcePlay(id);
 		

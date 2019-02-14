@@ -8,6 +8,7 @@ import org.rrr.Input;
 import org.rrr.RockRaidersRemake;
 import org.rrr.assets.AssetManager;
 import org.rrr.assets.LegoConfig.Node;
+import org.rrr.assets.sound.SoundClip;
 import org.rrr.assets.tex.FLHAnimation;
 
 public class Menu {
@@ -44,8 +45,8 @@ public class Menu {
 		ax = Integer.parseInt(split[0]);
 		ay = Integer.parseInt(split[1]);
 		
-		title		= cfg.getValue("Title");
-		fullName	= cfg.getValue("FullName");
+		title		= cfg.getValue("Title").replaceAll("[_]", " ");
+		fullName	= cfg.getValue("FullName").replaceAll("[_]", " ");
 		
 		String menuFontPath	= cfg.getValue("MenuFont");
 		String hiFontPath	= cfg.getValue("HiFont");
@@ -78,6 +79,9 @@ public class Menu {
 			o.y = Integer.parseInt(overlaySplit[3]);
 			// TODO hardcoded paths :(
 			o.anim = am.getFLHAnimation(new File("LegoRR0/" + overlaySplit[0]));
+			
+			o.sound = par.getAssetManager().getSample(overlaySplit[1]);
+			System.out.println(overlaySplit[1] + " = " + o.sound);
 			_anims.add(o);
 		}
 		
@@ -165,10 +169,12 @@ public class Menu {
 		if(overlays.length != 0) {
 			if(curOverlay == -1 && playRandom) {
 				curOverlay = randInt(overlays.length-1);
+				par.getAudioSystem().playPublic(overlays[curOverlay].sound);
 			} else if(curOverlay != -1) {
 				if(overlays[curOverlay].anim.justFinished && playRandom) {
 					curOverlay = randInt(overlays.length-1);
 					overlays[curOverlay].anim.justFinished = false;
+					par.getAudioSystem().playPublic(overlays[curOverlay].sound);
 				} else {
 					overlays[curOverlay].anim.step(dt);
 				}
@@ -184,7 +190,7 @@ public class Menu {
 		
 		public int x, y;
 		public FLHAnimation anim;
-		// TODO SoundFX
+		public SoundClip sound;
 		
 	}
 	

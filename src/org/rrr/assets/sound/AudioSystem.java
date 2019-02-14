@@ -17,6 +17,7 @@ public class AudioSystem {
 	long device;
 	long context;
 	ArrayList<Integer> sources;
+	Source publicSource;
 	
 	public AudioSystem() {
 		sources = new ArrayList<>();
@@ -38,6 +39,8 @@ public class AudioSystem {
 			System.exit(-1);
 		}
 		
+		publicSource = getSource();
+		
 	}
 	
 	public Source getSource() {
@@ -48,6 +51,11 @@ public class AudioSystem {
 		sources.add(id);
 		return source;
 		
+	}
+	
+	public void playPublic(SoundClip clip) {
+		System.out.println("PUBLIC PLAY " + clip);
+		publicSource.play(clip);
 	}
 	
 	public void destroy() {

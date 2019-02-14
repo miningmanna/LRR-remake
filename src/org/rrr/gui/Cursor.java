@@ -30,7 +30,7 @@ public class Cursor {
 		
 		int lanims = 0;
 		LinkedList<CursorAnimation> anims = new LinkedList<>();
-		
+		// getBMP
 		for(String key : cfg.getValueKeys()) {
 			
 			if(key.equals("Pointer_Blank")) {

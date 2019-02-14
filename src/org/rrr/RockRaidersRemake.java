@@ -81,7 +81,7 @@ public class RockRaidersRemake {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		am = new AssetManager(new File("LegoRR0/World/Shared"));
+		am = new AssetManager(cfg, new File("LegoRR0/World/Shared"));
 		renderer = new Renderer();
 		input = new Input(this);
 		
@@ -179,7 +179,7 @@ public class RockRaidersRemake {
 		m.identity();
 		m.translate(new Vector3f(0, 0, 5));
 		
-		SoundClip clip = am.getSound(new File("LegoRR0/Sounds/DRIP1.WAV"));
+		SoundClip clip = am.getSound(new File("LegoRR1/Sounds/Streamed/fronslug.WAV"));
 		Source s = audioSystem.getSource();
 		s.play(clip);
 		
@@ -298,7 +298,11 @@ public class RockRaidersRemake {
 	public static void main(String[] args) {
 		new RockRaidersRemake().start();
 	}
-
+	
+	public AudioSystem getAudioSystem() {
+		return audioSystem;
+	}
+	
 	public Renderer getRenderer() {
 		return renderer;
 	}

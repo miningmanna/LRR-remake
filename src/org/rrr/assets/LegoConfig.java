@@ -231,6 +231,10 @@ public class LegoConfig {
 			return values.keySet();
 		}
 		
+		public Set<String> getSubNodeKeys() {
+			return subNodes.keySet();
+		}
+		
 		public String getValue(String name) {
 			return values.get(name);
 		}
