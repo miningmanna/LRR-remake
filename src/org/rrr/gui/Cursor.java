@@ -121,17 +121,10 @@ public class Cursor {
 		}
 	}
 	
-<<<<<<< HEAD
 	public void update(float dt) {
 		if(!animations[curAnimation].stillFrame) {
 			System.out.println("Stepping!");
 			animations[curAnimation].anim.step(dt);
-=======
-	public void update() {
-		if(!animations[curAnimation].stillFrame) {
-			System.out.println("Stepping!");
-			animations[curAnimation].anim.step(1);
->>>>>>> b2dd22ed37680fa03dab0285ee7a034ff4a6873d
 		}
 	}
 	

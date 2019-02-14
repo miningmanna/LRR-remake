@@ -32,11 +32,7 @@ public class TexLoader {
 	public FLHAnimation getAnimation(File file) {
 		String key = file.getName();
 		if(flhAnims.containsKey(key))
-<<<<<<< HEAD
 			return new FLHAnimation(flhAnims.get(key), 25);
-=======
-			return new FLHAnimation(flhAnims.get(key));
->>>>>>> b2dd22ed37680fa03dab0285ee7a034ff4a6873d
 		
 		FLHFile flh = null;
 		try {
@@ -53,11 +49,7 @@ public class TexLoader {
 		FLHAnimation.BaseData bd = FLHAnimation.getBaseData(this, flh);
 		flhAnims.put(key, bd);
 		
-<<<<<<< HEAD
 		return new FLHAnimation(bd, 25);
-=======
-		return new FLHAnimation(bd);
->>>>>>> b2dd22ed37680fa03dab0285ee7a034ff4a6873d
 		
 	}
 	

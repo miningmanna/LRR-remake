@@ -14,10 +14,6 @@ public class BitMapFont {
 	public Texture atlas;
 	public int[] widths;
 	public float[] glWidths;
-<<<<<<< HEAD
-	public float glHeight;
-=======
->>>>>>> b2dd22ed37680fa03dab0285ee7a034ff4a6873d
 	
 	public int chars;
 	public int blockLengthX;

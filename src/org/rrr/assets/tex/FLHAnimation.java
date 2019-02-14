@@ -4,15 +4,11 @@ import org.newdawn.slick.opengl.Texture;
 
 public class FLHAnimation {
 	
-<<<<<<< HEAD
 	public float time, frameTime, tLength;
-=======
->>>>>>> b2dd22ed37680fa03dab0285ee7a034ff4a6873d
 	public int frame;
 	public boolean justFinished;
 	public BaseData data;
 	
-<<<<<<< HEAD
 	public FLHAnimation(BaseData data, float fps) {
 		this.data = data;
 		frame = 0;
@@ -31,17 +27,6 @@ public class FLHAnimation {
 			justFinished = false;
 		}
 		frame = (int) Math.floor(time/frameTime);
-=======
-	public FLHAnimation(BaseData data) {
-		this.data = data;
-		frame = 0;
-		justFinished = false;
-	}
-	
-	public void step(int frames) {
-		frame = (frame + frames)%data.frames.length;
-		justFinished = (frame == 0);
->>>>>>> b2dd22ed37680fa03dab0285ee7a034ff4a6873d
 	}
 	
 	public static BaseData getBaseData(TexLoader tLoader, FLHFile file) {
