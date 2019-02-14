@@ -48,10 +48,10 @@ public class Camera {
 		direction.rotateAxis(angle, right.x, right.y, right.z);
 	}
 	
-	public void rotateX(float angle) {
-		rotate.rotateY(angle);
-		right.rotateY(-angle);
-		direction.rotateY(-angle);
+	public void rotateX(float d) {
+		rotate.rotateY(d);
+		right.rotateY(-d);
+		direction.rotateY(-d);
 	}
 	
 }

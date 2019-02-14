@@ -2,10 +2,36 @@ package org.rrr;
 
 import static org.lwjgl.glfw.Callbacks.*;
 import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.openal.AL10.AL_BUFFER;
+import static org.lwjgl.openal.AL10.alGenSources;
+import static org.lwjgl.openal.AL10.alSourcePlay;
+import static org.lwjgl.openal.AL10.alSourcei;
+import static org.lwjgl.openal.ALC10.alcCloseDevice;
+import static org.lwjgl.openal.ALC10.alcCreateContext;
+import static org.lwjgl.openal.ALC10.alcDestroyContext;
+import static org.lwjgl.openal.ALC10.alcGetString;
+import static org.lwjgl.openal.ALC10.alcMakeContextCurrent;
+import static org.lwjgl.openal.ALC10.alcOpenDevice;
+import static org.lwjgl.openal.ALC11.ALC_DEFAULT_ALL_DEVICES_SPECIFIER;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryStack.*;
 import static org.lwjgl.system.MemoryUtil.*;
 
+import static org.lwjgl.openal.ALC10.*;
+import static org.lwjgl.openal.ALC11.*;
+import static org.lwjgl.openal.AL10.*;
+
+import java.io.File;
+import java.io.FileInputStream;
+
+import org.lwjgl.openal.AL;
+import org.lwjgl.openal.ALC;
+import org.lwjgl.openal.ALCCapabilities;
+import org.lwjgl.openal.ALCapabilities;
+import org.newdawn.slick.openal.Audio;
+import org.newdawn.slick.openal.AudioLoader;
+
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -17,15 +43,25 @@ import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFWCursorPosCallbackI;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
+import org.lwjgl.openal.AL;
+import org.lwjgl.openal.ALC;
+import org.lwjgl.openal.ALCCapabilities;
+import org.lwjgl.openal.ALCapabilities;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.system.MemoryStack;
-import org.rrr.cfg.LegoConfig;
-import org.rrr.cfg.LegoConfig.Node;
-import org.rrr.entity.Entity;
-import org.rrr.entity.EntityEngine;
+import org.newdawn.slick.openal.Audio;
+import org.newdawn.slick.openal.AudioLoader;
+import org.rrr.assets.AssetManager;
+import org.rrr.assets.LegoConfig;
+import org.rrr.assets.LegoConfig.Node;
+import org.rrr.assets.model.ModelLoader;
+import org.rrr.assets.model.MapMesh;
+import org.rrr.gui.BitMapFont;
 import org.rrr.gui.Cursor;
-import org.rrr.model.Loader;
-import org.rrr.model.MapMesh;
+import org.rrr.gui.Menu;
+import org.rrr.level.Entity;
+import org.rrr.level.EntityEngine;
+import org.rrr.level.Level;
 
 
 public class RockRaidersRemake {
@@ -33,22 +69,23 @@ public class RockRaidersRemake {
 	private long window;
 	
 	public static final String TITLE = "Rock Raiders remake";
-	public static final int WIDTH = 800;
-	public static final int HEIGHT = 600;
+	public static final int WIDTH = 640;
+	public static final int HEIGHT = 480;
 	
 	private int pWidth = WIDTH, pHeight = HEIGHT;
 	
-	private Loader loader;
+	private AssetManager am;
+	
 	private Renderer renderer;
 	private LegoConfig cfg;
 	
-	private Camera camera;
 	private Input input;
 	private Cursor cursor;
 	
 	private Shader entityShader;
 	private Shader mapShader;
 	private Shader uiShader;
+	private Menu curMenu;
 	
 	private Level currentLevel;
 	
@@ -57,7 +94,7 @@ public class RockRaidersRemake {
 		init();
 		run();
 		
-		loader.destroy();
+		am.destroy();
 		
 		glfwFreeCallbacks(window);
 		glfwDestroyWindow(window);
@@ -69,7 +106,6 @@ public class RockRaidersRemake {
 	
 	private void init() {
 		
-		
 		try {
 			FileInputStream in = new FileInputStream("LegoRR1/Lego.cfg");
 			cfg = LegoConfig.getConfig(in);
@@ -77,16 +113,9 @@ public class RockRaidersRemake {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		loader = new Loader();
+		am = new AssetManager(new File("LegoRR0/World/Shared"));
 		renderer = new Renderer();
-		camera = new Camera();
-		input = new Input();
-		float aspect = (float)WIDTH / (HEIGHT);
-		camera.setFrustum(30, aspect, 0.1f, 10000);
-		camera.update();
-		cursor = new Cursor();
-		
-		
+		input = new Input(this);
 		
 		// ----------------- GLFW INIT --------------
 		GLFWErrorCallback.createPrint(System.out).set();
@@ -102,36 +131,12 @@ public class RockRaidersRemake {
 		if(window == NULL)
 			throw new RuntimeException("Coulnt create window!");
 		
-		glfwSetKeyCallback(window, input);
+		glfwSetKeyCallback(window, input.getKbHook());
 		
 		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-		glfwSetCursorPosCallback(window, new GLFWCursorPosCallbackI() {
-			
-			private double lastx = 0, lasty = 0;
-			private boolean first = true;
-			@Override
-			public void invoke(long window, double x, double y) {
-				
-				double dx = x-lastx;
-				double dy = y-lasty;
-				lastx = x;
-				lasty = y;
-				
-				if(first) {
-					first = false;
-					return;
-				}
-				
-				cursor.x += dx;
-				cursor.x = (int) clamp(cursor.x, 0, pWidth-cursor.w);
-				cursor.y += dy;
-				cursor.y = (int) clamp(cursor.y, 0, pHeight-cursor.h);
-				
-				camera.rotateY((float) (-dy * 0.001f));
-				camera.rotateX((float) (-dx * 0.001f));
-				
-			}
-		});
+		glfwSetCursorPosCallback(window, input.getMsHook());
+		
+		glfwSetMouseButtonCallback(window, input.getMsClckHook());
 		
 		try (MemoryStack stack = stackPush()) {
 			IntBuffer pWidth = stack.mallocInt(1);
@@ -153,6 +158,36 @@ public class RockRaidersRemake {
 	
 	private void run() {
 		
+//		String deviceName = alcGetString(0, ALC_DEFAULT_ALL_DEVICES_SPECIFIER);
+//		long device = alcOpenDevice(deviceName);
+//		
+//		int[] attributes = {0};
+//		long context = alcCreateContext(device, attributes);
+//		alcMakeContextCurrent(context);
+//		
+//		ALCCapabilities	alcCap	= ALC.createCapabilities(device);
+//		ALCapabilities	alCap	= AL.createCapabilities(alcCap);
+//		
+//		if(alCap.OpenAL10) {
+//			System.out.println("OpenAL 1.0 supported");
+//		}
+//		
+//		Audio a = null;
+//		try {
+//			File f = new File("LegoRR0/Sounds/DRIP1.WAV");
+//			FileInputStream in = new FileInputStream(f);
+//			a = AudioLoader.getAudio("wav", in);
+//			in.close();
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
+//		
+//		int source = alGenSources();
+//		
+//		alSourcei(source, AL_BUFFER, a.getBufferID());
+//		
+//		alSourcePlay(source);
+		
 		GL.createCapabilities();
 		
 		glClearColor(0.3f, 0.3f, 0.3f, 0.0f);
@@ -162,24 +197,28 @@ public class RockRaidersRemake {
 		glEnable(GL_CULL_FACE);
 		glCullFace(GL_FRONT);
 		
-		entityShader = new Shader(new File("entityShader.vert"), new File("entityShader.frag"));
-		mapShader = new Shader(new File("mapShader.vert"), new File("mapShader.frag"));
-		uiShader = new Shader(new File("uiShader.vert"), new File("uiShader.frag"));
+		cursor = am.getCursor((Node) cfg.get("Lego*/Pointers"));
+		cursor.setCursor("Standard");
+		
+		entityShader = am.getShader("entityShader");
+		mapShader = am.getShader("mapShader");
+		uiShader = am.getShader("uiShader");
 		
 		Matrix4f m = new Matrix4f();
 		m.identity();
 		m.translate(new Vector3f(0, 0, 5));
 		
+		Node mainMenuCfg = (Node) cfg.get("Lego*/Menu/MainMenuFull/Menu1");
+		setMenu(mainMenuCfg);
 		
 		ArrayList<Entity> entities = new ArrayList<>();
 		EntityEngine eng = new EntityEngine();
 		
-		Entity.setLoader(loader);
-		Entity.setSharedFolder(new File("LegoRR0/World/Shared"));
+		Entity.setAssetManager(am);
 		Entity.loadEntity(new File("LegoRR0/Mini-Figures/CAPTAIN"), "captain");
-		Entity.loadEntity(new File("LegoRR0/Buildings/Barracks"), 		"barracks");
+		Entity.loadEntity(new File("LegoRR0/Buildings/Barracks"), 	"barracks");
 		
-		Node l2cfg = (Node) cfg.get("Lego*/Levels/Level01");
+		Node l2cfg = (Node) cfg.get("Lego*/Levels/Level02");
 		
 		try {
 			currentLevel = new Level(this, l2cfg);
@@ -189,8 +228,9 @@ public class RockRaidersRemake {
 			e2.printStackTrace();
 		}
 		
-		cursor.init((Node) cfg.get("Lego*/Pointers"), loader);
-		renderer.init(loader);
+		renderer.init(am);
+		
+		BitMapFont font = am.getFont("Interface/FrontEnd/Menu_Font_HI.bmp");
 		
 		// FPS Counting
 		float time = 0;
@@ -199,6 +239,7 @@ public class RockRaidersRemake {
 		float speed = 1.0f;
 		float delta = 0;
 		long nano = 0, _nano = 0;
+		boolean drawMenu = true;
 		while(!glfwWindowShouldClose(window)) {
 			
 			glDepthMask(true);
@@ -206,27 +247,14 @@ public class RockRaidersRemake {
 			
 			if(input.justReleased[GLFW_KEY_ESCAPE])
 				glfwSetWindowShouldClose(window, true);
-			Vector3f move = new Vector3f(0, 0, 0);
-			if(input.isDown[GLFW_KEY_W])
-				move.z += 0.1f;
-			if(input.isDown[GLFW_KEY_A])
-				move.x += -0.1f;
-			if(input.isDown[GLFW_KEY_S])
-				move.z += -0.1f;
-			if(input.isDown[GLFW_KEY_D])
-				move.x += 0.1f;
-			if(input.isDown[GLFW_KEY_LEFT_CONTROL])
-				move.y += 0.1f;
-			if(input.isDown[GLFW_KEY_SPACE])
-				move.y += -0.1f;
-			if(input.isDown[GLFW_KEY_LEFT_SHIFT])
-				move.mul(40);
-			camera.move(move);
 			
 			if(input.justReleased[GLFW_KEY_E])
 				speed *= 1.2f;
 			if(input.justReleased[GLFW_KEY_Q])
 				speed /= 1.2f;
+			
+			if(input.justReleased[GLFW_KEY_M])
+				drawMenu = !drawMenu;
 			
 			if(input.justReleased[GLFW_KEY_UP])
 				currentLevel.incrementIndex();
@@ -242,8 +270,16 @@ public class RockRaidersRemake {
 //			if(input.justReleased[GLFW_KEY_UP])
 //				ent.currentAnimation = (ent.currentAnimation +1)%ent.anims.length;
 			
-			camera.update();
+			curMenu.update(delta);
 			
+			glDepthMask(true);
+			if(drawMenu) {
+				uiShader.start();
+				renderer.drawString(uiShader, 100, 100, font, " *4>", 1);
+				renderer.render(curMenu, uiShader);
+				uiShader.stop();
+			}
+			glDepthMask(false);
 			
 			currentLevel.step(delta);
 			currentLevel.render();
@@ -277,18 +313,18 @@ public class RockRaidersRemake {
 			glfwPollEvents();
 		}
 		
+//		alcDestroyContext(context);
+//		alcCloseDevice(device);
+		
 	}
 	
-	public static float clamp(float val, float min, float max) {
-		return Math.max(min, Math.min(max, val));
+	public void setMenu(Node cfg) {
+		curMenu = new Menu(this, cfg);
+		curMenu.setInput(input);
 	}
 	
 	public static void main(String[] args) {
 		new RockRaidersRemake().start();
-	}
-
-	public Loader getLoader() {
-		return loader;
 	}
 
 	public Renderer getRenderer() {
@@ -297,10 +333,6 @@ public class RockRaidersRemake {
 
 	public LegoConfig getCfg() {
 		return cfg;
-	}
-
-	public Camera getCamera() {
-		return camera;
 	}
 
 	public Input getInput() {
@@ -325,6 +357,18 @@ public class RockRaidersRemake {
 
 	public Level getCurrentLevel() {
 		return currentLevel;
+	}
+
+	public AssetManager getAssetManager() {
+		return am;
+	}
+	
+	public float getWidth() {
+		return WIDTH;
+	}
+	
+	public float getHeight() {
+		return HEIGHT;
 	}
 	
 }
