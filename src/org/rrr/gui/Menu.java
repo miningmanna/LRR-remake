@@ -134,7 +134,11 @@ public class Menu {
 	}
 	
 	private MenuItem highlightItem;
+<<<<<<< HEAD
 	public void update(float dt) {
+=======
+	public void update() {
+>>>>>>> b2dd22ed37680fa03dab0285ee7a034ff4a6873d
 		if(input.mouseJustPressed[0]) {
 			if(highlightItem != null) {
 				if(highlightItem instanceof NextItem)
@@ -170,7 +174,11 @@ public class Menu {
 					curOverlay = randInt(overlays.length-1);
 					overlays[curOverlay].anim.justFinished = false;
 				} else {
+<<<<<<< HEAD
 					overlays[curOverlay].anim.step(dt);
+=======
+					overlays[curOverlay].anim.step(1);
+>>>>>>> b2dd22ed37680fa03dab0285ee7a034ff4a6873d
 				}
 			}
 		}

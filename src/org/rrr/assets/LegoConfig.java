@@ -19,6 +19,8 @@ public class LegoConfig {
 	
 	public static LegoConfig getConfig(InputStream in) throws IOException {
 		
+		System.out.println("	;#extern:Test2.cfg".matches(EXTERN_REGEX));
+		
 		LegoConfig cfg = new LegoConfig();
 		
 		getToNode("./", in, cfg.superNode, 0);

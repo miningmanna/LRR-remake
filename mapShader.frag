@@ -10,9 +10,10 @@ out vec4 outColor;
 uniform mat4 cam;
 uniform mat4 mapTrans;
 uniform sampler2D tex;
+uniform float texRot;
 uniform bool lines;
 uniform vec3 lightDirect = normalize(vec3(-1,-1,-1));
-uniform float lightDirectI = 0.5;
+uniform float lightDirectI = 0.3;
 uniform vec3 lightPoint = vec3(40*8+20, 40, 40*9+20);
 uniform float lightPointI = 12000;
 

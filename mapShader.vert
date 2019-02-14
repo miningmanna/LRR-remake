@@ -13,6 +13,7 @@ out float mSurfType;
 uniform mat4 cam;
 uniform mat4 mapTrans;
 uniform sampler2D tex;
+uniform float texRot;
 uniform bool lines;
 uniform vec3 lightDirect;
 uniform float lightDirectI;

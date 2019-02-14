@@ -320,6 +320,10 @@ public class Renderer {
 			Vector2f texPos = new Vector2f(0, 0);
 			s.setUniVector2f("texOffset", texPos);
 			Vector3f translate = new Vector3f(transWidth(item.x)-1, 1-transHeight(item.y), 0);
+<<<<<<< HEAD
+=======
+			System.out.println(translate);
+>>>>>>> b2dd22ed37680fa03dab0285ee7a034ff4a6873d
 			s.setUniVector3f("translate", translate);
 			
 			glDisable(GL_CULL_FACE);

@@ -113,7 +113,11 @@ public class Level {
 		m.scale(40);
 		mapShader.setUniMatrix4f("mapTrans", m);
 		mapShader.setUniVector3f("lightDirect", new Vector3f(camera.right).mul(-1).add(0, -1, 0).normalize());
+<<<<<<< HEAD
 		
+=======
+		cursor.update();
+>>>>>>> b2dd22ed37680fa03dab0285ee7a034ff4a6873d
 		// Todo - mapmesh fix
 		//renderer.render(mapMesh, mapShader);
 		mapShader.stop();
@@ -150,8 +154,12 @@ public class Level {
 	}
 	
 	public void step(float delta) {
+<<<<<<< HEAD
 		if(cursor != null)
 			cursor.update(delta);
+=======
+		
+>>>>>>> b2dd22ed37680fa03dab0285ee7a034ff4a6873d
 		for(Entity e : entities)
 			e.step(delta * speed);
 		
