@@ -19,8 +19,6 @@ public class LegoConfig {
 	
 	public static LegoConfig getConfig(InputStream in) throws IOException {
 		
-		System.out.println("	;#extern:Test2.cfg".matches(EXTERN_REGEX));
-		
 		LegoConfig cfg = new LegoConfig();
 		
 		getToNode("./", in, cfg.superNode, 0);
@@ -39,9 +37,7 @@ public class LegoConfig {
 		Node currentNode = parent;
 		
 		while((line = br.readLine()) != null) {
-			System.out.println(line);
 			if(line.matches(EXTERN_REGEX)) {
-				System.out.println("MATCH");
 				try {
 					String path = relPath + line.split(":")[1];
 					File f = new File(path);
@@ -372,18 +368,5 @@ public class LegoConfig {
 			
 			
 		}
-	}
-	
-	public static void main(String[] args) {
-		
-		try {
-			FileInputStream in = new FileInputStream("Test.cfg");
-			LegoConfig cfg = LegoConfig.getConfig(in);
-			cfg.superNode.printTree();
-			in.close();
-		} catch(Exception e) {
-			e.printStackTrace();
-		}
-		
 	}
 }

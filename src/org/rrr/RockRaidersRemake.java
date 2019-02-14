@@ -2,44 +2,27 @@ package org.rrr;
 
 import static org.lwjgl.glfw.Callbacks.*;
 import static org.lwjgl.glfw.GLFW.*;
-import static org.lwjgl.openal.AL10.AL_BUFFER;
-import static org.lwjgl.openal.AL10.alGenSources;
-import static org.lwjgl.openal.AL10.alSourcePlay;
-import static org.lwjgl.openal.AL10.alSourcei;
-import static org.lwjgl.openal.ALC10.alcCloseDevice;
-import static org.lwjgl.openal.ALC10.alcCreateContext;
-import static org.lwjgl.openal.ALC10.alcDestroyContext;
-import static org.lwjgl.openal.ALC10.alcGetString;
-import static org.lwjgl.openal.ALC10.alcMakeContextCurrent;
-import static org.lwjgl.openal.ALC10.alcOpenDevice;
-import static org.lwjgl.openal.ALC11.ALC_DEFAULT_ALL_DEVICES_SPECIFIER;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryStack.*;
 import static org.lwjgl.system.MemoryUtil.*;
 
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
 
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
-import org.lwjgl.glfw.GLFWCursorPosCallbackI;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
-import org.lwjgl.openal.AL;
-import org.lwjgl.openal.ALC;
-import org.lwjgl.openal.ALCCapabilities;
-import org.lwjgl.openal.ALCapabilities;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.system.MemoryStack;
 import org.rrr.assets.AssetManager;
 import org.rrr.assets.LegoConfig;
 import org.rrr.assets.LegoConfig.Node;
-import org.rrr.assets.model.ModelLoader;
-import org.rrr.assets.model.MapMesh;
+import org.rrr.assets.sound.AudioSystem;
+import org.rrr.assets.sound.SoundClip;
+import org.rrr.assets.sound.Source;
 import org.rrr.gui.BitMapFont;
 import org.rrr.gui.Cursor;
 import org.rrr.gui.Menu;
@@ -59,7 +42,7 @@ public class RockRaidersRemake {
 	private int pWidth = WIDTH, pHeight = HEIGHT;
 	
 	private AssetManager am;
-	
+	private AudioSystem audioSystem;
 	private Renderer renderer;
 	private LegoConfig cfg;
 	
@@ -79,6 +62,7 @@ public class RockRaidersRemake {
 		run();
 		
 		am.destroy();
+		audioSystem.destroy();
 		
 		glfwFreeCallbacks(window);
 		glfwDestroyWindow(window);
@@ -135,6 +119,9 @@ public class RockRaidersRemake {
 					(vidmode.height() - pHeight.get(0))/2);
 		}
 		
+		audioSystem = new AudioSystem();
+		audioSystem.init();
+		
 		glfwMakeContextCurrent(window);
 		glfwSwapInterval(1);
 		glfwShowWindow(window);
@@ -174,7 +161,7 @@ public class RockRaidersRemake {
 		
 		GL.createCapabilities();
 		
-		glClearColor(0.3f, 0.3f, 0.3f, 0.0f);
+		glClearColor(0, 0, 0, 0);
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_TEXTURE_2D);
 		glEnable(GL_BLEND);
@@ -191,6 +178,10 @@ public class RockRaidersRemake {
 		Matrix4f m = new Matrix4f();
 		m.identity();
 		m.translate(new Vector3f(0, 0, 5));
+		
+		SoundClip clip = am.getSound(new File("LegoRR0/Sounds/DRIP1.WAV"));
+		Source s = audioSystem.getSource();
+		s.play(clip);
 		
 		Node mainMenuCfg = (Node) cfg.get("Lego*/Menu/MainMenuFull/Menu1");
 		setMenu(mainMenuCfg);
@@ -296,9 +287,6 @@ public class RockRaidersRemake {
 			input.update();
 			glfwPollEvents();
 		}
-		
-//		alcDestroyContext(context);
-//		alcCloseDevice(device);
 		
 	}
 	

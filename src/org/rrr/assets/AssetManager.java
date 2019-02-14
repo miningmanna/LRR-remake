@@ -10,6 +10,7 @@ import org.rrr.assets.model.LwsAnimation;
 import org.rrr.assets.model.ModelLoader;
 import org.rrr.assets.model.ModelPathConverter;
 import org.rrr.assets.model.PathConverter;
+import org.rrr.assets.sound.SoundClip;
 import org.rrr.assets.sound.SoundLoader;
 import org.rrr.assets.tex.FLHAnimation;
 import org.rrr.assets.tex.TexLoader;
@@ -88,6 +89,23 @@ public class AssetManager {
 			return tLoader.getTexture(ext, f);
 		} catch (IOException e) {
 			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	public SoundClip getSound(File f) {
+		String ext = f.getName();
+		System.out.println(ext);
+		String[] split = ext.split("\\.");
+		System.out.println(split.length);
+		ext = split[split.length-1];
+		if(ext.equalsIgnoreCase("wav")) {
+			try {
+				return sLoader.getWavClip(f);
+			} catch (Exception e) {
+				e.printStackTrace();
+				return null;
+			}
 		}
 		return null;
 	}
