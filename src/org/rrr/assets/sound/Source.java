@@ -21,4 +21,8 @@ public class Source {
 		AL10.alSourcePlay(id);
 		
 	}
+	
+	public void play(SoundStream stream) {
+		
+	}
 }

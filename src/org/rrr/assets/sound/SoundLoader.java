@@ -3,7 +3,6 @@ package org.rrr.assets.sound;
 import static org.lwjgl.openal.AL10.*;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -14,7 +13,6 @@ import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
 import org.lwjgl.BufferUtils;
-import org.lwjgl.util.nfd.NFDPathSet;
 import org.rrr.assets.LegoConfig.Node;
 
 public class SoundLoader {
