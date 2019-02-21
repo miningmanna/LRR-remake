@@ -11,6 +11,8 @@ import java.io.FileInputStream;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
 
+import javax.sound.sampled.AudioFileFormat.Type;
+
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFWErrorCallback;
@@ -22,6 +24,7 @@ import org.rrr.assets.LegoConfig;
 import org.rrr.assets.LegoConfig.Node;
 import org.rrr.assets.sound.AudioSystem;
 import org.rrr.assets.sound.SoundClip;
+import org.rrr.assets.sound.SoundStream;
 import org.rrr.assets.sound.Source;
 import org.rrr.gui.BitMapFont;
 import org.rrr.gui.Cursor;
@@ -179,12 +182,14 @@ public class RockRaidersRemake {
 		m.identity();
 		m.translate(new Vector3f(0, 0, 5));
 		
-		SoundClip clip = am.getSound(new File("LegoRR1/Sounds/Streamed/fronslug.WAV"));
-		Source s = audioSystem.getSource();
-		s.play(clip);
-		
 		Node mainMenuCfg = (Node) cfg.get("Lego*/Menu/MainMenuFull/Menu1");
 		setMenu(mainMenuCfg);
+		
+		Type[] audioTypes = javax.sound.sampled.AudioSystem.getAudioFileTypes();
+		System.out.println("SUPPORTED FORMATS:");
+		for(Type t : audioTypes) {
+			System.out.println(t.getExtension());
+		}
 		
 		ArrayList<Entity> entities = new ArrayList<>();
 		EntityEngine eng = new EntityEngine();
@@ -206,6 +211,10 @@ public class RockRaidersRemake {
 		renderer.init(am);
 		
 		BitMapFont font = am.getFont("Interface/FrontEnd/Menu_Font_HI.bmp");
+		
+		SoundStream stream = am.getSoundStream(new File("Track01.ogg"));
+		Source s = audioSystem.getSource();
+		s.play(stream);
 		
 		// FPS Counting
 		float time = 0;
@@ -247,17 +256,14 @@ public class RockRaidersRemake {
 			
 			curMenu.update(delta);
 			
-			glDepthMask(true);
-			if(drawMenu) {
-				uiShader.start();
-				renderer.drawString(uiShader, 100, 100, font, " *4>", 1);
-				renderer.render(curMenu, uiShader);
-				uiShader.stop();
-			}
-			glDepthMask(false);
-			
 			currentLevel.step(delta);
 			currentLevel.render();
+			
+			uiShader.start();
+			if(drawMenu)
+				renderer.render(curMenu, uiShader);
+			renderer.render(cursor, uiShader);
+			uiShader.stop();
 			
 			glfwSwapBuffers(window);
 			
@@ -282,8 +288,10 @@ public class RockRaidersRemake {
 				time %= 1.0f;
 				System.out.println("FPS: " + frames);
 				frames = 0;
+				Runtime.getRuntime().gc();
 			}
 			
+			audioSystem.update();
 			input.update();
 			glfwPollEvents();
 		}
@@ -340,11 +348,11 @@ public class RockRaidersRemake {
 	}
 	
 	public float getWidth() {
-		return WIDTH;
+		return pWidth;
 	}
 	
 	public float getHeight() {
-		return HEIGHT;
+		return pHeight;
 	}
 	
 }

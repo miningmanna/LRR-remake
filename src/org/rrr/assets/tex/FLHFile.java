@@ -172,7 +172,6 @@ public class FLHFile {
 	}
 	
 	private static void parseDELTA_FLC(FLHFile flh, byte[] seg, int offset, int len, int imageIndex) {
-		System.out.println("DELTA FLC");
 		BufferedImage res = new BufferedImage(flh.width, flh.height, BufferedImage.TYPE_INT_ARGB);
 		if(imageIndex != 0)
 			res.getGraphics().drawImage(flh.frames.get(imageIndex-1), 0, 0, null);

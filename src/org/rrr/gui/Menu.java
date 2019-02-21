@@ -33,6 +33,8 @@ public class Menu {
 		
 		AssetManager am = par.getAssetManager();
 		
+		System.out.println("CFG PATH: " + cfg.getPath());
+		
 		this.par = par;
 		this.cfg = cfg;
 		String coords = cfg.getValue("Position");

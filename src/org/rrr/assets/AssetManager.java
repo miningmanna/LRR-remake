@@ -3,8 +3,11 @@ package org.rrr.assets;
 import java.io.File;
 import java.io.IOException;
 
+import javax.sound.sampled.UnsupportedAudioFileException;
+
 import org.newdawn.slick.opengl.Texture;
 import org.rrr.Shader;
+import org.rrr.assets.sound.SoundStream;
 import org.rrr.assets.LegoConfig.Node;
 import org.rrr.assets.model.LwsAnimation;
 import org.rrr.assets.model.ModelLoader;
@@ -99,16 +102,12 @@ public class AssetManager {
 		System.out.println(split.length);
 		ext = split[split.length-1];
 		System.out.println(ext);
-		if(ext.equalsIgnoreCase("wav")) {
-			try {
-				System.out.println("Getting WAV: " + f);
-				return sLoader.getWavClip(f);
-			} catch (Exception e) {
-				e.printStackTrace();
-				return null;
-			}
+		try {
+			return sLoader.getSoundClip(f);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
 		}
-		return null;
 	}
 	
 	public SoundClip getSample(String name) {
@@ -123,6 +122,17 @@ public class AssetManager {
 		else
 			return getSound(f);
 		
+	}
+	
+	public SoundStream getSoundStream(File f) {
+		try {
+			return sLoader.getSoundStream(f);
+		} catch (UnsupportedAudioFileException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 	
 	private File locateInLegoRR0(String path) {
@@ -163,5 +173,4 @@ public class AssetManager {
 		
 		return null;
 	}
-	
 }

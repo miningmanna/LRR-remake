@@ -129,13 +129,6 @@ public class Level {
 		
 		entityShader.stop();
 		
-		// Draw UI
-		glDisable(GL_DEPTH);
-		uiShader.start();
-		renderer.render(cursor, uiShader);
-		uiShader.stop();
-		glEnable(GL_DEPTH);
-		
 	}
 	
 	public void spawn(String name) {

@@ -4,8 +4,7 @@ import org.rrr.assets.LegoConfig.Node;
 
 public class TriggerItem extends MenuItem {
 	
-	// Unknown use?
-	public int end;
+	public String func;
 	
 	public TriggerItem(String key, Node cfg, Menu menu) {
 		this(key, cfg.getValue(key), menu);
@@ -13,7 +12,7 @@ public class TriggerItem extends MenuItem {
 	
 	public TriggerItem(String key, String cfgStr, Menu menu) {
 		
-name = key;
+		name = key;
 		
 		String[] split = cfgStr.split(":");
 		
@@ -27,8 +26,6 @@ name = key;
 		
 		w = menu.menuFont.getPixLength(banner);
 		h = menu.menuFont.blockLengthY;
-		
-		end = Integer.parseInt(split[split.length-1]);
 		
 	}
 	

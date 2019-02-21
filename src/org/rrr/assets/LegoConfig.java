@@ -14,7 +14,7 @@ public class LegoConfig {
 	Node superNode;
 	
 	public LegoConfig() {
-		superNode = new Node(null, 0);
+		superNode = new Node(null, null, 0);
 	}
 	
 	public static LegoConfig getConfig(InputStream in) throws IOException {
@@ -78,7 +78,7 @@ public class LegoConfig {
 				
 				if(split[1].equals("{")) {
 					depth++;
-					Node n = new Node(currentNode, depth);
+					Node n = new Node(split[0], currentNode, depth);
 					currentNode.subNodes.put(split[0], n);
 					currentNode = n;
 				} else {
@@ -90,7 +90,7 @@ public class LegoConfig {
 					currentNode = currentNode.parent;
 				} else if(line.equals("{")) {
 					depth++;
-					Node n = new Node(currentNode, depth);
+					Node n = new Node(lastLine, currentNode, depth);
 					currentNode.subNodes.put(lastLine, n);
 					currentNode = n;
 				}
@@ -207,16 +207,30 @@ public class LegoConfig {
 	public static final String INDENT = "\t";
 	public static class Node {
 		
+		private String name;
 		private Node parent;
 		private int depth;
 		private HashMap<String, String> values;
 		private HashMap<String, Node> subNodes;
 		
-		public Node(Node parent, int depth) {
+		public Node(String name, Node parent, int depth) {
+			this.name = name;
 			this.parent = parent;
 			this.depth = depth;
 			values = new HashMap<>();
 			subNodes = new HashMap<>();
+		}
+		
+		public String getPath() {
+			String res = new String(name);
+			Node curNode = this;
+			while((curNode = curNode.getParent()) != null) {
+				if(curNode.name != null)
+					res = curNode.name + "/" + res;
+				else
+					break;
+			}
+			return res;
 		}
 		
 		public Node getParent() {

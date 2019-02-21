@@ -10,17 +10,17 @@ import org.lwjgl.openal.ALC;
 import org.lwjgl.openal.ALCCapabilities;
 import org.lwjgl.openal.ALCapabilities;
 
-import static org.lwjgl.openal.ALC10.*;
-
 public class AudioSystem {
 	
-	long device;
-	long context;
-	ArrayList<Integer> sources;
-	Source publicSource;
+	private long device;
+	private long context;
+	private ArrayList<Integer> sources;
+	private ArrayList<Source>  streams;
+	private Source publicSource;
 	
 	public AudioSystem() {
 		sources = new ArrayList<>();
+		streams = new ArrayList<>();
 	}
 	
 	public void init() {
@@ -46,7 +46,7 @@ public class AudioSystem {
 	public Source getSource() {
 		
 		int id = AL10.alGenSources();
-		Source source = new Source();
+		Source source = new Source(this);
 		source.id = id;
 		sources.add(id);
 		return source;
@@ -56,6 +56,25 @@ public class AudioSystem {
 	public void playPublic(SoundClip clip) {
 		System.out.println("PUBLIC PLAY " + clip);
 		publicSource.play(clip);
+	}
+	
+	public void update() {
+		synchronized (streams) {
+			for(Source s : streams)
+				s.update();
+		}
+	}
+	
+	public void registerStream(Source source) {
+		synchronized (streams) {
+			streams.add(source);
+		}
+	}
+	
+	public void removeStream(Source source) {
+		synchronized (streams) {
+			streams.remove(source);
+		}
 	}
 	
 	public void destroy() {

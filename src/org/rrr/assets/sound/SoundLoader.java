@@ -8,6 +8,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.UnsupportedAudioFileException;
@@ -96,8 +97,19 @@ public class SoundLoader {
 		return f;
 	}
 	
+	public SoundStream getSoundStream(File f) throws UnsupportedAudioFileException, IOException {
+		SoundStream stream = new SoundStream(this, f, 4096*8);
+		return stream;
+	}
+	
 	public File getSample(String key) {
 		return sounds.get(key);
+	}
+	
+	public int getBuffer() {
+		int b = alGenBuffers();
+		buffers.add(b);
+		return b;
 	}
 	
 	public void destroy() {
@@ -105,9 +117,14 @@ public class SoundLoader {
 			alDeleteBuffers(id);
 	}
 	
-	public SoundClip getWavClip(File f) throws IOException, UnsupportedAudioFileException {
+	public SoundClip getSoundClip(File f) throws IOException, UnsupportedAudioFileException {
 		
 		AudioInputStream in = AudioSystem.getAudioInputStream(f);
+		AudioFormat enc = new AudioFormat(in.getFormat().getSampleRate(), 16, 2, true, false);
+		in = AudioSystem.getAudioInputStream(enc, in);
+		System.out.println("BIG_ENDIAN: " + in.getFormat().isBigEndian());
+		System.out.println("CHANNELS:   " + in.getFormat().getChannels());
+		System.out.println("BITS:       " + in.getFormat().getSampleSizeInBits());
 		
 		if(in.getFormat().isBigEndian()) {
 			System.err.println("Invalid format!");
@@ -155,8 +172,17 @@ public class SoundLoader {
 			return null;
 		}
 		
+		if(size < 0)
+			size = 44100*4*5;
+		System.out.println("Getting: " + f.getName());
+		System.out.println(size);
+		System.out.println((int) size);
 		byte[] b = new byte[(int) size];
-		System.out.println("Reading " + in.read(b) + " byte into buffer");
+		int read = 0, l = 0;
+		while((l = in.read(b, read, b.length-read)) != -1) {
+			System.out.println("read: " + l);
+			read += l;
+		}
 		System.out.println("Avaliable: " + in.available());
 		System.out.println("Framesize: " + in.getFrameLength());
 		ByteBuffer buff = BufferUtils.createByteBuffer((int) size).put(b);

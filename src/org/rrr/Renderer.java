@@ -155,7 +155,7 @@ public class Renderer {
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 			glDrawElements(GL_TRIANGLES, cmodel.surfLen[ind], GL_UNSIGNED_INT, cmodel.surfStart[ind]*4);
 		}
-		
+		glDepthMask(true);
 		glDisableVertexAttribArray(0);
 		glDisableVertexAttribArray(1);
 		glDisableVertexAttribArray(2);
@@ -194,6 +194,7 @@ public class Renderer {
 	}
 	
 	public void render(Cursor cursor, Shader s) {
+		glDepthMask(true);
 		glDepthFunc(GL_ALWAYS);
 		s.setUniMatrix4f("trans", new Matrix4f().identity());
 		Vector2f scale = new Vector2f(transWidth(cursor.w), transHeight(cursor.h));
@@ -245,10 +246,11 @@ public class Renderer {
 	
 	public void render(Menu menu, Shader s) {
 		
+		glDepthMask(true);
 		glDepthFunc(GL_ALWAYS);
 		
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glDepthMask(true);
+		
 		
 		s.setUniMatrix4f("trans", new Matrix4f().identity());
 		Vector2f scale = new Vector2f(	transWidth(menu.bgImage.getImageWidth()),
@@ -302,8 +304,7 @@ public class Renderer {
 		
 		glEnable(GL_CULL_FACE);
 		glCullFace(GL_FRONT);
-		glDepthMask(false);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+		glDepthMask(true);
 		glDepthFunc(GL_LESS);
 	}
 	
@@ -366,7 +367,7 @@ public class Renderer {
 		
 		glBindVertexArray(uiVao);
 		glEnableVertexAttribArray(0);
-		glEnableVertexAttribArray(1);
+		glEnableVertexAttribArray(1); 
 		
 		Vector3f trans = new Vector3f();
 		Vector2f tScale = new Vector2f(1, 1);
