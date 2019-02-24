@@ -10,6 +10,7 @@ import org.rrr.RockRaidersRemake;
 import org.rrr.Shader;
 import org.rrr.assets.sound.SoundStream;
 import org.rrr.assets.LegoConfig.Node;
+import org.rrr.assets.map.Map;
 import org.rrr.assets.model.LwsAnimation;
 import org.rrr.assets.model.ModelLoader;
 import org.rrr.assets.model.ModelPathConverter;
@@ -27,6 +28,8 @@ public class AssetManager {
 	private TexLoader	tLoader;
 	private SoundLoader sLoader;
 	
+	private Node splits;
+	
 	private File mShared;
 	
 	public AssetManager(LegoConfig cfg, File mShared) {
@@ -34,6 +37,7 @@ public class AssetManager {
 		mLoader = new ModelLoader();
 		tLoader = new TexLoader();
 		sLoader = new SoundLoader((Node) cfg.get("Lego*/Samples"));
+		splits = (Node) cfg.get("Lego*/Textures");
 	}
 	
 	public void destroy() {
@@ -82,7 +86,35 @@ public class AssetManager {
 	public FLHAnimation getFLHAnimation(File f) {
 		return tLoader.getAnimation(f);
 	}
-
+	
+	public void getTexSplit(Map map, String split) {
+		if(split.contains("::"))
+			split = split.split("::")[1];
+		System.out.println("GETTING SPLIT: " + split);
+		Node splitCfg = splits.getSubNode(split);
+		int sw = splitCfg.getInteger("surftextwidth");
+		int sh = splitCfg.getInteger("surftextheight");
+		String baseName = splitCfg.getValue("texturebasename");
+		System.out.println("CHECKING WITH BASE: " + baseName);
+		
+		map.mesh.texs = new Texture[sw*sh];
+		for(int x = 0; x < sw; x++) {
+			for(int y = 0; y < sh; y++) {
+				File f = locateInLegoRR0(baseName + y + x + ".bmp");
+				if(f != null) {
+					int i = y*sw+x;
+					System.out.println("FOUND TEX: " + baseName + y + x + ".bmp");
+					try {
+						map.mesh.texs[i] = tLoader.getTexture("bmp", f);
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		}
+		
+	}
+	
 	public Texture getTexture(String tPath) {
 		File f = locateInLegoRR0(tPath);
 		String ext = f.getName();

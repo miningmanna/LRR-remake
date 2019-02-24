@@ -16,6 +16,8 @@ import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
 import org.newdawn.slick.opengl.Texture;
 import org.newdawn.slick.opengl.TextureLoader;
+import org.rrr.assets.LegoConfig.Node;
+import org.rrr.assets.map.Map;
 
 public class TexLoader {
 	

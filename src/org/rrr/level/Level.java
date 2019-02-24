@@ -1,15 +1,7 @@
 package org.rrr.level;
 
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_A;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_D;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT_CONTROL;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT_SHIFT;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_S;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_SPACE;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_W;
-import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.glfw.GLFW.*;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -21,11 +13,8 @@ import org.rrr.Input;
 import org.rrr.Renderer;
 import org.rrr.RockRaidersRemake;
 import org.rrr.Shader;
-import org.rrr.assets.AssetManager;
-import org.rrr.assets.LegoConfig;
 import org.rrr.assets.LegoConfig.Node;
 import org.rrr.assets.map.Map;
-import org.rrr.assets.model.ModelLoader;
 import org.rrr.assets.model.MapMesh;
 import org.rrr.gui.Cursor;
 
@@ -45,8 +34,7 @@ public class Level {
 	private Map map;
 	
 	private float speed = 1.0f;
-	
-	private Texture test;
+	private float tRot = 0;
 	
 	public Level(RockRaidersRemake par) {
 		
@@ -58,8 +46,6 @@ public class Level {
 		this.cursor = par.getCursor();
 		this.input = par.getInput();
 		entities = new ArrayList<>();
-		
-		test = par.getAssetManager().getTexture("World/WorldTextures/RockSplit/ROCK00.BMP");
 		
 		camera = new Camera();
 		float aspect = (float)par.getWidth() / (par.getHeight());
@@ -106,6 +92,12 @@ public class Level {
 			move.y += -0.1f;
 		if(input.isDown[GLFW_KEY_LEFT_SHIFT])
 			move.mul(40);
+		
+		if(input.justPressed[GLFW_KEY_Q])
+			tRot = (float) ((tRot+(Math.PI/2.0f))%(2.0f*Math.PI));
+		if(input.justPressed[GLFW_KEY_E])
+			tRot = (float) ((tRot+(3*Math.PI/2.0f))%(2.0f*Math.PI));
+		
 		camera.move(move);
 		camera.rotateX(input.mouse.z * -0.001f);
 		camera.rotateY(input.mouse.w * -0.001f);
@@ -115,16 +107,16 @@ public class Level {
 		cursor.y = (int) input.mouse.y;
 		
 		mapShader.start();
+		mapShader.setUniVector3f("lightDirect", camera.right);
+		mapShader.setUniFloat("texRot", tRot);
 		mapShader.setUniMatrix4f("cam", camera.combined);
-		Matrix4f m = new Matrix4f();
+		Matrix4f m = new Matrix4f() ;
 		m.identity();
 		mapShader.setUniMatrix4f("mapTrans", m);
 		mapShader.setUniVector3f("lightDirect", new Vector3f(camera.right).mul(-1).add(0, -1, 0).normalize());
 		// Todo - mapmesh fix
-		renderer.render(map, mapShader, test);
+		renderer.render(map, mapShader);
 		mapShader.stop();
-		
-		mapShader.setUniVector3f("lightDirect", camera.right);
 		
 		entityShader.start();
 		entityShader.setUniMatrix4f("cam", camera.combined);

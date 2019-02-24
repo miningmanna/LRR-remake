@@ -17,13 +17,14 @@ public class Map {
 	public Map(AssetManager am, Node cfg) throws Exception {
 		
 		cliffTypes = new int[] {
-				1, 2, 3
+				1, 2, 3, 4
 		};
 		
 		File dir = new File("LegoRR0/" + cfg.getValue("SurfaceMap")).getParentFile();
 		System.out.println(dir);
 		data = MapData.getMapData(dir);
 		mesh = new MapMesh();
+		am.getTexSplit(this, cfg.getOptValue("TextureSet", "Rock"));
 		initMapMesh();
 		am.getMLoader().loadMapMeshIntoVao(mesh);
 		
@@ -60,6 +61,8 @@ public class Map {
 		mesh.verts = new float[mesh.inds.length*3];
 		mesh.nVerts = new float[mesh.inds.length*3];
 		mesh.tVerts = new float[mesh.inds.length*2];
+		mesh.tex = new int[w * h];
+		mesh.tRotation = new float[w * h];
 		
 		for(int i = 0; i < mesh.inds.length; i++)
 			mesh.inds[i] = i;
@@ -89,14 +92,14 @@ public class Map {
 				float height;
 				if(x == w) {
 					if(z == h) {
-						height = high[z-1][x-1]/14.0f;
+						height = high[z-1][x-1]/7.0f;
 					} else {
-						height = high[z][x-1]/14.0f;
+						height = high[z][x-1]/7.0f;
 					}
 				} else if(z == h) {
-					height = high[z-1][x]/14.0f;
+					height = high[z-1][x]/7.0f;
 				} else {
-					height = high[z][x]/14.0f;
+					height = high[z][x]/7.0f;
 				}
 				if(isAtGroundlevel(x, z))
 					setY(x, z, 0, height*40);
@@ -107,8 +110,64 @@ public class Map {
 		
 		for(int z = 0; z < h; z++) {
 			for(int x = 0; x < w; x++) {
-				triangulateTile(x, z, true);
+				
+				boolean zeroTwo = true;
+				
+				boolean[] groundLevels = new boolean[] {
+						isAtGroundlevel(x, z),
+						isAtGroundlevel(x+1, z),
+						isAtGroundlevel(x+1, z+1),
+						isAtGroundlevel(x, z+1)
+				};
+				int groundPoints = 0;
+				int firstAfterZero = -1;
+				for(int i = 0; i < 4; i++) {
+					if(groundLevels[i]) {
+						groundPoints++;
+						if(!groundLevels[(i+3)%4])
+							firstAfterZero = i;
+					}
+				}
+				
+				switch(groundPoints) {
+				case 0:
+					break;
+				case 1:
+					System.out.println("ONE POINT AT GROUND");
+					for(int i = 0; i < 4; i++)
+						System.out.println("   " + groundLevels[i]);
+					System.out.println(firstAfterZero);
+					System.out.println(firstAfterZero == 0 || firstAfterZero == 2);
+				case 2:
+					zeroTwo = firstAfterZero == 0 || firstAfterZero == 2;
+					if(groundLevels[(firstAfterZero+1)%4]) {
+						mesh.tRotation[z*w+x] = (float) ((Math.PI+firstAfterZero*(Math.PI/2))%(2*Math.PI));
+					}
+					break;
+				case 3:
+					zeroTwo = (firstAfterZero+1)%4 == 0 || (firstAfterZero+1)%4 == 2;
+					break;
+				}
+				
+				triangulateTile(x, z, zeroTwo);
+				
 				calcNormals(x, z);
+				
+				// TODO: remove hardcode
+				switch(surf[z][x]) {
+				case 1:
+				case 2:
+				case 3:
+				case 4:
+					mesh.tex[z*w+x] = 6-surf[z][x];
+					break;
+				case 5:
+					mesh.tex[z*w+x] = 0;
+					break;
+				default:
+					mesh.tex[z*w+x] = 56;
+					break;
+				}
 			}
 		}
 	}
@@ -119,7 +178,7 @@ public class Map {
 	
 	// Returns true if point 0 is at ground level
 	private boolean isAtGroundlevel(int x, int z) {
-		return !isCliff(x, z) || !isCliff(x+1, z) || !isCliff(x+1, z+1) || !isCliff(x, z+1);
+		return !isCliff(x, z) || !isCliff(x-1, z) || !isCliff(x-1, z-1) || !isCliff(x, z-1);
 	}
 	
 	// Returns true if surf of coordinate is a cliff

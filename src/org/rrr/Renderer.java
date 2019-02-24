@@ -37,7 +37,6 @@ public class Renderer {
 	private int uiVao;
 	public void init(AssetManager am) {
 		
-		
 		System.out.println("VAO BEFORE: " + uiVao);
 		uiVao = am.getUiModel();
 		System.out.println("VAO AFTER " + uiVao);
@@ -45,7 +44,7 @@ public class Renderer {
 	}
 	
 	// TODO - reimplement
-	public void render(Map map, Shader s, Texture t) {
+	public void render(Map map, Shader s) {
 		
 		glCullFace(GL_BACK);
 		
@@ -56,9 +55,12 @@ public class Renderer {
 		s.setUniVector3f("pos", new Vector3f(0));
 		glActiveTexture(GL_TEXTURE0);
 		s.setUniBoolean("lines", false);
-		glBindTexture(GL_TEXTURE_2D, t.getTextureID());
 		
-		glDrawElements(GL_TRIANGLES, map.mesh.inds.length, GL_UNSIGNED_INT, 0);
+		for(int i = 0; i < map.w*map.h; i++) {
+			s.setUniFloat("texRot", map.mesh.tRotation[i]);
+			glBindTexture(GL_TEXTURE_2D, map.mesh.texs[map.mesh.tex[i]].getTextureID());
+			glDrawElements(GL_TRIANGLES, 4*3, GL_UNSIGNED_INT, 4*4*3*i);
+		}
 		
 		glDisableVertexAttribArray(0);
 		glDisableVertexAttribArray(1);
