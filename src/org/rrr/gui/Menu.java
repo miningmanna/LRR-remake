@@ -4,11 +4,13 @@ import java.io.File;
 import java.util.LinkedList;
 
 import org.newdawn.slick.opengl.Texture;
+import org.rrr.DelayedProcessor.Action;
 import org.rrr.Input;
 import org.rrr.RockRaidersRemake;
 import org.rrr.assets.AssetManager;
 import org.rrr.assets.LegoConfig.Node;
 import org.rrr.assets.sound.SoundClip;
+import org.rrr.assets.sound.Source;
 import org.rrr.assets.tex.FLHAnimation;
 
 public class Menu {
@@ -16,6 +18,10 @@ public class Menu {
 	private Input input;
 	private Node cfg;
 	private RockRaidersRemake par;
+	private TriggerProcessor triggerProcessor;
+	
+	private Source overlaySource;
+	private Action overlayDelayAction;
 	
 	public int x, y, ax, ay;
 	public String title;
@@ -27,11 +33,14 @@ public class Menu {
 	public int curOverlay;
 	public Overlay[] overlays;
 	public MenuItem[] items;
-	public boolean autoCenter, displayTitle, canScroll, playRandom;
+	public boolean autoCenter, displayTitle, canScroll, playRandom, queueNewOverlay;
 	
-	public Menu(RockRaidersRemake par, Node cfg) {
+	public Menu(RockRaidersRemake par, Node cfg, Node triggers) {
+		
+		triggerProcessor = new TriggerProcessor(par);
 		
 		AssetManager am = par.getAssetManager();
+		overlaySource = par.getAudioSystem().getSource();
 		
 		System.out.println("CFG PATH: " + cfg.getPath());
 		
@@ -64,6 +73,7 @@ public class Menu {
 		displayTitle	= cfg.getOptBoolean("DisplayTitle", true);
 		canScroll		= cfg.getOptBoolean("CanScroll", false);
 		playRandom		= cfg.getOptBoolean("PlayRandom", false);
+		queueNewOverlay = playRandom;
 		System.out.println("Playrandom " + playRandom);
 		
 		LinkedList<Overlay> _anims = new LinkedList<>();
@@ -107,7 +117,10 @@ public class Menu {
 			MenuItem item = null;
 			switch (cfgStr.charAt(0)) {
 			case 'T':
+				String triggerBindKey = (cfg.getPath() + ":" + key).replaceAll("\\/", ":");
 				item = new TriggerItem(key, cfgStr, this);
+				((TriggerItem) item).func = triggers.getOptValue(triggerBindKey, "");
+				System.out.println("TRIGGER: " + triggerBindKey + " = " + ((TriggerItem) item).func);
 				break;
 			case 'S':
 				item = new SliderItem(key, cfgStr, this);
@@ -145,6 +158,10 @@ public class Menu {
 			if(highlightItem != null) {
 				if(highlightItem instanceof NextItem)
 					changeMenu(((NextItem) highlightItem).menuLink);
+				else if(highlightItem instanceof TriggerItem)
+					triggerProcessor.trigger(((TriggerItem) highlightItem).func);
+				
+				par.getCursor().okay();
 			}
 		}
 			
@@ -168,24 +185,56 @@ public class Menu {
 			highlightItem = null;
 		
 		// Overlays
-		if(overlays.length != 0) {
-			if(curOverlay == -1 && playRandom) {
-				curOverlay = randInt(overlays.length-1);
-				par.getAudioSystem().playPublic(overlays[curOverlay].sound);
-			} else if(curOverlay != -1) {
-				if(overlays[curOverlay].anim.justFinished && playRandom) {
+		
+		if(queueNewOverlay) {
+			overlayDelayAction = par.getDelayedProcessor().queue(randFloat(5, 10), new Runnable() {
+				@Override
+				public void run() {
 					curOverlay = randInt(overlays.length-1);
 					overlays[curOverlay].anim.justFinished = false;
-					par.getAudioSystem().playPublic(overlays[curOverlay].sound);
-				} else {
-					overlays[curOverlay].anim.step(dt);
+					overlays[curOverlay].anim.time = 0;
+					overlaySource.play(overlays[curOverlay].sound);
+				}
+			});
+			System.out.println("QUEUED NEW OVERLAY: " + overlayDelayAction.timeLeft);
+			queueNewOverlay = false;
+		} else {
+			if(curOverlay != -1) {
+				overlays[curOverlay].anim.step(dt);
+				if(overlays[curOverlay].anim.justFinished) {
+					curOverlay = -1;
+					queueNewOverlay = true;
 				}
 			}
 		}
+		
+//		if(overlays.length != 0) {
+//			if(curOverlay == -1 && playRandom) {
+//				curOverlay = randInt(overlays.length-1);
+//				overlaySource.play(overlays[curOverlay].sound);
+//			} else if(curOverlay != -1) {
+//				if(overlays[curOverlay].anim.justFinished && playRandom) {
+//					curOverlay = randInt(overlays.length-1);
+//					overlays[curOverlay].anim.justFinished = false;
+//					overlaySource.play(overlays[curOverlay].sound);
+//				} else {
+//					overlays[curOverlay].anim.step(dt);
+//				}
+//			}
+//		}
+	}
+	
+	public void stop() {
+		par.getDelayedProcessor().dequeue(overlayDelayAction);
+		overlaySource.stop();
 	}
 	
 	private static int randInt(int max) {
 		return (int) Math.floor(Math.random() * (max+1));
+	}
+	
+	private static float randFloat(float start, float stop) {
+		return (float) (start + Math.random() * (stop-start));
 	}
 	
 	public static class Overlay {

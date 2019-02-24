@@ -6,6 +6,7 @@ import java.io.IOException;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
 import org.newdawn.slick.opengl.Texture;
+import org.rrr.RockRaidersRemake;
 import org.rrr.Shader;
 import org.rrr.assets.sound.SoundStream;
 import org.rrr.assets.LegoConfig.Node;
@@ -65,9 +66,8 @@ public class AssetManager {
 		return getFont(f);
 	}
 
-	public Cursor getCursor(Node node) {
-		Cursor c = new Cursor();
-		c.init(node, tLoader);
+	public Cursor getCursor(RockRaidersRemake par, Node node) {
+		Cursor c = new Cursor(node, tLoader, par);
 		return c;
 	}
 
@@ -76,7 +76,7 @@ public class AssetManager {
 	}
 	
 	public Shader getShader(String path) {
-		return new Shader(new File(path + ".vert"), new File(path + ".frag"));
+		return new Shader(new File("shaders/" + path + ".vert"), new File("shaders/" + path + ".frag"));
 	}
 	
 	public FLHAnimation getFLHAnimation(File f) {
@@ -172,5 +172,17 @@ public class AssetManager {
 		}
 		
 		return null;
+	}
+
+	public ModelLoader getMLoader() {
+		return mLoader;
+	}
+
+	public TexLoader geTtLoader() {
+		return tLoader;
+	}
+
+	public SoundLoader getSLoader() {
+		return sLoader;
 	}
 }

@@ -5,6 +5,7 @@ import java.io.UnsupportedEncodingException;
 import org.lwjgl.opengl.GL11;
 import org.newdawn.slick.opengl.Texture;
 import org.rrr.assets.AssetManager;
+import org.rrr.assets.map.Map;
 import org.rrr.assets.model.CTexModel;
 import org.rrr.assets.model.ColorModel;
 import org.rrr.assets.model.ModelLoader;
@@ -44,33 +45,29 @@ public class Renderer {
 	}
 	
 	// TODO - reimplement
-//	public void render(MapMesh mesh, Shader s) {
-//		
-//		glBindVertexArray(mesh.vao);
-//		glEnableVertexAttribArray(0);
-//		glEnableVertexAttribArray(1);
-//		glEnableVertexAttribArray(2);
-//		s.setUniVector3f("pos", mesh.pos);
-//		glActiveTexture(GL_TEXTURE0);
-//		int texIndex = 0;
-//		s.setUniBoolean("lines", false);
-//		
-//		for(int i = 0; i < mesh.height; i++) {
-//			for(int j = 0; j < mesh.width; j++) {
-//				texIndex = mesh.tex[i][j];
-//				glBindTexture(GL_TEXTURE_2D, mesh.texs.get(texIndex).getTextureID());
-//				glDrawElements(GL_TRIANGLES, 4*3, GL_UNSIGNED_INT, (i*mesh.width+j)*3*4*4);
-//			}
-//		}
-////		s.setUniBoolean("lines", true);
-////		for(int i = 0; i < mesh.height; i++)
-////			glDrawElements(GL_LINE_STRIP, mesh.indCount/mesh.height, GL_UNSIGNED_INT, i*mesh.width*3*4*4);
-//		glDisableVertexAttribArray(0);
-//		glDisableVertexAttribArray(1);
-//		glDisableVertexAttribArray(2);
-//		glBindVertexArray(0);
-//		
-//	}
+	public void render(Map map, Shader s, Texture t) {
+		
+		glCullFace(GL_BACK);
+		
+		glBindVertexArray(map.mesh.vao);
+		glEnableVertexAttribArray(0);
+		glEnableVertexAttribArray(1);
+		glEnableVertexAttribArray(2);
+		s.setUniVector3f("pos", new Vector3f(0));
+		glActiveTexture(GL_TEXTURE0);
+		s.setUniBoolean("lines", false);
+		glBindTexture(GL_TEXTURE_2D, t.getTextureID());
+		
+		glDrawElements(GL_TRIANGLES, map.mesh.inds.length, GL_UNSIGNED_INT, 0);
+		
+		glDisableVertexAttribArray(0);
+		glDisableVertexAttribArray(1);
+		glDisableVertexAttribArray(2);
+		glBindVertexArray(0);
+		
+		glCullFace(GL_FRONT);
+		
+	}
 	
 	public void render(ColorModel model) {
 		
@@ -176,6 +173,9 @@ public class Renderer {
 	
 	public void render(LwsAnimation anim, Shader s) {
 		
+		if(!anim.loop && (anim.time >= anim.bd.runlen))
+			return;
+		
 		for(int i = 0; i < anim.bd.lobjects; i++) {
 			
 			if(anim.bd.models[i] != null) {
@@ -194,7 +194,7 @@ public class Renderer {
 	}
 	
 	public void render(Cursor cursor, Shader s) {
-		glDepthMask(true);
+		glDepthMask(false);
 		glDepthFunc(GL_ALWAYS);
 		s.setUniMatrix4f("trans", new Matrix4f().identity());
 		Vector2f scale = new Vector2f(transWidth(cursor.w), transHeight(cursor.h));
@@ -242,13 +242,13 @@ public class Renderer {
 		glEnable(GL_CULL_FACE);
 		glCullFace(GL_FRONT);
 		glDepthFunc(GL_LESS);
+		glDepthMask(true);
 	}
 	
 	public void render(Menu menu, Shader s) {
 		
-		glDepthMask(true);
+		glDepthMask(false);
 		glDepthFunc(GL_ALWAYS);
-		
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		
 		
@@ -273,6 +273,7 @@ public class Renderer {
 		
 		if(menu.curOverlay != -1) {
 			Overlay overlay = menu.overlays[menu.curOverlay];
+			s.setUniBoolean("blackAlpha", false);
 			s.setUniMatrix4f("trans", new Matrix4f().identity());
 			scale = new Vector2f(	transWidth(overlay.anim.data.w),
 									transHeight(overlay.anim.data.h));
@@ -352,9 +353,9 @@ public class Renderer {
 	}
 	
 	public void drawString(Shader s, int x, int y, BitMapFont f, String str, float scalef) {
-		
+		s.setUniBoolean("blackAlpha", true);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glDepthMask(true);
+		glDepthMask(false);
 		
 		byte[] inds = null;
 		try {

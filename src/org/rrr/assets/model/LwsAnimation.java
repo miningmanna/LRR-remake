@@ -18,15 +18,25 @@ public class LwsAnimation {
 	public float time;
 	public int frame;
 	public int nextframe;
+	public boolean loop;
 	
 	public void step(float delta) {
 		if(bd.frames == 0) {
 			return;
 		}
 		time += delta;
-		time -= (Math.floor(time/bd.runlen) * bd.runlen);
+		if(loop && (Math.floor(time/bd.runlen) > 0)) {
+			time -= (Math.floor(time/bd.runlen) * bd.runlen);
+		}
 		frame = (int) Math.floor(time*bd.fps)%bd.frames;
-		nextframe = (frame+1)%bd.frames;
+		if(frame != bd.frames-1) {
+			nextframe = (frame+1)%bd.frames;
+		} else {
+			if(loop)
+				nextframe = (frame+1)%bd.frames;
+			else
+				nextframe = frame;
+		}
 		float s = (float) (time*bd.fps - Math.floor(time*bd.fps));
 		for(int i = 0; i < bd.lobjects; i++) {
 			this.transforms[i].set(bd.frametrans[frame][i]).lerp(bd.frametrans[nextframe][i], s);
@@ -38,6 +48,7 @@ public class LwsAnimation {
 	public static LwsAnimation getAnimation(File lwsFile, ModelLoader mLoader, TexLoader tLoader, PathConverter converter) throws IOException {
 		
 		LwsAnimation res = new LwsAnimation();
+		res.loop = true;
 		
 		if(!bds.containsKey(lwsFile.getAbsolutePath())) {
 			

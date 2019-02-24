@@ -58,6 +58,10 @@ public class AudioSystem {
 		publicSource.play(clip);
 	}
 	
+	public void stopPublic() {
+		publicSource.stop();
+	}
+	
 	public void update() {
 		synchronized (streams) {
 			for(Source s : streams)

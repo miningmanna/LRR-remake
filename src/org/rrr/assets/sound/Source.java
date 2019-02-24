@@ -17,8 +17,10 @@ public class Source {
 	}
 	
 	public void play(SoundClip clip) {
-		if(clip == null)
+		if(clip == null) {
+			alSourceStop(id);
 			return;
+		}
 		alSourceStop(id);
 		alSourceUnqueueBuffers(id);
 		alSourceQueueBuffers(id, clip.buffer);
@@ -34,6 +36,10 @@ public class Source {
 				alSourceQueueBuffers(id, buffs[i]);
 		parent.registerStream(this);
 		alSourcePlay(id);
+	}
+	
+	public void stop() {
+		alSourceStop(id);
 	}
 	
 	public void update() {

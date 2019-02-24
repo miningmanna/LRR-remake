@@ -6,7 +6,7 @@ import org.joml.Vector3f;
 public class Camera {
 	
 	public Vector3f position;
-	public Matrix4f frustrum;
+	public Matrix4f projection;
 	public Matrix4f combined;
 	public Matrix4f rotate;
 	
@@ -18,7 +18,7 @@ public class Camera {
 		up = new Vector3f(0, 1, 0);
 		right = new Vector3f(1, 0, 0);
 		position = new Vector3f();
-		frustrum = new Matrix4f();
+		projection = new Matrix4f();
 		combined = new Matrix4f();
 		rotate = new Matrix4f();
 		rotate.identity();
@@ -26,11 +26,15 @@ public class Camera {
 	}
 	
 	public void setFrustum(float fovy, float aspect, float zNear, float zFar) {
-		frustrum.setPerspective(-fovy, -aspect, zNear, zFar);
+		projection.setPerspective(-fovy, -aspect, zNear, zFar);
+	}
+	
+	public void setOrtho(float left, float right, float bottom, float top, float zNear, float zFar) {
+		projection.setOrtho(left, right, bottom, top, zNear, zFar);
 	}
 	
 	public void update() {
-		combined.set(frustrum);
+		combined.set(projection);
 		combined.mul(rotate);
 		combined.translate(position);
 	}

@@ -22,6 +22,8 @@ import org.lwjgl.system.MemoryStack;
 import org.rrr.assets.AssetManager;
 import org.rrr.assets.LegoConfig;
 import org.rrr.assets.LegoConfig.Node;
+import org.rrr.assets.model.CTexModel;
+import org.rrr.assets.model.LwsAnimation;
 import org.rrr.assets.sound.AudioSystem;
 import org.rrr.assets.sound.SoundClip;
 import org.rrr.assets.sound.SoundStream;
@@ -47,7 +49,12 @@ public class RockRaidersRemake {
 	private AssetManager am;
 	private AudioSystem audioSystem;
 	private Renderer renderer;
+	private DelayedProcessor dProcessor;
 	private LegoConfig cfg;
+	private Node triggerCfg;
+	
+	private SoundClip menuTransition;
+	private LwsAnimation rockAnim;
 	
 	private Input input;
 	private Cursor cursor;
@@ -77,13 +84,23 @@ public class RockRaidersRemake {
 	
 	private void init() {
 		
+		dProcessor = new DelayedProcessor();
+		
 		try {
 			FileInputStream in = new FileInputStream("LegoRR1/Lego.cfg");
-			cfg = LegoConfig.getConfig(in);
+			cfg = LegoConfig.getConfig(in, "LegoRR1/");
 			in.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		
+		Node legoStar = (Node) cfg.get("Lego*");
+		for(String key : legoStar.getSubNodeKeys()) {
+			System.out.println("SUBNODE: " + key);
+		}
+		
+		triggerCfg = (Node) cfg.get("Lego*/Triggers");
+		
 		am = new AssetManager(cfg, new File("LegoRR0/World/Shared"));
 		renderer = new Renderer();
 		input = new Input(this);
@@ -171,7 +188,7 @@ public class RockRaidersRemake {
 		glEnable(GL_CULL_FACE);
 		glCullFace(GL_FRONT);
 		
-		cursor = am.getCursor((Node) cfg.get("Lego*/Pointers"));
+		cursor = am.getCursor(this, (Node) cfg.get("Lego*/Pointers"));
 		cursor.setCursor("Standard");
 		
 		entityShader = am.getShader("entityShader");
@@ -182,8 +199,18 @@ public class RockRaidersRemake {
 		m.identity();
 		m.translate(new Vector3f(0, 0, 5));
 		
+		rockAnim = am.getAnimation(new File("LegoRR0/Interface/FrontEnd/Rock_wipe/RockWipe.lws"));
+		rockAnim.loop = false;
+		Camera c = new Camera();
+		float aspect = (float)pWidth / (pHeight);
+		//c.setOrtho(10, -10, -10, 10, -100, 100);
+		//c.setFrustum(30, aspect, 0.1f, 10000);
+		c.position.set(0, 0, -15);
+		c.update();
+		
 		Node mainMenuCfg = (Node) cfg.get("Lego*/Menu/MainMenuFull/Menu1");
-		setMenu(mainMenuCfg);
+		curMenu = new Menu(RockRaidersRemake.this, mainMenuCfg, triggerCfg);
+		curMenu.setInput(input);
 		
 		Type[] audioTypes = javax.sound.sampled.AudioSystem.getAudioFileTypes();
 		System.out.println("SUPPORTED FORMATS:");
@@ -212,9 +239,11 @@ public class RockRaidersRemake {
 		
 		BitMapFont font = am.getFont("Interface/FrontEnd/Menu_Font_HI.bmp");
 		
-		SoundStream stream = am.getSoundStream(new File("Track01.ogg"));
-		Source s = audioSystem.getSource();
-		s.play(stream);
+		menuTransition = am.getSample("SFX_RockWipe");
+		
+//		SoundStream stream = am.getSoundStream(new File("Track01.ogg"));
+//		Source s = audioSystem.getSource();
+//		s.play(stream);
 		
 		// FPS Counting
 		float time = 0;
@@ -224,6 +253,7 @@ public class RockRaidersRemake {
 		float delta = 0;
 		long nano = 0, _nano = 0;
 		boolean drawMenu = true;
+		int scale = 2;
 		while(!glfwWindowShouldClose(window)) {
 			
 			glDepthMask(true);
@@ -242,6 +272,18 @@ public class RockRaidersRemake {
 			
 			if(input.justReleased[GLFW_KEY_UP])
 				currentLevel.incrementIndex();
+			
+			if(input.justReleased[GLFW_KEY_1])
+				rockAnim.time = 0;
+			if(input.justReleased[GLFW_KEY_2])
+				System.out.println(scale);
+			if(input.justReleased[GLFW_KEY_3])
+				scale++;
+			if(input.justReleased[GLFW_KEY_4])
+				scale--;
+			
+			c.setOrtho(scale*aspect, -scale*aspect, -scale, scale, -100, 100);
+			
 //			if(input.justReleased[GLFW_KEY_DOWN])
 //				ent.pos.add(0, 0, -1);
 //			if(input.justReleased[GLFW_KEY_RIGHT])
@@ -254,16 +296,23 @@ public class RockRaidersRemake {
 //			if(input.justReleased[GLFW_KEY_UP])
 //				ent.currentAnimation = (ent.currentAnimation +1)%ent.anims.length;
 			
-			curMenu.update(delta);
-			
-			currentLevel.step(delta);
-			currentLevel.render();
-			
 			uiShader.start();
 			if(drawMenu)
 				renderer.render(curMenu, uiShader);
 			renderer.render(cursor, uiShader);
 			uiShader.stop();
+			
+			curMenu.update(delta);
+			
+			currentLevel.step(delta);
+			currentLevel.render();
+			
+			entityShader.start();
+			entityShader.setUniMatrix4f("modelTrans", new Matrix4f().identity());
+			c.update();
+			entityShader.setUniMatrix4f("cam", c.combined);
+			renderer.render(rockAnim, entityShader);
+			entityShader.stop();
 			
 			glfwSwapBuffers(window);
 			
@@ -281,6 +330,9 @@ public class RockRaidersRemake {
 				}
 			}
 			
+			dProcessor.update(delta);
+			rockAnim.step(delta);
+			
 			// FPS Counting
 			frames++;
 			time += delta;
@@ -288,7 +340,6 @@ public class RockRaidersRemake {
 				time %= 1.0f;
 				System.out.println("FPS: " + frames);
 				frames = 0;
-				Runtime.getRuntime().gc();
 			}
 			
 			audioSystem.update();
@@ -299,8 +350,17 @@ public class RockRaidersRemake {
 	}
 	
 	public void setMenu(Node cfg) {
-		curMenu = new Menu(this, cfg);
-		curMenu.setInput(input);
+		audioSystem.stopPublic();
+		audioSystem.playPublic(menuTransition);
+		rockAnim.time = 0;
+		dProcessor.queue(0.5f, new Runnable() {
+			@Override
+			public void run() {
+				curMenu.stop();
+				curMenu = new Menu(RockRaidersRemake.this, cfg, triggerCfg);
+				curMenu.setInput(input);
+			}
+		});
 	}
 	
 	public static void main(String[] args) {
@@ -347,12 +407,20 @@ public class RockRaidersRemake {
 		return am;
 	}
 	
+	public DelayedProcessor getDelayedProcessor() {
+		return dProcessor;
+	}
+	
 	public float getWidth() {
 		return pWidth;
 	}
 	
 	public float getHeight() {
 		return pHeight;
+	}
+
+	public void stop() {
+		glfwSetWindowShouldClose(window, true);
 	}
 	
 }

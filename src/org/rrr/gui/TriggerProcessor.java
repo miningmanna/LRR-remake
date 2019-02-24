@@ -11,7 +11,9 @@ public class TriggerProcessor {
 	}
 	
 	public void trigger(String func) {
-		
+		if(func.equalsIgnoreCase("exit")) {
+			par.stop();
+		}
 	}
 	
 }

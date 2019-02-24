@@ -62,13 +62,24 @@ public class ModelLoader {
 		
 	}
 	
-	public MapMesh getMapMeshFromMapData(MapData data) {
+	public void loadMapMeshIntoVao(MapMesh mesh) {
 		
-		MapMesh res = new MapMesh();
+		mesh.vao = glGenVertexArrays();
+		glBindVertexArray(mesh.vao);
 		
+		loadVertexIntoVBO(0, mesh.verts, 3);
+		loadVertexIntoVBO(1, mesh.nVerts, 3);
+		loadVertexIntoVBO(2, mesh.tVerts, 2);
 		
+		int indVbo = glGenBuffers();
+		vbos.add(indVbo);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indVbo);
+		IntBuffer intBuff = BufferUtils.createIntBuffer(mesh.inds.length);
+		intBuff.put(mesh.inds);
+		intBuff.flip();
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, intBuff, GL_STATIC_READ);
 		
-		return res;
+		glBindVertexArray(0);
 		
 	}
 	

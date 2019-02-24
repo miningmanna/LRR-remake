@@ -10,7 +10,10 @@ import java.io.InputStream;
 import java.util.LinkedList;
 
 import org.newdawn.slick.opengl.Texture;
+import org.rrr.RockRaidersRemake;
 import org.rrr.assets.LegoConfig.Node;
+import org.rrr.assets.sound.SoundClip;
+import org.rrr.assets.sound.Source;
 import org.rrr.assets.tex.FLHAnimation;
 import org.rrr.assets.tex.FLHFile;
 import org.rrr.assets.tex.TexLoader;
@@ -22,8 +25,15 @@ public class Cursor {
 	public int curAnimation = 0;
 	public Texture base;
 	public CursorAnimation[] animations;
+	public Source playSource;
+	public SoundClip sfxOkay, sfxNotOkay;
 	
-	public void init(Node cfg, TexLoader tLoader) {
+	
+	public Cursor(Node cfg, TexLoader tLoader, RockRaidersRemake par) {
+		
+		this.playSource = par.getAudioSystem().getSource();
+		sfxOkay = par.getAssetManager().getSample("SFX_Okay");
+		sfxNotOkay = par.getAssetManager().getSample("SFX_NotOkay");
 		
 		w = 32;
 		h = 32;
@@ -126,6 +136,14 @@ public class Cursor {
 			System.out.println("Stepping!");
 			animations[curAnimation].anim.step(dt);
 		}
+	}
+	
+	public void okay() {
+		playSource.play(sfxOkay);
+	}
+	
+	public void notOkay() {
+		playSource.play(sfxNotOkay);
 	}
 	
 }

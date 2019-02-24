@@ -44,12 +44,15 @@ public class MapData {
 		
 		File[] files = new File[9];
 		for(File f : dir.listFiles()) {
+			System.out.println("CHECKING " + f);
 			String name = f.getName();
 			String prefix = name.substring(0, 4).toLowerCase();
 			String end = name.substring(name.length()-3);
 			for(int i = 0; i < 9; i++)
-				if(prefix.equals(fprefix[i]) && end.equalsIgnoreCase("map"))
+				if(prefix.equals(fprefix[i]) && end.equalsIgnoreCase("map")) {
+					System.out.println("FOUND " + fprefix[i] + ": " + f);
 					files[i] = f;
+				}
 		}
 		
 		

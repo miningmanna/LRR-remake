@@ -28,19 +28,15 @@ public class SoundLoader {
 		for(String key : cfg.getValueKeys()) {
 			String val = cfg.getValue(key);
 			key = key.replaceAll("[!@\\*]", "");
-			System.out.println("with special: " + val);
 			val = val.replaceAll("[!@\\*]", "");
-			System.out.println("fixed: " + val);
 			
 			
 			if(val.contains(","))
 				val = val.split(",")[0]; // TODO Use all listed files
 			
-			System.out.println("VAL: " + val);
 			File f = findFile("LegoRR0/" + val);
 			if(f == null)
 				f = findFile("LegoRR1/" + val);
-			System.out.println(key + ": " + f);
 			sounds.put(key, f);
 		}
 	}
@@ -51,7 +47,6 @@ public class SoundLoader {
 		File f = new File("./");
 		for(int i = 0; i < split.length; i++) {
 			String next = split[i];
-			System.out.println(split[i]);
 			if(f.isDirectory()) {
 				if(i == split.length-1) {
 					boolean foundNext = false;
@@ -63,7 +58,6 @@ public class SoundLoader {
 								nextFileName += "." + split[j];
 						
 						if(nextFileName.equalsIgnoreCase(next)) {
-							System.out.println(nextFile);
 							f = nextFile;
 							foundNext = true;
 							break;
@@ -71,13 +65,11 @@ public class SoundLoader {
 					}
 					if(foundNext)
 						continue;
-					System.out.println("Found no next :(");
 					return null;
 				} else {
 					boolean foundNext = false;
 					for(File nextFile : f.listFiles()) {
 						if(nextFile.getName().equalsIgnoreCase(next)) {
-							System.out.println(nextFile);
 							f = nextFile;
 							foundNext = true;
 							break;
@@ -85,7 +77,6 @@ public class SoundLoader {
 					}
 					if(foundNext)
 						continue;
-					System.out.println("Found no next :(");
 					return null;
 				}
 			} else {
@@ -98,7 +89,7 @@ public class SoundLoader {
 	}
 	
 	public SoundStream getSoundStream(File f) throws UnsupportedAudioFileException, IOException {
-		SoundStream stream = new SoundStream(this, f, 4096*8);
+		SoundStream stream = new SoundStream(this, f, 4096*4);
 		return stream;
 	}
 	

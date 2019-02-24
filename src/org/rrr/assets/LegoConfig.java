@@ -17,16 +17,19 @@ public class LegoConfig {
 		superNode = new Node(null, null, 0);
 	}
 	
-	public static LegoConfig getConfig(InputStream in) throws IOException {
+	public static LegoConfig getConfig(InputStream in, String relPath) throws IOException {
 		
 		LegoConfig cfg = new LegoConfig();
 		
-		getToNode("./", in, cfg.superNode, 0);
+		getToNode(relPath, in, cfg.superNode, 0);
 		
 		return cfg;
 		
 	}
-	
+
+	public void printTree() {
+		superNode.printTree();
+	}
 	public static String EXTERN_REGEX = ".*(;#extern:)([\\w\\.]+).*";
 	public static void getToNode(String relPath, InputStream in, Node parent, int depth) throws IOException {
 		

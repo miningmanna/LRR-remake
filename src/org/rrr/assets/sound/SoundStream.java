@@ -125,13 +125,8 @@ public class SoundStream {
 		curBuff = (curBuff+1)%buffs.length;
 		
 		try {
-			System.out.println("FILLING NEXT BUFFER");
-			System.out.println(in.getFrameLength());
-			System.out.println(in.available());
-			System.out.println(lBuff.length);
 			int l;
 			while((l = in.read(lBuff)) == 0) {}
-			System.out.println("AUDIO READ: " + l);
 			if(l == -1) {
 				_in.close();
 				finished = true;

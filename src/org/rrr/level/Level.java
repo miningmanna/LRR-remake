@@ -15,6 +15,7 @@ import java.util.ArrayList;
 
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
+import org.newdawn.slick.opengl.Texture;
 import org.rrr.Camera;
 import org.rrr.Input;
 import org.rrr.Renderer;
@@ -23,6 +24,7 @@ import org.rrr.Shader;
 import org.rrr.assets.AssetManager;
 import org.rrr.assets.LegoConfig;
 import org.rrr.assets.LegoConfig.Node;
+import org.rrr.assets.map.Map;
 import org.rrr.assets.model.ModelLoader;
 import org.rrr.assets.model.MapMesh;
 import org.rrr.gui.Cursor;
@@ -36,11 +38,15 @@ public class Level {
 	private ArrayList<Entity> entities;
 	private Input input;
 	private MapMesh mapMesh;
-	private Camera camera;
+	public Camera camera;
 	private Cursor cursor;
 	private RockRaidersRemake par;
 	
+	private Map map;
+	
 	private float speed = 1.0f;
+	
+	private Texture test;
 	
 	public Level(RockRaidersRemake par) {
 		
@@ -52,6 +58,8 @@ public class Level {
 		this.cursor = par.getCursor();
 		this.input = par.getInput();
 		entities = new ArrayList<>();
+		
+		test = par.getAssetManager().getTexture("World/WorldTextures/RockSplit/ROCK00.BMP");
 		
 		camera = new Camera();
 		float aspect = (float)par.getWidth() / (par.getHeight());
@@ -65,11 +73,11 @@ public class Level {
 		this(par);
 		
 		// TODO - Mapmesh fix
-//		try {
-//			mapMesh = new MapMesh(loader, cfg);
-//		} catch (Exception e2) {
-//			e2.printStackTrace();
-//		}
+		try {
+			map = new Map(par.getAssetManager(), cfg);
+		} catch (Exception e2) {
+			e2.printStackTrace();
+		}
 		
 	}
 	
@@ -110,11 +118,10 @@ public class Level {
 		mapShader.setUniMatrix4f("cam", camera.combined);
 		Matrix4f m = new Matrix4f();
 		m.identity();
-		m.scale(40);
 		mapShader.setUniMatrix4f("mapTrans", m);
 		mapShader.setUniVector3f("lightDirect", new Vector3f(camera.right).mul(-1).add(0, -1, 0).normalize());
 		// Todo - mapmesh fix
-		//renderer.render(mapMesh, mapShader);
+		renderer.render(map, mapShader, test);
 		mapShader.stop();
 		
 		mapShader.setUniVector3f("lightDirect", camera.right);
