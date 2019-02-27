@@ -299,13 +299,17 @@ public class RockRaidersRemake {
 			uiShader.start();
 			if(drawMenu)
 				renderer.render(curMenu, uiShader);
-			renderer.render(cursor, uiShader);
 			uiShader.stop();
 			
-			curMenu.update(delta);
+			if(drawMenu)
+				curMenu.update(delta);
 			
 			currentLevel.step(delta);
 			currentLevel.render();
+			
+			uiShader.start();
+			renderer.render(cursor, uiShader);
+			uiShader.stop();
 			
 			entityShader.start();
 			entityShader.setUniMatrix4f("modelTrans", new Matrix4f().identity());

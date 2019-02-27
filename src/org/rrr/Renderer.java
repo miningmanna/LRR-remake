@@ -44,7 +44,7 @@ public class Renderer {
 	}
 	
 	// TODO - reimplement
-	public void render(Map map, Shader s) {
+	public void render(Map map, Shader s, Vector2f special) {
 		
 		glCullFace(GL_BACK);
 		
@@ -57,6 +57,13 @@ public class Renderer {
 		s.setUniBoolean("lines", false);
 		
 		for(int i = 0; i < map.w*map.h; i++) {
+			int x = i%map.w;
+			int z = Math.floorDiv(i, map.w);
+			if(Math.floor(special.x) == x && Math.floor(special.y) == z) {
+				s.setUniFloat("ambient", 0.9f);
+			} else {
+				s.setUniFloat("ambient", 0.5f);
+			}
 			s.setUniFloat("texRot", map.mesh.tRotation[i]);
 			glBindTexture(GL_TEXTURE_2D, map.mesh.texs[map.mesh.tex[i]].getTextureID());
 			glDrawElements(GL_TRIANGLES, 4*3, GL_UNSIGNED_INT, 4*4*3*i);

@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import org.joml.Matrix4f;
+import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.newdawn.slick.opengl.Texture;
 import org.rrr.Camera;
@@ -106,6 +107,15 @@ public class Level {
 		cursor.x = (int) input.mouse.x;
 		cursor.y = (int) input.mouse.y;
 		
+		Vector3f unprojOrig = new Vector3f(),
+				unprojDir	= new Vector3f();
+		camera.combined.unprojectRay(input.mouse.x, par.getHeight()-input.mouse.y, new int[] {0,0,(int) par.getWidth(),(int) par.getHeight()},  unprojOrig, unprojDir);
+		System.out.println("------------------");
+		System.out.println(unprojOrig);
+		System.out.println(unprojDir);
+		
+		Vector2f mapPos = map.getTileHit(unprojOrig, unprojDir);
+		
 		mapShader.start();
 		mapShader.setUniVector3f("lightDirect", camera.right);
 		mapShader.setUniFloat("texRot", tRot);
@@ -115,7 +125,7 @@ public class Level {
 		mapShader.setUniMatrix4f("mapTrans", m);
 		mapShader.setUniVector3f("lightDirect", new Vector3f(camera.right).mul(-1).add(0, -1, 0).normalize());
 		// Todo - mapmesh fix
-		renderer.render(map, mapShader);
+		renderer.render(map, mapShader, mapPos);
 		mapShader.stop();
 		
 		entityShader.start();
@@ -128,6 +138,17 @@ public class Level {
 		
 		entityShader.stop();
 		
+	}
+	
+	private Vector2f xzIntersection(Vector3f o, Vector3f d) {
+		Vector2f res = new Vector2f();
+		if(d.y == 0)
+			return null;
+		float t = -o.y/d.y;
+		res.x = o.x + t*d.x;
+		res.y = o.z + t*d.z;
+		
+		return res;
 	}
 	
 	public void spawn(String name) {

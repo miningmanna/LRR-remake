@@ -1,7 +1,11 @@
 package org.rrr.assets.map;
 
 import java.io.File;
+import java.util.ArrayList;
 
+import org.joml.Matrix4x3f;
+import org.joml.Vector2f;
+import org.joml.Vector3f;
 import org.rrr.assets.AssetManager;
 import org.rrr.assets.LegoConfig.Node;
 import org.rrr.assets.model.MapMesh;
@@ -13,8 +17,22 @@ public class Map {
 	public MapData data;
 	public MapMesh mesh;
 	public int[] cliffTypes;
+	private boolean[][] utilBuffer;
 	
 	public Map(AssetManager am, Node cfg) throws Exception {
+		
+//		float[][] test = new float[][] {
+//				{1, -1, 1},
+//				{1, 0, 0},
+//				{0, 0, 1},
+//				{0, 3, 0}
+//		};
+//		System.out.println("GAUS SOLVING:");
+//		float[] res = solveEquations3by3(test);
+//		System.out.println("RESULT:");
+//		for(int i = 0; i < 3; i++)
+//			System.out.print(res[i] + " ");
+//		System.out.println();
 		
 		cliffTypes = new int[] {
 				1, 2, 3, 4
@@ -23,6 +41,9 @@ public class Map {
 		File dir = new File("LegoRR0/" + cfg.getValue("SurfaceMap")).getParentFile();
 		System.out.println(dir);
 		data = MapData.getMapData(dir);
+		w = data.width;
+		h = data.height;
+		utilBuffer = new boolean[h][w];
 		mesh = new MapMesh();
 		am.getTexSplit(this, cfg.getOptValue("TextureSet", "Rock"));
 		initMapMesh();
@@ -52,8 +73,6 @@ public class Map {
 		int[][] surf = data.maps[MapData.SURF];
 		int[][] cave = data.maps[MapData.DUGG];
 		
-		w = surf[0].length;
-		h = surf.length;
 		System.out.println("SURF DIMS: " + w + " " + h);
 		System.out.println("HIGH DIMS: " + high[0].length + " " + high.length);
 		
@@ -87,8 +106,10 @@ public class Map {
 			}
 		}
 		
-		for(int z = 0; z < h; z++) {
-			for(int x = 0; x < w; x++) {
+		expandCaves();
+		
+		for(int z = 0; z <= h; z++) {
+			for(int x = 0; x <= w; x++) {
 				float height;
 				if(x == w) {
 					if(z == h) {
@@ -101,7 +122,12 @@ public class Map {
 				} else {
 					height = high[z][x]/7.0f;
 				}
-				if(data.maps[MapData.DUGG][z][x] == 1) {
+				boolean isCave = false;
+				if(x != w && z != h) {
+					isCave = data.maps[MapData.DUGG][z][x] == 1;
+				}
+				
+				if(isCave) {
 					if(isAtGroundlevel(x, z))
 						setY(x, z, 0, height*40);
 					else
@@ -301,6 +327,244 @@ public class Map {
 					mesh.nVerts[offset+j*3+i] = f;
 			}
 		}
+	}
+	
+	private static class Point {
+		public Point(int x, int z) {
+			this.x = x;
+			this.z = z;
+		}
+		int x, z;
+		@Override
+		public String toString() {
+			return "(" + z + ", " + x + ")";
+		}
+	}
+	private void expandCaves() {
+		
+		int[][] cave = data.maps[MapData.DUGG];
+		int[][] surf = data.maps[MapData.SURF];
+		
+		resetUtilBuffer(false);
+		int sx = -1, sz = -1;
+		for(int z = 0; z < h && sz == -1; z++) {
+			for(int x = 0; x < w; x++) {
+				if(cave[z][x] == 1 && !contains(cliffTypes, surf[z][x])) {
+					sx = x;
+					sz = z;
+					utilBuffer[z][x] = true;
+					break;
+				}
+			}
+		}
+		
+		System.out.println("EXPANDING CAVES WITH START: " + sz + " " + sx);
+		ArrayList<Point> todo = new ArrayList<>();
+		todo.add(new Point(sx, sz));
+		while(todo.size() > 0) {
+			Point p = todo.get(0);
+			todo.remove(0);
+			for(int i = -1; i < 2; i++) {
+				for(int j = -1; j < 2; j++) {
+					if((p.x+i) >= 0 && (p.x+i) < w && (p.z+j) >= 0 && (p.z+j) < h && !(i == 0 && j == 0)) {
+						if(!utilBuffer[p.z+j][p.x+i]) {
+							System.out.println("CHECKING NEIGHBOUR OF " + p + ": " + (p.z+j) + ", " + (p.x+i));;
+							cave[p.z+j][p.x+i] = 1;
+							utilBuffer[p.z+j][p.x+i] = true;
+							if(!contains(cliffTypes, surf[p.z+j][p.x+i])) {
+								todo.add(new Point(p.x+i, p.z+j));
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	public Vector2f getTileHit(Vector3f o, Vector3f d) {
+		Vector2f res = new Vector2f(-1);
+		
+//		o = new Vector3f(10.2f*40.0f, 1000, 10.5f*40.0f);
+//		d = new Vector3f(0, -1, 0);
+		
+		float minDist = Float.MAX_VALUE;
+		for(int z = 0; z < h; z++) {
+			for(int x = 0; x < w; x++) {
+				Vector3f hit = hitsTile(o, d, x, z);
+				if(hit != null) {
+					float dist = o.distance(hit);
+					if(dist < minDist)
+						res.set(x, z);
+				}
+			}
+		}
+		
+		return res;
+	}
+	
+	private void resetUtilBuffer(boolean state) {
+		for(int z = 0; z < h; z++)
+			for(int x = 0; x < w; x++)
+				utilBuffer[z][x] = state;
+	}
+	
+	private Vector3f hitsTile(Vector3f _o, Vector3f _d, int x, int z) {
+		
+//		System.out.println("TEST");
+//		double[][] test = {
+//				{1, 0, 0},
+//				{2, 1, 0},
+//				{3, 2, 1},
+//				{6, 3, 1}
+//		};
+//		double[] testres = solveEquations3by3(test);
+//		for(int i = 0; i < 3; i++) {
+//			System.out.print(testres[i] + " ");
+//		}
+//		System.out.println();
+//		System.out.println("TEST END");
+		
+		// u is the factor for d
+		// s and t are factors for the planes axis
+		// order in res: s, t, u
+		int off = (z*w+x)*4*3*3;
+		
+		float[] o = new float[] {_o.x, _o.y, _o.z};
+		float[] d = new float[] {_d.x, _d.y, _d.z};
+		double[][] gaussMat = new double[4][3];
+		
+		for(int i = 0; i < 4; i++) {
+			for(int j = 0; j < 3; j++)
+				gaussMat[3][j] = o[j] - mesh.verts[off+j];
+			
+			for(int j = 0; j < 2; j++)
+				for(int g = 0; g < 3; g++)
+					gaussMat[j][g] = mesh.verts[off+3*(j+1)+g]-mesh.verts[off+g];
+			
+			for(int j = 0; j < 3; j++)
+				gaussMat[2][j] = -d[j];
+			
+//			if(x == 10 && z == 14) {
+//				System.out.println("CONST: " + x + " " + z + " " + i);
+//				System.out.println(gaussMat[3][0] + " " + gaussMat[3][1] + " " + gaussMat[3][2]);
+//				for(int j = 0; j < 3; j++) {
+//					for(int g = 0; g < 4; g++) {
+//						System.out.print(gaussMat[g][j] + " ");
+//					}
+//					System.out.println();
+//				}
+//			}
+			double[] res = solveEquations3by3(gaussMat);
+//			if(x == 10 && z == 14) {
+//				System.out.println("RES: " + x + " " + z);
+//				System.out.println(res[0] + " " + res[1] + " " + res[2]);
+//			}
+			if(res[0] != Float.NaN && res[1] != Float.NaN && res[0] >= 0 && res[1] >= 0) {
+				if((res[0]+res[1]) >= 0 && (res[0]+res[1]) <= 1) {
+//					System.out.println("RES: " + x + " " + z);
+//					System.out.println(res[0] + " " + res[1] + " " + res[2]);
+					Vector3f p = new Vector3f(_o);
+					p.add(new Vector3f(_d).mul((float) res[2]));
+					System.out.println("HIT: " + x + " " + z + " " + p);
+					return p;
+				}
+			}
+			
+			off += 3*3;
+		}
+		
+		return null;
+	}
+	
+	private double[] solveEquations3by3(double[][] m) {
+		
+//		System.out.println("POTENTIAL SORT:");
+		// Sort
+		if(m[0][0] == 0) {
+//			System.out.println("0,0 IS 0:");
+//			for(int i = 0; i < 4; i++) {
+//				System.out.print(m[i][0] + " ");
+//			}
+//			System.out.println();
+			for(int i = 1; i < 3; i++) {
+				if(m[0][i] != 0) {
+					for(int j = 0; j < 4; j++) {
+						double temp = m[j][0];
+//						System.out.print(m[j][i] + " ");
+						m[j][0] = m[j][i];
+						m[j][i] = temp;
+					}
+//					System.out.println();
+					break;
+				}
+			}
+		}
+		if(m[1][1] == 0) {
+			if(m[1][2] != 0) {
+				for(int j = 0; j < 4; j++) {
+					double temp = m[j][1];
+					m[j][1] = m[j][2];
+					m[j][2] = temp;
+				}
+			}
+		}
+		
+//		System.out.println("MATRIX: ");
+//		for(int j = 0; j < 3; j++) {
+//			for(int g = 0; g < 4; g++) {
+//				System.out.print(m[g][j] + " ");
+//			}
+//			System.out.println();
+//		}
+		
+		double[] res = new double[3];
+		
+		for(int i = 1; i < 3; i++) {
+			double c = m[0][i]/m[0][0];
+			for(int j = 0; j < 4; j++) {
+				m[j][i] -= c*m[j][0];
+			}
+		}
+//		System.out.println("LEFT SIDE MATRIX: ");
+//		for(int j = 0; j < 3; j++) {
+//			for(int g = 0; g < 4; g++) {
+//				System.out.print(m[g][j] + " ");
+//			}
+//			System.out.println();
+//		}
+		double c = m[1][2]/m[1][1];
+		for(int j = 0; j < 4; j++) {
+			m[j][2] -= c*m[j][1];
+		}
+		
+//		System.out.println("LOWER TRI MATRIX: ");
+//		for(int j = 0; j < 3; j++) {
+//			for(int g = 0; g < 4; g++) {
+//				System.out.print(m[g][j] + " ");
+//			}
+//			System.out.println();
+//		}
+		
+		if(m[2][2] != 0)
+			res[2] = m[3][2]/m[2][2];
+		else
+			res[2] = 0;
+		for(int i = 0; i < 2; i++)
+			m[3][i] -= m[2][i]*res[2];
+		
+		if(m[1][1] != 0)
+			res[1] = m[3][1]/m[1][1];
+		else
+			res[1] = 0;
+		
+		m[3][0] -= res[1]*m[1][0];
+		if(m[0][0] != 0)
+			res[0] = m[3][0]/m[0][0];
+		else
+			res[0] = 0;
+		
+		
+		return res;
 	}
 	
 }

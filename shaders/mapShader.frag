@@ -10,6 +10,7 @@ uniform mat4 cam;
 uniform mat4 mapTrans;
 uniform sampler2D tex;
 uniform float texRot;
+uniform float ambient;
 uniform bool lines;
 uniform vec3 lightDirect = normalize(vec3(-1,-1,-1));
 uniform float lightDirectI = 0.3;
@@ -40,7 +41,7 @@ void main() {
 	float point = clamp(a, 0, 1);
 	
 	if(!lines)
-		outColor = vec4((point*color + lightDirectI*Kd*color).xyz, color.w);
+		outColor = vec4((ambient*color + point*color + lightDirectI*Kd*color).xyz, color.w);
 	else
 		outColor = vec4(1,0,0,1);
 }
