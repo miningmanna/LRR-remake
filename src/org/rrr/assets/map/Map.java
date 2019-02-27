@@ -87,8 +87,8 @@ public class Map {
 			}
 		}
 		
-		for(int z = 0; z <= h; z++) {
-			for(int x = 0; x <= w; x++) {
+		for(int z = 0; z < h; z++) {
+			for(int x = 0; x < w; x++) {
 				float height;
 				if(x == w) {
 					if(z == h) {
@@ -101,10 +101,14 @@ public class Map {
 				} else {
 					height = high[z][x]/7.0f;
 				}
-				if(isAtGroundlevel(x, z))
-					setY(x, z, 0, height*40);
-				else
+				if(data.maps[MapData.DUGG][z][x] == 1) {
+					if(isAtGroundlevel(x, z))
+						setY(x, z, 0, height*40);
+					else
+						setY(x, z, 0, 40+height*40); // TODO: load roofheight
+				} else {
 					setY(x, z, 0, 40+height*40); // TODO: load roofheight
+				}
 			}
 		}
 		
@@ -113,61 +117,66 @@ public class Map {
 				
 				boolean zeroTwo = true;
 				
-				boolean[] groundLevels = new boolean[] {
-						isAtGroundlevel(x, z),
-						isAtGroundlevel(x+1, z),
-						isAtGroundlevel(x+1, z+1),
-						isAtGroundlevel(x, z+1)
-				};
-				int groundPoints = 0;
-				int firstAfterZero = -1;
-				for(int i = 0; i < 4; i++) {
-					if(groundLevels[i]) {
-						groundPoints++;
-						if(!groundLevels[(i+3)%4])
-							firstAfterZero = i;
+				if(data.maps[MapData.DUGG][z][x] == 1) {
+					// TODO: remove hardcode
+					switch(surf[z][x]) {
+					case 1:
+					case 2:
+					case 3:
+					case 4:
+						mesh.tex[z*w+x] = 6-surf[z][x];
+						break;
+					case 5:
+						mesh.tex[z*w+x] = 0;
+						break;
+					default:
+						mesh.tex[z*w+x] = 56;
+						break;
 					}
-				}
-				
-				switch(groundPoints) {
-				case 0:
-					break;
-				case 1:
-					System.out.println("ONE POINT AT GROUND");
-					for(int i = 0; i < 4; i++)
-						System.out.println("   " + groundLevels[i]);
-					System.out.println(firstAfterZero);
-					System.out.println(firstAfterZero == 0 || firstAfterZero == 2);
-				case 2:
-					zeroTwo = firstAfterZero == 0 || firstAfterZero == 2;
-					if(groundLevels[(firstAfterZero+1)%4]) {
-						mesh.tRotation[z*w+x] = (float) ((Math.PI+firstAfterZero*(Math.PI/2))%(2*Math.PI));
+					
+					boolean[] groundLevels = new boolean[] {
+							isAtGroundlevel(x, z),
+							isAtGroundlevel(x+1, z),
+							isAtGroundlevel(x+1, z+1),
+							isAtGroundlevel(x, z+1)
+					};
+					int groundPoints = 0;
+					int firstAfterZero = -1;
+					for(int i = 0; i < 4; i++) {
+						if(groundLevels[i]) {
+							groundPoints++;
+							if(!groundLevels[(i+3)%4])
+								firstAfterZero = i;
+						}
 					}
-					break;
-				case 3:
-					zeroTwo = (firstAfterZero+1)%4 == 0 || (firstAfterZero+1)%4 == 2;
-					break;
+					
+					switch(groundPoints) {
+					case 0:
+						break;
+					case 1:
+						System.out.println("ONE POINT AT GROUND");
+						for(int i = 0; i < 4; i++)
+							System.out.println("   " + groundLevels[i]);
+						System.out.println(firstAfterZero);
+						System.out.println(firstAfterZero == 0 || firstAfterZero == 2);
+					case 2:
+						zeroTwo = firstAfterZero == 0 || firstAfterZero == 2;
+						if(groundLevels[(firstAfterZero+1)%4]) {
+							mesh.tRotation[z*w+x] = (float) ((Math.PI+firstAfterZero*(Math.PI/2))%(2*Math.PI));
+						}
+						break;
+					case 3:
+						zeroTwo = (firstAfterZero+1)%4 == 0 || (firstAfterZero+1)%4 == 2;
+						break;
+					}
+				} else {
+					mesh.tex[z*w+x] = 56;
 				}
 				
 				triangulateTile(x, z, zeroTwo);
 				
 				calcNormals(x, z);
 				
-				// TODO: remove hardcode
-				switch(surf[z][x]) {
-				case 1:
-				case 2:
-				case 3:
-				case 4:
-					mesh.tex[z*w+x] = 6-surf[z][x];
-					break;
-				case 5:
-					mesh.tex[z*w+x] = 0;
-					break;
-				default:
-					mesh.tex[z*w+x] = 56;
-					break;
-				}
 			}
 		}
 	}
