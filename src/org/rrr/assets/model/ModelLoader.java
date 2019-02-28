@@ -46,8 +46,8 @@ public class ModelLoader {
 		glBindVertexArray(vao);
 		vaos.add(vao);
 		
-		loadVertexIntoVBO(0, verts, 3);
-		loadVertexIntoVBO(1, colors, 3);
+		loadVertexIntoVBO(0, verts, 3,  GL_STATIC_DRAW);
+		loadVertexIntoVBO(1, colors, 3, GL_STATIC_DRAW);
 		
 		int indVbo = glGenBuffers();
 		vbos.add(indVbo);
@@ -67,9 +67,9 @@ public class ModelLoader {
 		mesh.vao = glGenVertexArrays();
 		glBindVertexArray(mesh.vao);
 		
-		loadVertexIntoVBO(0, mesh.verts, 3);
-		loadVertexIntoVBO(1, mesh.nVerts, 3);
-		loadVertexIntoVBO(2, mesh.tVerts, 2);
+		mesh.vertVbo  = loadVertexIntoVBO(0, mesh.verts, 3,  GL_DYNAMIC_DRAW);
+		mesh.nVertVbo = loadVertexIntoVBO(1, mesh.nVerts, 3, GL_DYNAMIC_DRAW);
+		mesh.tVertVbo = loadVertexIntoVBO(2, mesh.tVerts, 2, GL_DYNAMIC_DRAW);
 		
 		int indVbo = glGenBuffers();
 		vbos.add(indVbo);
@@ -81,6 +81,21 @@ public class ModelLoader {
 		
 		glBindVertexArray(0);
 		
+	}
+	
+	// Offset in points
+	public void updateMapMesh(MapMesh mesh, int off, int l) {
+		System.out.println("UPDATING MAP MESH: " + off + " " + l);
+		float[] vCopy = new float[l*3];
+		System.arraycopy(mesh.verts, off*3, vCopy, 0, l*3);
+		float[] nCopy = new float[l*3];
+		System.arraycopy(mesh.nVerts, off*3, nCopy, 0, l*3);
+		float[] tCopy = new float[l*2];
+		System.arraycopy(mesh.tVerts, off*2, tCopy, 0, l*2);
+		
+		putVextexIntoVBO(mesh.vertVbo,  3, off, vCopy);
+		putVextexIntoVBO(mesh.nVertVbo, 3, off, nCopy);
+		putVextexIntoVBO(mesh.tVertVbo, 2, off, tCopy);
 	}
 	
 	public CTexModel getCtexModelFromLwobFile(File f, PathConverter finder, TexLoader tLoader) throws IOException {
@@ -109,9 +124,9 @@ public class ModelLoader {
 		glBindVertexArray(vao);
 		vaos.add(vao);
 		
-		loadVertexIntoVBO(0, ctmd.v,  3);
-		loadVertexIntoVBO(1, ctmd.vc, 3);
-		loadVertexIntoVBO(2, ctmd.vt, 3);
+		loadVertexIntoVBO(0, ctmd.v,  3, GL_STATIC_DRAW);
+		loadVertexIntoVBO(1, ctmd.vc, 3, GL_STATIC_DRAW);
+		loadVertexIntoVBO(2, ctmd.vt, 3, GL_STATIC_DRAW);
 		
 		int indVbo = glGenBuffers();
 		vbos.add(indVbo);
@@ -239,7 +254,7 @@ public class ModelLoader {
 		return ctm;
 	}
 	
-	private int loadVertexIntoVBO(int pos, float[] verts, int dim) {
+	private int loadVertexIntoVBO(int pos, float[] verts, int dim, int mode) {
 		
 		int vbo = glGenBuffers();
 		glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -254,6 +269,17 @@ public class ModelLoader {
 		
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		return vbo;
+	}
+	
+	private void putVextexIntoVBO(int vbo, int dim, int off, float[] verts) {
+		glBindBuffer(GL_ARRAY_BUFFER, vbo);
+		
+		FloatBuffer buff = BufferUtils.createFloatBuffer(verts.length);
+		buff.put(verts);
+		buff.flip();
+		
+		glBufferSubData(GL_ARRAY_BUFFER, off*dim*4, buff);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 	
 	@SuppressWarnings("unused")
@@ -311,8 +337,8 @@ public class ModelLoader {
 		glBindVertexArray(vao);
 		vaos.add(vao);
 		
-		loadVertexIntoVBO(0, verts, 3);
-		loadVertexIntoVBO(1, texpos, 2);
+		loadVertexIntoVBO(0, verts, 3, GL_STATIC_DRAW);
+		loadVertexIntoVBO(1, texpos, 2, GL_STATIC_DRAW);
 		
 		int indVbo = glGenBuffers();
 		vbos.add(indVbo);

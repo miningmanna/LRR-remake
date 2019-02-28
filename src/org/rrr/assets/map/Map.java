@@ -9,6 +9,7 @@ import org.joml.Vector3f;
 import org.rrr.assets.AssetManager;
 import org.rrr.assets.LegoConfig.Node;
 import org.rrr.assets.model.MapMesh;
+import org.rrr.assets.model.ModelLoader;
 
 public class Map {
 	
@@ -19,7 +20,11 @@ public class Map {
 	public int[] cliffTypes;
 	private boolean[][] utilBuffer;
 	
+	private ModelLoader mLoader;
+	
 	public Map(AssetManager am, Node cfg) throws Exception {
+		
+		mLoader = am.getMLoader();
 		
 //		float[][] test = new float[][] {
 //				{1, -1, 1},
@@ -106,6 +111,16 @@ public class Map {
 			}
 		}
 		
+		generateMeshDetails();
+	}
+	
+	private void generateMeshDetails() {
+		
+		float unitDist = 40;
+		int[][] high = data.maps[MapData.HIGH];
+		int[][] surf = data.maps[MapData.SURF];
+		int[][] cave = data.maps[MapData.DUGG];
+		
 		expandCaves();
 		
 		for(int z = 0; z <= h; z++) {
@@ -176,6 +191,7 @@ public class Map {
 						}
 					}
 					
+					mesh.tRotation[z*w+x] = 0;
 					switch(groundPoints) {
 					case 0:
 						break;
@@ -329,6 +345,32 @@ public class Map {
 		}
 	}
 	
+	public void update(float val) {
+//		
+//		int off = 0, l = 12;
+//		
+//		setY(0, 0, 0, getSingleY(0, 0, 0)+val);
+//		calcNormals(0, 0);
+//		
+//		mLoader.updateMapMesh(mesh, off, l);
+//		
+	}
+	
+	public void setTile(int x, int z, int val) {
+		
+		int[][] surf = data.maps[MapData.SURF];
+		int[][] high = data.maps[MapData.HIGH];
+		surf[z][x] = val;
+		
+		generateMeshDetails();
+		
+	}
+	
+	public void updateMesh() {
+		// TODO: update only the changed tiles
+		mLoader.updateMapMesh(mesh, 0, w*h*12);
+	}
+	
 	private static class Point {
 		public Point(int x, int z) {
 			this.x = x;
@@ -454,18 +496,13 @@ public class Map {
 //					System.out.println();
 //				}
 //			}
-			double[] res = solveEquations3by3(gaussMat);
-//			if(x == 10 && z == 14) {
-//				System.out.println("RES: " + x + " " + z);
-//				System.out.println(res[0] + " " + res[1] + " " + res[2]);
-//			}
+			double[] res = solveEquations3by3(gaussMat/*, (x == 6 && z == 9)**/);
 			if(res[0] != Float.NaN && res[1] != Float.NaN && res[0] >= 0 && res[1] >= 0) {
 				if((res[0]+res[1]) >= 0 && (res[0]+res[1]) <= 1) {
 //					System.out.println("RES: " + x + " " + z);
 //					System.out.println(res[0] + " " + res[1] + " " + res[2]);
 					Vector3f p = new Vector3f(_o);
 					p.add(new Vector3f(_d).mul((float) res[2]));
-					System.out.println("HIT: " + x + " " + z + " " + p);
 					return p;
 				}
 			}
@@ -476,7 +513,7 @@ public class Map {
 		return null;
 	}
 	
-	private double[] solveEquations3by3(double[][] m) {
+	private double[] solveEquations3by3(double[][] m/*, boolean print*/) {
 		
 //		System.out.println("POTENTIAL SORT:");
 		// Sort
@@ -499,22 +536,15 @@ public class Map {
 				}
 			}
 		}
-		if(m[1][1] == 0) {
-			if(m[1][2] != 0) {
-				for(int j = 0; j < 4; j++) {
-					double temp = m[j][1];
-					m[j][1] = m[j][2];
-					m[j][2] = temp;
-				}
-			}
-		}
 		
-//		System.out.println("MATRIX: ");
-//		for(int j = 0; j < 3; j++) {
-//			for(int g = 0; g < 4; g++) {
-//				System.out.print(m[g][j] + " ");
+//		if(print) {
+//			System.out.println("MATRIX: ");
+//			for(int j = 0; j < 3; j++) {
+//				for(int g = 0; g < 4; g++) {
+//					System.out.print(m[g][j] + " ");
+//				}
+//				System.out.println();
 //			}
-//			System.out.println();
 //		}
 		
 		double[] res = new double[3];
@@ -525,24 +555,40 @@ public class Map {
 				m[j][i] -= c*m[j][0];
 			}
 		}
-//		System.out.println("LEFT SIDE MATRIX: ");
-//		for(int j = 0; j < 3; j++) {
-//			for(int g = 0; g < 4; g++) {
-//				System.out.print(m[g][j] + " ");
+		
+//		if(print) {
+//			System.out.println("LEFT SIDE MATRIX: ");
+//			for(int j = 0; j < 3; j++) {
+//				for(int g = 0; g < 4; g++) {
+//					System.out.print(m[g][j] + " ");
+//				}
+//				System.out.println();
 //			}
-//			System.out.println();
 //		}
+		
+		if(m[1][1] == 0) {
+			if(m[1][2] != 0) {
+				for(int j = 0; j < 4; j++) {
+					double temp = m[j][1];
+					m[j][1] = m[j][2];
+					m[j][2] = temp;
+				}
+			}
+		}
+		
 		double c = m[1][2]/m[1][1];
 		for(int j = 0; j < 4; j++) {
 			m[j][2] -= c*m[j][1];
 		}
 		
-//		System.out.println("LOWER TRI MATRIX: ");
-//		for(int j = 0; j < 3; j++) {
-//			for(int g = 0; g < 4; g++) {
-//				System.out.print(m[g][j] + " ");
+//		if(print) {
+//			System.out.println("LOWER TRI MATRIX: ");
+//			for(int j = 0; j < 3; j++) {
+//				for(int g = 0; g < 4; g++) {
+//					System.out.print(m[g][j] + " ");
+//				}
+//				System.out.println();
 //			}
-//			System.out.println();
 //		}
 		
 		if(m[2][2] != 0)

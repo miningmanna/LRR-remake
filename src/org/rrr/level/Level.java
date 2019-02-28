@@ -110,11 +110,14 @@ public class Level {
 		Vector3f unprojOrig = new Vector3f(),
 				unprojDir	= new Vector3f();
 		camera.combined.unprojectRay(input.mouse.x, par.getHeight()-input.mouse.y, new int[] {0,0,(int) par.getWidth(),(int) par.getHeight()},  unprojOrig, unprojDir);
-		System.out.println("------------------");
-		System.out.println(unprojOrig);
-		System.out.println(unprojDir);
 		
 		Vector2f mapPos = map.getTileHit(unprojOrig, unprojDir);
+		
+		if(input.mouseJustPressed[0]) {
+			System.out.println("PRESSED");
+			map.setTile((int) mapPos.x, (int) mapPos.y, 5);
+			map.updateMesh();
+		}
 		
 		mapShader.start();
 		mapShader.setUniVector3f("lightDirect", camera.right);
@@ -127,6 +130,8 @@ public class Level {
 		// Todo - mapmesh fix
 		renderer.render(map, mapShader, mapPos);
 		mapShader.stop();
+		
+		map.update(1);
 		
 		entityShader.start();
 		entityShader.setUniMatrix4f("cam", camera.combined);

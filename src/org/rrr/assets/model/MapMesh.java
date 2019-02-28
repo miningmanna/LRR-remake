@@ -6,6 +6,7 @@ public class MapMesh {
 	
 	// Render data
 	public int		vao;
+	public int		vertVbo, nVertVbo, tVertVbo;
 	public float[]	verts;
 	public float[]	nVerts;
 	public float[]	tVerts;
