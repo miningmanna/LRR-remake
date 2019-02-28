@@ -115,8 +115,10 @@ public class Level {
 		
 		if(input.mouseJustPressed[0]) {
 			System.out.println("PRESSED");
-			map.setTile((int) mapPos.x, (int) mapPos.y, 5);
-			map.updateMesh();
+			if(mapPos.x != -1) {
+				map.setTile((int) mapPos.x, (int) mapPos.y, 5);
+				map.updateMesh();
+			}
 		}
 		
 		mapShader.start();
@@ -131,8 +133,6 @@ public class Level {
 		renderer.render(map, mapShader, mapPos);
 		mapShader.stop();
 		
-		map.update(1);
-		
 		entityShader.start();
 		entityShader.setUniMatrix4f("cam", camera.combined);
 		entityShader.setUniMatrix4f("modelTrans", m);
@@ -143,17 +143,6 @@ public class Level {
 		
 		entityShader.stop();
 		
-	}
-	
-	private Vector2f xzIntersection(Vector3f o, Vector3f d) {
-		Vector2f res = new Vector2f();
-		if(d.y == 0)
-			return null;
-		float t = -o.y/d.y;
-		res.x = o.x + t*d.x;
-		res.y = o.z + t*d.z;
-		
-		return res;
 	}
 	
 	public void spawn(String name) {

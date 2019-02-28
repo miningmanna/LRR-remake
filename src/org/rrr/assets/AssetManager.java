@@ -2,6 +2,7 @@ package org.rrr.assets;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 
 import javax.sound.sampled.UnsupportedAudioFileException;
 
@@ -19,6 +20,7 @@ import org.rrr.assets.sound.SoundClip;
 import org.rrr.assets.sound.SoundLoader;
 import org.rrr.assets.tex.FLHAnimation;
 import org.rrr.assets.tex.TexLoader;
+import org.rrr.assets.wad.WadFile;
 import org.rrr.gui.BitMapFont;
 import org.rrr.gui.Cursor;
 
@@ -28,11 +30,15 @@ public class AssetManager {
 	private TexLoader	tLoader;
 	private SoundLoader sLoader;
 	
+	private LegoConfig cfg;
 	private Node splits;
+	
+	private HashMap<String, Asset> assets;
 	
 	private File mShared;
 	
 	public AssetManager(LegoConfig cfg, File mShared) {
+		assets = new HashMap<>();
 		this.mShared = mShared;
 		mLoader = new ModelLoader();
 		tLoader = new TexLoader();
@@ -216,5 +222,12 @@ public class AssetManager {
 
 	public SoundLoader getSLoader() {
 		return sLoader;
+	}
+	
+	private static class Asset {
+		public boolean isWad;
+		File dir;
+		WadFile wad;
+		String path;
 	}
 }
