@@ -11,17 +11,17 @@ import java.util.Set;
 
 public class LegoConfig {
 	
-	Node superNode;
+	private Node superNode;
+	private AssetManager am;
 	
 	public LegoConfig() {
 		superNode = new Node(null, null, 0);
 	}
 	
-	public static LegoConfig getConfig(InputStream in, String relPath) throws IOException {
-		
+	public static LegoConfig getConfig(InputStream in, String relPath, AssetManager am) throws IOException {
 		LegoConfig cfg = new LegoConfig();
 		
-		getToNode(relPath, in, cfg.superNode, 0);
+		getToNode(relPath, in, cfg.superNode, 0, am);
 		
 		return cfg;
 		
@@ -31,7 +31,7 @@ public class LegoConfig {
 		superNode.printTree();
 	}
 	public static String EXTERN_REGEX = ".*(;#extern:)([\\w\\.]+).*";
-	public static void getToNode(String relPath, InputStream in, Node parent, int depth) throws IOException {
+	public static void getToNode(String relPath, InputStream in, Node parent, int depth, AssetManager am) throws IOException {
 		
 		BufferedReader br = new BufferedReader(new InputStreamReader(in));
 		String line;
@@ -44,8 +44,8 @@ public class LegoConfig {
 				try {
 					String path = relPath + line.split(":")[1];
 					File f = new File(path);
-					FileInputStream extIn = new FileInputStream(f);
-					getToNode(f.getParent(), extIn, currentNode, depth);
+					InputStream extIn = am.getAsset(path);
+					getToNode(f.getParent(), extIn, currentNode, depth, am);
 					extIn.close();
 				} catch(Exception e) {
 					e.printStackTrace();
@@ -81,11 +81,11 @@ public class LegoConfig {
 				
 				if(split[1].equals("{")) {
 					depth++;
-					Node n = new Node(split[0], currentNode, depth);
-					currentNode.subNodes.put(split[0], n);
+					Node n = new Node(split[0].toUpperCase(), currentNode, depth);
+					currentNode.subNodes.put(split[0].toUpperCase(), n);
 					currentNode = n;
 				} else {
-					currentNode.values.put(split[0], split[1]);
+					currentNode.values.put(split[0].toUpperCase(), split[1]);
 				}
 			} else {
 				if(line.equals("}")) {
@@ -93,8 +93,8 @@ public class LegoConfig {
 					currentNode = currentNode.parent;
 				} else if(line.equals("{")) {
 					depth++;
-					Node n = new Node(lastLine, currentNode, depth);
-					currentNode.subNodes.put(lastLine, n);
+					Node n = new Node(lastLine.toUpperCase(), currentNode, depth);
+					currentNode.subNodes.put(lastLine.toUpperCase(), n);
 					currentNode = n;
 				}
 			}
@@ -127,6 +127,7 @@ public class LegoConfig {
 	}
 	
 	public Object get(String path) {
+		path = path.toUpperCase();
 		String[] split = path.split("/");
 		
 		Node curNode = superNode;
@@ -146,7 +147,7 @@ public class LegoConfig {
 	}
 	
 	public boolean getBoolean(String path) {
-		
+		path = path.toUpperCase();
 		Object o = (String) get(path);
 		if(o == null)
 			return false;
@@ -162,7 +163,7 @@ public class LegoConfig {
 	}
 	
 	public int getInteger(String path) {
-		
+		path = path.toUpperCase();
 		Object o = (String) get(path);
 		if(o == null)
 			return 0;
@@ -175,9 +176,9 @@ public class LegoConfig {
 		}
 		
 	}
-
+	
 	public double getDouble(String path) {
-		
+		path = path.toUpperCase();
 		Object o = (String) get(path);
 		if(o == null)
 			return 0;
@@ -192,7 +193,7 @@ public class LegoConfig {
 	}
 	
 	public float getFloat(String path) {
-		
+		path = path.toUpperCase();
 		Object o = (String) get(path);
 		if(o == null)
 			return 0;
@@ -241,6 +242,7 @@ public class LegoConfig {
 		}
 		
 		public Node getSubNode(String name) {
+			name = name.toUpperCase();
 			return subNodes.get(name);
 		}
 		
@@ -253,17 +255,19 @@ public class LegoConfig {
 		}
 		
 		public String getValue(String name) {
+			name = name.toUpperCase();
 			return values.get(name);
 		}
 		
 		public String getOptValue(String name, String alt) {
+			name = name.toUpperCase();
 			if(values.get(name) == null)
 				return alt;
 			return values.get(name);
 		}
 		
 		public boolean getBoolean(String name) {
-			
+			name = name.toUpperCase();
 			String val = values.get(name);
 			if(val == null)
 				return false;
@@ -276,7 +280,7 @@ public class LegoConfig {
 		}
 		
 		public boolean getOptBoolean(String name, boolean alt) {
-			
+			name = name.toUpperCase();
 			String val = values.get(name);
 			if(val == null)
 				return alt;
@@ -289,7 +293,7 @@ public class LegoConfig {
 		}
 		
 		public int getInteger(String name) {
-			
+			name = name.toUpperCase();
 			String val = values.get(name);
 			if(val == null)
 				return 0;
@@ -303,7 +307,7 @@ public class LegoConfig {
 		}
 		
 		public int getOptInteger(String name, int alt) {
-			
+			name = name.toUpperCase();
 			String val = values.get(name);
 			if(val == null)
 				return alt;
@@ -317,7 +321,7 @@ public class LegoConfig {
 		}
 		
 		public double getDouble(String name) {
-			
+			name = name.toUpperCase();
 			String val = values.get(name);
 			if(val == null)
 				return 0;
@@ -331,7 +335,7 @@ public class LegoConfig {
 		}
 		
 		public double getOptDouble(String name, double alt) {
-			
+			name = name.toUpperCase();
 			String val = values.get(name);
 			if(val == null)
 				return alt;
@@ -345,7 +349,7 @@ public class LegoConfig {
 		}
 		
 		public float getFloat(String name) {
-			
+			name = name.toUpperCase();
 			String val = values.get(name);
 			if(val == null)
 				return 0;
@@ -359,7 +363,7 @@ public class LegoConfig {
 		}
 		
 		public float getOptFloat(String name, float alt) {
-			
+			name = name.toUpperCase();
 			String val = values.get(name);
 			if(val == null)
 				return alt;
@@ -386,8 +390,6 @@ public class LegoConfig {
 			for(String key : values.keySet()) {
 				System.out.println(ind + key + ":   " + values.get(key));
 			}
-			
-			
 		}
 	}
 }

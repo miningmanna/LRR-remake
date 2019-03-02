@@ -8,6 +8,7 @@ import static org.lwjgl.system.MemoryUtil.*;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
 
@@ -87,12 +88,15 @@ public class RockRaidersRemake {
 		dProcessor = new DelayedProcessor();
 		
 		try {
-			FileInputStream in = new FileInputStream("LegoRR1/Lego.cfg");
-			cfg = LegoConfig.getConfig(in, "LegoRR1/");
-			in.close();
-		} catch (Exception e) {
+			am = new AssetManager(new File("priorities.txt"));
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		if(am == null) {
+			System.err.println("ERROR initializing assetmanager");
+			System.exit(-1);
+		}
+		cfg = am.getConfig();
 		
 		Node legoStar = (Node) cfg.get("Lego*");
 		for(String key : legoStar.getSubNodeKeys()) {
@@ -101,7 +105,6 @@ public class RockRaidersRemake {
 		
 		triggerCfg = (Node) cfg.get("Lego*/Triggers");
 		
-		am = new AssetManager(cfg, new File("LegoRR0/World/Shared"));
 		renderer = new Renderer();
 		input = new Input(this);
 		
@@ -199,7 +202,7 @@ public class RockRaidersRemake {
 		m.identity();
 		m.translate(new Vector3f(0, 0, 5));
 		
-		rockAnim = am.getAnimation(new File("LegoRR0/Interface/FrontEnd/Rock_wipe/RockWipe.lws"));
+		rockAnim = am.getAnimation("Interface/FrontEnd/Rock_wipe/RockWipe.lws");
 		rockAnim.loop = false;
 		Camera c = new Camera();
 		float aspect = (float)pWidth / (pHeight);
@@ -222,14 +225,14 @@ public class RockRaidersRemake {
 		EntityEngine eng = new EntityEngine();
 		
 		Entity.setAssetManager(am);
-		Entity.loadEntity(new File("LegoRR0/Mini-Figures/CAPTAIN"), "captain");
-		Entity.loadEntity(new File("LegoRR0/Buildings/Barracks"), 	"barracks");
+//		Entity.loadEntity(new File("LegoRR0/Mini-Figures/CAPTAIN"), "captain");
+//		Entity.loadEntity(new File("LegoRR0/Buildings/Barracks"), 	"barracks");
 		
 		Node l2cfg = (Node) cfg.get("Lego*/Levels/Level02");
 		
 		try {
 			currentLevel = new Level(this, l2cfg);
-			currentLevel.spawn("captain");
+//			currentLevel.spawn("captain");
 		} catch (Exception e2) {
 			// TODO Auto-generated catch block
 			e2.printStackTrace();

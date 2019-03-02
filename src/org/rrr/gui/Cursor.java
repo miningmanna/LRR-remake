@@ -11,6 +11,7 @@ import java.util.LinkedList;
 
 import org.newdawn.slick.opengl.Texture;
 import org.rrr.RockRaidersRemake;
+import org.rrr.assets.AssetManager;
 import org.rrr.assets.LegoConfig.Node;
 import org.rrr.assets.sound.SoundClip;
 import org.rrr.assets.sound.Source;
@@ -29,7 +30,7 @@ public class Cursor {
 	public SoundClip sfxOkay, sfxNotOkay;
 	
 	
-	public Cursor(Node cfg, TexLoader tLoader, RockRaidersRemake par) {
+	public Cursor(Node cfg, AssetManager am, RockRaidersRemake par) {
 		
 		this.playSource = par.getAudioSystem().getSource();
 		sfxOkay = par.getAssetManager().getSample("SFX_Okay");
@@ -44,15 +45,8 @@ public class Cursor {
 		for(String key : cfg.getValueKeys()) {
 			
 			if(key.equals("Pointer_Blank")) {
-				
-				try {
-					base = tLoader.getTexture("bmp", new File("LegoRR0/" + cfg.getValue(key)));
-					base.setTextureFilter(GL_NEAREST);
-				} catch (IOException e) {
-					e.printStackTrace();
-					System.out.println("Couldnt load baseTexture");
-				}
-				
+				base = am.getTexture(cfg.getValue(key).replaceAll("\\\\", "/"));
+				base.setTextureFilter(GL_NEAREST);
 				continue;
 			}
 			
@@ -62,7 +56,7 @@ public class Cursor {
 			else
 				anim.name = key;
 			
-			String path = cfg.getValue(key);
+			String path = cfg.getValue(key).replaceAll("\\\\", "/");
 			if(path.contains(",")) {
 				anim.usesBaseTex = true;
 				anim.stillFrame = false;
@@ -79,22 +73,17 @@ public class Cursor {
 					continue;
 				}
 				
-				// TODO Still static paths :(
-				anim.anim = tLoader.getAnimation(new File("LegoRR0/" + split[0]));
+				anim.anim = am.getFLHAnimation(split[0]);
 				anim.w = anim.anim.data.w;
 				anim.h = anim.anim.data.h;
 				
 			} else {
 				anim.usesBaseTex = false;
 				anim.stillFrame = true;
-				try {
-					// TODO Static paths :(
-					anim.tex = tLoader.getTexture("bmp", new File("LegoRR0/" + path));
-					anim.w = anim.tex.getImageWidth();
-					anim.h = anim.tex.getImageHeight();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+				System.out.println("GETTING FILE: " + path);
+				anim.tex = am.getTexture(path);
+				anim.w = anim.tex.getImageWidth();
+				anim.h = anim.tex.getImageHeight();
 			}
 			
 			anims.add(anim);

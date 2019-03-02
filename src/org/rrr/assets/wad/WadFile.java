@@ -1,14 +1,16 @@
 package org.rrr.assets.wad;
 
-import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.RandomAccessFile;
+
+import javax.imageio.ImageIO;
 
 public class WadFile {
 	
-	private RandomAccessFile raf;
+	private File origFile;
 	private String[] entries;
 	private long[] fStart;
 	private long[] fLength;
@@ -20,11 +22,19 @@ public class WadFile {
 				index = i;
 		if(index == -1)
 			return null;
-		WadStream stream = new WadStream(raf, fStart[index], fLength[index]);
+		WadStream stream = null;
+		try {
+			stream = new WadStream(new RandomAccessFile(origFile, "r"), fStart[index], fLength[index]);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
 		return stream;
 	}
 	
-	@SuppressWarnings("resource")
+	public String[] getEntries() {
+		return entries;
+	}
+	
 	public static WadFile getWadFile(File f) throws IOException {
 		
 		WadFile wad = new WadFile();
@@ -43,6 +53,8 @@ public class WadFile {
 		int lentries = getIntLE(buff, 4);
 		System.out.println(lentries);
 		
+		int cases = 0;
+		
 		wad.entries = new String[lentries];
 		wad.fStart = new long[lentries];
 		wad.fLength = new long[lentries];
@@ -56,47 +68,58 @@ public class WadFile {
 					name += new String(buff, buffOffset, j-buffOffset);
 					wad.entries[i] = name;
 					buffOffset = j+1;
+					if(buffOffset == 2048) {
+						cases++;
+						in.read(buff, 0, 2048); pos+=2048;
+						buffOffset = 0;
+					}
 					break;
 				}
 				if(j == 2047) {
 					name += new String(buff, buffOffset, 2048-buffOffset);
-					in.read(buff, 0, 2048);  pos+=2048;
+					in.read(buff, 0, 2048); pos+=2048;
 					buffOffset = 0;
-					j = 0;
+					j = -1;
 				}
 			}
-			
 		}
 		for(int i = 0; i < lentries; i++) {
 			for(int j = buffOffset; j < 2048; j++) {
 				if(buff[j] == 0) {
 					buffOffset = j+1;
+					if(buffOffset == 2048) {
+						cases++;
+						in.read(buff, 0, 2048); pos+=2048;
+						buffOffset = 0;
+					}
 					break;
 				}
 				if(j == 2047) {
-					in.read(buff, 0, 2048);  pos+=2048;
+					in.read(buff, 0, 2048); pos+=2048;
 					buffOffset = 0;
-					j = 0;
+					j = -1;
 				}
 			}
-			
 		}
 		in.seek(pos-(2048-buffOffset));
 		
 		for(int i = 0; i < lentries; i++) {
 			in.read(buff, 0, 16);
+//			if(i == 1814 || i == 1815) {
+//				System.out.println(wad.entries[i]);
+//				for(int j = 0; j < 16; j += 4)
+//					System.out.println(getIntLE(buff, j));
+//			}
 			wad.fLength[i] = getIntLE(buff, 8);
 			wad.fStart[i] = getIntLE(buff, 12);
 		}
 		
-		wad.raf = in;
+		in.close();
+		
+		wad.origFile = f;
 		
 		return wad;
 		
-	}
-	
-	public void close() throws IOException {
-		raf.close();
 	}
 	
 	private static int getIntLE(byte[] b, int off) {
@@ -115,18 +138,17 @@ public class WadFile {
 	public static void main(String[] args) {
 		
 		try {
-			WadFile wad = WadFile.getWadFile(new File("LegoRR1.wad"));
-			WadStream s = wad.getStream("credits.txt");
-			WadStream s2 = wad.getStream("Lego.cfg");
-			BufferedReader br = new BufferedReader(new InputStreamReader(s));
-			BufferedReader br2 = new BufferedReader(new InputStreamReader(s2));
-			String line = null;
-			String line2 = null;
-			while((line = br.readLine()) != null && (line2 = br2.readLine()) != null) {
-				System.out.println("1: " + line);
-				System.out.println("2: " + line2);
+			WadFile wad = WadFile.getWadFile(new File("LegoRR0.wad"));
+			WadStream in = wad.getStream("Interface\\Pointers\\Azoom.bmp");
+			FileOutputStream out = new FileOutputStream("C:/Users/User/Desktop/img.bmp");
+			byte[] buff = new byte[2048];
+			int len = -1;
+			while((len = in.read(buff)) != -1) {
+				System.out.println("READ: " + len);
+				out.write(buff, 0, len);
 			}
-			wad.close();
+			out.close();
+			in.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

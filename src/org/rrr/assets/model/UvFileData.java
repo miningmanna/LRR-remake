@@ -2,9 +2,15 @@ package org.rrr.assets.model;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.LinkedList;
+
+import org.rrr.Input;
 
 public class UvFileData {
 	
@@ -13,10 +19,17 @@ public class UvFileData {
 	public int[] ivt;
 	
 	public static UvFileData getUvFileData(File f) throws IOException {
+		FileInputStream in = new FileInputStream(f);
+		UvFileData res = getUvFileData(in);
+		in.close();
+		return res;
+	}
+	
+	public static UvFileData getUvFileData(InputStream in) throws IOException {
 		
 		UvFileData res = new UvFileData();
 		
-		BufferedReader br = new BufferedReader(new FileReader(f));
+		BufferedReader br = new BufferedReader(new InputStreamReader(in));
 		
 		br.readLine();
 		int lsurf = Integer.parseInt(br.readLine());
@@ -47,8 +60,6 @@ public class UvFileData {
 			res.vt[i] = _vt.pop();
 		for(int i = 0; i < livt; i++)
 			res.ivt[i] = i;
-		
-		br.close();
 		
 		return res;
 	}

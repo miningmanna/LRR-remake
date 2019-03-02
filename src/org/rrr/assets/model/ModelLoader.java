@@ -26,6 +26,7 @@ import javax.swing.JPanel;
 import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
 import org.newdawn.slick.opengl.Texture;
+import org.rrr.assets.AssetManager;
 import org.rrr.assets.map.MapData;
 import org.rrr.assets.tex.TexLoader;
 
@@ -98,24 +99,37 @@ public class ModelLoader {
 		putVextexIntoVBO(mesh.tVertVbo, 2, off, tCopy);
 	}
 	
-	public CTexModel getCtexModelFromLwobFile(File f, PathConverter finder, TexLoader tLoader) throws IOException {
+	public CTexModel getCtexModelFromLwobFile(File f, PathConverter finder, AssetManager am) throws IOException {
+		FileInputStream in = new FileInputStream(f);
+		CTexModel res = getCtexModelFromLwobFile(f.getAbsolutePath(), in, finder, am);
+		in.close();
+		return res;
+	}
+	
+	public CTexModel getCtexModelFromLwobFile(String assetPath, InputStream in, PathConverter finder, AssetManager am) throws IOException {
 		
-		if(ctexmodels.containsKey(f.getAbsolutePath())) {
-			return ctexmodels.get(f.getAbsolutePath());
+		assetPath = assetPath.toUpperCase();
+		
+		if(ctexmodels.containsKey(assetPath)) {
+			return ctexmodels.get(assetPath);
 		}
 		
 		if(finder == null) {
 			System.out.println("Finder cant be null");
 			return null;
 		}
-		File uvFile  = new File(f.getParent(), f.getName().substring(0, f.getName().length()-3) + "uv");
-		boolean hasUv = new File(f.getParent(), f.getName().substring(0, f.getName().length()-3) + "uv").exists();
+		String uvPath = assetPath.substring(0, assetPath.length()-3) + "UV";
+		boolean hasUv = am.exists(uvPath);
 		
-		LwobFileData lfd = LwobFileData.getLwobFileData(f);
+		System.out.println("Converted: " + assetPath);
+		
+		InputStream lwobIn = am.getAsset(assetPath);
+		LwobFileData lfd = LwobFileData.getLwobFileData(lwobIn);
+		lwobIn.close();
 		
 		CTexModelData ctmd = null;
 		if(hasUv) {
-			ctmd = CTexModelData.getCTexModelFromLwob(lfd, UvFileData.getUvFileData(uvFile));
+			ctmd = CTexModelData.getCTexModelFromLwob(lfd, UvFileData.getUvFileData(am.getAsset(uvPath)));
 		} else {
 			ctmd = CTexModelData.getCTexModelFromLwob(lfd, null);
 		}
@@ -219,7 +233,7 @@ public class ModelLoader {
 					if(!texFile.exists()) {
 						break;
 					}
-					_texs.add(tLoader.getTexture(extension, texFile));
+					_texs.add(am.geTLoader().getTexture(extension, texFile));
 					texNum++;
 				}
 				ctm.texs[i] = new Texture[texNum];
@@ -229,7 +243,14 @@ public class ModelLoader {
 				
 			} else {
 				ctm.texs[i] = new Texture[1];
-				Texture t = tLoader.getTexture(extension, new File(path));
+				InputStream tIn = am.getAsset(path);
+				Texture t = null;
+				System.out.println("TEXTURE INPUTSREAM: " + tIn + " " + path + " " + extension);
+				if(tIn != null) {
+					t = am.geTLoader().getTexture(extension, tIn, path);
+					in.close();
+				}
+					
 				if(t == null) {
 					ctm.alpha[i] = null;
 					continue;
@@ -243,7 +264,7 @@ public class ModelLoader {
 				
 				int aind = Integer.parseInt(fName.substring(1, 4));
 				
-				ctm.alpha[i] = tLoader.getColorFromBMPPalet(new File(path), aind);
+				ctm.alpha[i] = am.geTLoader().getColorFromBMPPalet(new File(path), aind);
 				
 			}
 			
@@ -351,69 +372,6 @@ public class ModelLoader {
 		glBindVertexArray(0);
 		
 		return vao;
-	}
-	
-	public static BufferedImage getBMP(File f) {
-		
-		BufferedImage img = null;
-		try {
-			InputStream in = new FileInputStream(f);
-			byte[] header = new byte[54];
-			
-			in.read(header);
-			
-			int w = getIntLE(header, 18);
-			int h = getIntLE(header, 22);
-			
-			int paletteSize = (int) Math.sqrt(getIntLE(header, 46));
-			if(paletteSize == 0)
-				paletteSize = 16;
-			
-			int[] palette = new int[paletteSize*paletteSize];
-			
-			byte[] bpalette = new byte[paletteSize*paletteSize*4];
-			
-			in.read(bpalette);
-			
-			for(int i = 0; i < bpalette.length; i += 4) {
-				int rgb = 0;
-				rgb |= (0xFF & (255-bpalette[i+3])) << 24;
-				rgb |= (0xFF & bpalette[i+2]) << 16;
-				rgb |= (0xFF & bpalette[i+1]) << 8;
-				rgb |= (0xFF & bpalette[i]);
-				palette[i/4] = rgb;
-			}
-			
-			img = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
-			
-			short bitsPerPix = getShortLE(header, 28);
-			if(bitsPerPix != 8)
-				System.out.println("UNUSUAL BITS PER PIX");
-			
-			int compression = getIntLE(header, 30);
-			if(compression != 0)
-				System.out.println("USES COMPRESSION");
-			
-			int rowSize = (int) Math.ceil((bitsPerPix*w)/32)*4;
-			
-			for(int i = 0; i < h; i++) {
-				
-				byte[] row = new byte[rowSize];
-				in.read(row);
-				for(int j = 0; j < w; j++) {
-					img.setRGB(j, h-1-i, palette[0x00FF & row[j]]);
-				}
-				
-			}
-			
-			in.close();
-			
-		} catch (IOException e) {
-			e.printStackTrace();
-			return null;
-		}
-		
-		return img;
 	}
 	
 	// TODO Remove main

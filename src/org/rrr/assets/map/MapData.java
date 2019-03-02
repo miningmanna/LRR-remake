@@ -3,11 +3,17 @@ package org.rrr.assets.map;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
 
 import javax.swing.JFrame;
+
+import org.rrr.Input;
+import org.rrr.assets.AssetManager;
+import org.rrr.assets.LegoConfig.Node;
 
 public class MapData {
 
@@ -21,56 +27,43 @@ public class MapData {
 							EROD = 7,
 							FALL = 8;
 	
-	private static final String[] fprefix = {
-			"surf",
-			"dugg",
-			"cror",
-			"tuto",
-			"high",
-			"path",
-			"emrg",
-			"erod",
-			"fall"
+	private static final String[] CFG_KEYS = {
+			"TerrainMap",
+			"PredugMap",
+			"CryoreMap",
+			"BlockPointersMap",
+			"SurfaceMap",
+			"PathMap",
+			"EmergeMap",
+			"ErodeMap",
+			"FallinMap"
 	};
 	
 	public int[][][] maps;
 	public int width, height;
 	
 	
-	public static MapData getMapData(File dir) throws Exception {
+	public static MapData getMapData(AssetManager am, Node cfg) throws Exception {
 		
 		MapData res = new MapData();
 		res.maps = new int[9][][];
 		
-		File[] files = new File[9];
-		for(File f : dir.listFiles()) {
-			System.out.println("CHECKING " + f);
-			String name = f.getName();
-			String prefix = name.substring(0, 4).toLowerCase();
-			String end = name.substring(name.length()-3);
-			for(int i = 0; i < 9; i++)
-				if(prefix.equals(fprefix[i]) && end.equalsIgnoreCase("map")) {
-					System.out.println("FOUND " + fprefix[i] + ": " + f);
-					files[i] = f;
-				}
+		for(int i = 0; i < CFG_KEYS.length; i++) {
+			String f = cfg.getOptValue(CFG_KEYS[i], null);
+			if(f != null)
+				res.loadData(i, f, am);
 		}
-		
-		
-		
-		for(int i = 0; i < 9; i++)
-			res.loadData(i, files[i]);
 		res.ensureAllData();
 		
 		return res;
 		
 	}
 	
-	private void loadData(int mapType, File f) throws Exception {
+	private void loadData(int mapType, String path, AssetManager am) throws Exception {
 		
-		if(f == null)
-			return;
-		
-		int[][] data = loadMapFileData(f);
+		InputStream in = am.getAsset(path);
+		int[][] data = loadMapDataStream(in);
+		in.close();
 		if(width == 0 && height == 0) {
 			height = data.length;
 			width = data[0].length;
@@ -90,15 +83,32 @@ public class MapData {
 		}
 	}
 	
-	public static int[][] loadMapFileData(File f) throws IOException {
-		RandomAccessFile raf = new RandomAccessFile(f, "r");
-		raf.seek(4);
+	public static int[][] loadMapDataFile(File f) {
+		FileInputStream in = null;
+		int[][] res = null;
+		try {
+			in = new FileInputStream(f);
+			res = loadMapDataStream(in);
+		} catch(IOException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				in.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		return res;
+	}
+	
+	public static int[][] loadMapDataStream(InputStream in) throws IOException {
+		in.skip(4);
 		byte[] buff = new byte[4];
-		raf.read(buff);
+		in.read(buff);
 		int len = getIntLE(buff, 0);
 		buff = new byte[len];
-		raf.read(buff);
-		raf.close();
+		in.read(buff);
+		in.close();
 		
 		int w = getIntLE(buff, 0);
 		int h = getIntLE(buff, 4);
@@ -123,66 +133,6 @@ public class MapData {
 		
 		for(int i : vals)
 			System.out.println("vals: " + i);
-		
-	}
-	
-	static MapData data;
-	static int ind = 0;
-	static MapVis mapVis;
-	public static void main(String[] args) {
-		
-		try {
-			data = getMapData(new File("LegoRR0/Levels/GameLevels/Level02"));
-			
-			JFrame f = new JFrame("MapData");
-			
-			mapVis = new MapVis(data.maps[DUGG]);
-			printAllValues(mapVis.data);
-			f.add(mapVis);
-			f.pack();
-			f.addKeyListener(new KeyListener() {
-				
-				@Override
-				public void keyTyped(KeyEvent arg0) {
-					// TODO Auto-generated method stub
-					
-				}
-				
-				@Override
-				public void keyReleased(KeyEvent arg0) {
-					if(arg0.getKeyCode() == KeyEvent.VK_Q) {
-						ind--;
-						if(ind < 0)
-							ind = 8;
-						System.out.println(fprefix[ind]);
-						mapVis.data = data.maps[ind];
-						printAllValues(mapVis.data);
-						mapVis.repaint();
-					}
-					if(arg0.getKeyCode() == KeyEvent.VK_E) {
-						ind++;
-						ind %= 9;
-						System.out.println(fprefix[ind]);
-						mapVis.data = data.maps[ind];
-						printAllValues(mapVis.data);
-						mapVis.repaint();
-					}
-						
-				}
-				
-				@Override
-				public void keyPressed(KeyEvent arg0) {
-					// TODO Auto-generated method stub
-					
-				}
-			});
-			f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-			f.setVisible(true);
-			
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 		
 	}
 	

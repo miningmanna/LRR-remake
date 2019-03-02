@@ -7,6 +7,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -31,17 +32,33 @@ public class TexLoader {
 		texsIds = new ArrayList<>();
 	}
 	
-	public FLHAnimation getAnimation(File file) {
-		System.out.println("FLH: " + file.getName());
-		String key = file.getName();
-		if(flhAnims.containsKey(key))
-			return new FLHAnimation(flhAnims.get(key), 25);
+	public FLHAnimation getAnimation(File f) {
+		FLHAnimation res = null;
+		FileInputStream in = null;
+		try {
+			String path = f.getAbsolutePath();
+			in = new FileInputStream(f);
+			res = getAnimation(path, in);
+		} catch(IOException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				in.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		return res;
+	}
+	
+	public FLHAnimation getAnimation(String path, InputStream in) {
+		System.out.println("FLH: " + path);
+		if(flhAnims.containsKey(path))
+			return new FLHAnimation(flhAnims.get(path), 25);
 		
 		FLHFile flh = null;
 		try {
-			FileInputStream in = new FileInputStream(file);
 			flh = FLHFile.getFLHFile(in);
-			in.close();
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
@@ -50,18 +67,26 @@ public class TexLoader {
 		
 		
 		FLHAnimation.BaseData bd = FLHAnimation.getBaseData(this, flh);
-		flhAnims.put(key, bd);
+		flhAnims.put(path, bd);
 		
 		return new FLHAnimation(bd, 25);
 		
 	}
 	
 	public Texture getTexture(String format, File f) throws IOException {
-		if(texs.containsKey(f.getAbsolutePath())) {
-			return texs.get(f.getAbsolutePath());
+		FileInputStream in = new FileInputStream(f);
+		Texture res = getTexture(format, in, f.getAbsolutePath());
+		in.close();
+		return res;
+	}
+	
+	public Texture getTexture(String format, InputStream in, String path) throws IOException {
+		if(texs.containsKey(path)) {
+			System.out.println("GETTING LOADED TEXTURE: " + path);
+			return texs.get(path);
 		} else {
-			Texture t = TextureLoader.getTexture(format, new FileInputStream(f));
-			texs.put(f.getAbsolutePath(), t);
+			Texture t = TextureLoader.getTexture(format, in);
+			texs.put(path, t);
 			texsIds.add(t.getTextureID());
 			return t;
 		}
@@ -97,6 +122,66 @@ public class TexLoader {
 		return new MTexture(id);
 	}
 	
+	public static BufferedImage getBMP(InputStream in) {
+		
+		BufferedImage img = null;
+		try {
+			byte[] header = new byte[54];
+			
+			in.read(header);
+			
+			int w = getIntLE(header, 18);
+			int h = getIntLE(header, 22);
+			
+			int paletteSize = (int) Math.sqrt(getIntLE(header, 46));
+			if(paletteSize == 0)
+				paletteSize = 16;
+			
+			int[] palette = new int[paletteSize*paletteSize];
+			
+			byte[] bpalette = new byte[paletteSize*paletteSize*4];
+			
+			in.read(bpalette);
+			
+			for(int i = 0; i < bpalette.length; i += 4) {
+				int rgb = 0;
+				rgb |= (0xFF & (255-bpalette[i+3])) << 24;
+				rgb |= (0xFF & bpalette[i+2]) << 16;
+				rgb |= (0xFF & bpalette[i+1]) << 8;
+				rgb |= (0xFF & bpalette[i]);
+				palette[i/4] = rgb;
+			}
+			
+			img = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+			
+			short bitsPerPix = getShortLE(header, 28);
+			if(bitsPerPix != 8)
+				System.out.println("UNUSUAL BITS PER PIX");
+			
+			int compression = getIntLE(header, 30);
+			if(compression != 0)
+				System.out.println("USES COMPRESSION");
+			
+			int rowSize = (int) Math.ceil((bitsPerPix*w)/32)*4;
+			
+			for(int i = 0; i < h; i++) {
+				
+				byte[] row = new byte[rowSize];
+				in.read(row);
+				for(int j = 0; j < w; j++) {
+					img.setRGB(j, h-1-i, palette[0x00FF & row[j]]);
+				}
+				
+			}
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
+		}
+		
+		return img;
+	}
+	
 	public Vector3f getColorFromBMPPalet(File file, int aind) throws IOException {
 		RandomAccessFile raf = new RandomAccessFile(file, "r");
 		raf.seek(54+aind*4);
@@ -116,6 +201,32 @@ public class TexLoader {
 	public void destroy() {
 		for(int id : texsIds)
 			glDeleteTextures(id);
+	}
+	
+	private static short getShortLE(byte[] b, int off) {
+		
+		int res = 0;
+		for(int i = 0; i < 2; i++) {
+			res = res | (0x000000FF & b[off+1-i]);
+			if(i != 1)
+				res = res << 8;
+		}
+		
+		return (short) res;
+		
+	}
+	
+	private static int getIntLE(byte[] b, int off) {
+		
+		int res = 0;
+		for(int i = 0; i < 4; i++) {
+			res = res | (0x000000FF & b[off+3-i]);
+			if(i != 3)
+				res = res << 8;
+		}
+		
+		return res;
+		
 	}
 	
 }

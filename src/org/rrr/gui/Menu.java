@@ -89,8 +89,7 @@ public class Menu {
 			Overlay o = new Overlay();
 			o.x = Integer.parseInt(overlaySplit[2]);
 			o.y = Integer.parseInt(overlaySplit[3]);
-			// TODO hardcoded paths :(
-			o.anim = am.getFLHAnimation(new File("LegoRR0/" + overlaySplit[0]));
+			o.anim = am.getFLHAnimation(overlaySplit[0]);
 			
 			o.sound = par.getAssetManager().getSample(overlaySplit[1]);
 			System.out.println(overlaySplit[1] + " = " + o.sound);

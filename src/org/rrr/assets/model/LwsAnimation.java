@@ -2,9 +2,11 @@ package org.rrr.assets.model;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 
 import org.joml.Matrix4f;
+import org.rrr.assets.AssetManager;
 import org.rrr.assets.tex.TexLoader;
 
 public class LwsAnimation {
@@ -45,14 +47,18 @@ public class LwsAnimation {
 		
 	}
 	
-	public static LwsAnimation getAnimation(File lwsFile, ModelLoader mLoader, TexLoader tLoader, PathConverter converter) throws IOException {
+	public static LwsAnimation getAnimation(String path, AssetManager am, PathConverter converter) throws IOException {
+		
+		path = path.toUpperCase();
 		
 		LwsAnimation res = new LwsAnimation();
 		res.loop = true;
 		
-		if(!bds.containsKey(lwsFile.getAbsolutePath())) {
-			
-			LwsFileData lws = LwsFileData.getLwsFileData(lwsFile);
+		if(!bds.containsKey(path)) {
+			System.out.println("LOADING LWS: " + path);
+			InputStream lwsIn = am.getAsset(path);
+			LwsFileData lws = LwsFileData.getLwsFileData(lwsIn);
+			lwsIn.close();
 			
 			BaseData bd = new BaseData();
 			res.bd = bd;
@@ -75,7 +81,9 @@ public class LwsAnimation {
 					String fName = converter.convert(new File(lws.objFiles[i]).getName());
 					if(fName == null)
 						continue;
-					bd.models[i] = mLoader.getCtexModelFromLwobFile(new File(fName), converter, tLoader);
+					InputStream objIn = am.getAsset(fName);
+					bd.models[i] = am.getMLoader().getCtexModelFromLwobFile(fName, objIn, converter, am);
+					objIn.close();
 				}
 			}
 			
@@ -86,9 +94,9 @@ public class LwsAnimation {
 				}
 			}
 			
-			bds.put(lwsFile.getAbsolutePath(), bd);
+			bds.put(path, bd);
 		} else {
-			res.bd = bds.get(lwsFile.getAbsolutePath());
+			res.bd = bds.get(path);
 		}
 		res.transforms = new Matrix4f[res.bd.lobjects];
 		for(int i = 0; i < res.transforms.length; i++)

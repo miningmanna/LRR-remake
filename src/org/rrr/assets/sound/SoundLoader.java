@@ -2,8 +2,10 @@ package org.rrr.assets.sound;
 
 import static org.lwjgl.openal.AL10.*;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,14 +16,22 @@ import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
 import org.lwjgl.BufferUtils;
+import org.rrr.assets.AssetManager;
 import org.rrr.assets.LegoConfig.Node;
 
 public class SoundLoader {
 	
-	private HashMap<String, File> sounds;
+	private AssetManager am;
+	private HashMap<String, String> sounds;
 	private ArrayList<Integer> buffers;
 	
-	public SoundLoader(Node cfg) {
+	public static final String[] EXTENSIONS = {
+			"wav",
+			"ogg"
+	};
+	
+	public SoundLoader(Node cfg, AssetManager am) {
+		this.am = am;
 		sounds = new HashMap<>();
 		buffers = new ArrayList<>();
 		
@@ -33,67 +43,30 @@ public class SoundLoader {
 			
 			if(val.contains(","))
 				val = val.split(",")[0]; // TODO Use all listed files
-			
-			File f = findFile("LegoRR0/" + val);
-			if(f == null)
-				f = findFile("LegoRR1/" + val);
-			sounds.put(key, f);
-		}
-	}
-	
-	private File findFile(String path) {
-		
-		String[] split = path.split("[\\\\/]");
-		File f = new File("./");
-		for(int i = 0; i < split.length; i++) {
-			String next = split[i];
-			if(f.isDirectory()) {
-				if(i == split.length-1) {
-					boolean foundNext = false;
-					for(File nextFile : f.listFiles()) {
-						String[] nameSplit = nextFile.getName().split("\\.");
-						String nextFileName = nameSplit[0];
-						if(nameSplit.length > 2)
-							for(int j = 1; j < nameSplit.length-1; j++)
-								nextFileName += "." + split[j];
-						
-						if(nextFileName.equalsIgnoreCase(next)) {
-							f = nextFile;
-							foundNext = true;
-							break;
-						}
-					}
-					if(foundNext)
-						continue;
-					return null;
-				} else {
-					boolean foundNext = false;
-					for(File nextFile : f.listFiles()) {
-						if(nextFile.getName().equalsIgnoreCase(next)) {
-							f = nextFile;
-							foundNext = true;
-							break;
-						}
-					}
-					if(foundNext)
-						continue;
-					return null;
+			String str = null;
+			System.out.println("CHECK FOR SAMPLE: " + key + " = " + val);
+			for(String ext : EXTENSIONS) {
+				if(am.exists(val + "." + ext)) {
+					str = val + "." + ext;
+					break;
 				}
-			} else {
-				return null;
 			}
-				
+			System.out.println("PUTTING: " + key + " = " + str);
+			sounds.put(key, str);
 		}
-		
-		return f;
 	}
 	
-	public SoundStream getSoundStream(File f) throws UnsupportedAudioFileException, IOException {
-		SoundStream stream = new SoundStream(this, f, 4096*4);
+	public SoundStream getSoundStream(String path) throws UnsupportedAudioFileException, IOException {
+		InputStream in = am.getAsset(path);
+		SoundStream stream = new SoundStream(this, path, in, 4096*4);
+		in.close();
 		return stream;
 	}
 	
-	public File getSample(String key) {
+	public String getSample(String key) {
+		key = key.toUpperCase();
+		String val = sounds.get(key);
+		System.out.println("GETTING SOUND: " + key + " " + val);
 		return sounds.get(key);
 	}
 	
@@ -108,9 +81,10 @@ public class SoundLoader {
 			alDeleteBuffers(id);
 	}
 	
-	public SoundClip getSoundClip(File f) throws IOException, UnsupportedAudioFileException {
+	public SoundClip getSoundClip(InputStream dataIn) throws IOException, UnsupportedAudioFileException {
 		
-		AudioInputStream in = AudioSystem.getAudioInputStream(f);
+		dataIn = new BufferedInputStream(dataIn);
+		AudioInputStream in = AudioSystem.getAudioInputStream(dataIn);
 		AudioFormat enc = new AudioFormat(in.getFormat().getSampleRate(), 16, 2, true, false);
 		in = AudioSystem.getAudioInputStream(enc, in);
 		System.out.println("BIG_ENDIAN: " + in.getFormat().isBigEndian());
@@ -165,7 +139,6 @@ public class SoundLoader {
 		
 		if(size < 0)
 			size = 44100*4*5;
-		System.out.println("Getting: " + f.getName());
 		System.out.println(size);
 		System.out.println((int) size);
 		byte[] b = new byte[(int) size];

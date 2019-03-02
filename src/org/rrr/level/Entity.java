@@ -48,8 +48,8 @@ public class Entity {
 		System.out.println(e);
 		e.bd = bd;
 		e.anims = new LwsAnimation[bd.animFiles.length];
-		for(int i = 0; i < e.anims.length; i++)
-			e.anims[i] = am.getAnimation(bd.animFiles[i]);
+		//for(int i = 0; i < e.anims.length; i++)
+		//	e.anims[i] = am.getAnimation(bd.animFiles[i]);
 		
 		return e;
 	}

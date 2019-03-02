@@ -3,41 +3,35 @@ package org.rrr.assets.model;
 import java.io.File;
 import java.util.HashMap;
 
+import org.rrr.assets.AssetManager;
+
 public class ModelPathConverter implements PathConverter {
 	
-	private File dir, sharedDir;
-	private HashMap<String, String> map = new HashMap<>();
-	private HashMap<String, String> shared = new HashMap<>();
+	private String dir, sharedDir;
+	private AssetManager am;
 	
-	public ModelPathConverter(File dir, File sharedDir) {
-		this.dir = dir;
-		this.sharedDir = sharedDir;
-		for(File f : dir.listFiles()) {
-			String name = f.getName();
-			String upName = name.toUpperCase();
-			map.put(upName, name);
-		}
-		for(File f : sharedDir.listFiles()) {
-			String name = f.getName();
-			String upName = name.toUpperCase();
-			shared.put(upName, name);
-		}
+	public ModelPathConverter(String dir, String sharedDir, AssetManager am) {
+		this.dir = dir.replaceAll("\\\\", "/");
+		if(!this.dir.endsWith("/"))
+			this.dir += "/";
+		this.sharedDir = sharedDir.replaceAll("\\\\", "/");
+		if(!this.sharedDir.endsWith("/"))
+			this.sharedDir += "/";
+		this.am = am;
 	}
 	
 	@Override
 	public String convert(String input) {
-		String name = new File(input).getName();
-		String resName = map.get(name.toUpperCase());
-		String res = null;
-		if(resName == null) {
-			resName = shared.get(name.toUpperCase());
-			if(resName == null)
-				return null;
-			res = new File(sharedDir, resName).getAbsolutePath();
-		} else {
-			res = new File(dir, resName).getAbsolutePath();
+		if(input.matches(".*[\\\\\\/].*")) {
+			String[] split = input.split("[\\\\\\/]");
+			input = split[split.length-1];
 		}
-		return res;
+		System.out.println("Convert Input: " + input);
+		input = input.toUpperCase();
+		if(am.exists(dir + input))
+			return dir+input;
+		else
+			return sharedDir+input;
 	}
 
 }

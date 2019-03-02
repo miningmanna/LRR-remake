@@ -2,10 +2,13 @@ package org.rrr.gui;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 
 import org.lwjgl.opengl.GL11;
 import org.newdawn.slick.opengl.Texture;
+import org.rrr.Input;
+import org.rrr.assets.AssetManager;
 import org.rrr.assets.model.ModelLoader;
 import org.rrr.assets.tex.TexLoader;
 
@@ -22,10 +25,14 @@ public class BitMapFont {
 	public float glBlockLengthY;
 	
 	public static BitMapFont getFont(File f, TexLoader l) {
+		return null;
+	}
+	
+	public static BitMapFont getFont(InputStream in, TexLoader l) {
 		
 		BitMapFont bmf = new BitMapFont();
 		
-		BufferedImage img = ModelLoader.getBMP(f);
+		BufferedImage img = TexLoader.getBMP(in);
 		
 		bmf.blockLengthX = img.getWidth()/10;
 		bmf.blockLengthY = img.getHeight()/19;

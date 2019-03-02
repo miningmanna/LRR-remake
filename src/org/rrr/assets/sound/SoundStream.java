@@ -5,8 +5,10 @@ import static org.lwjgl.openal.AL10.AL_FORMAT_MONO8;
 import static org.lwjgl.openal.AL10.AL_FORMAT_STEREO16;
 import static org.lwjgl.openal.AL10.AL_FORMAT_STEREO8;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 
 import javax.sound.sampled.AudioFormat;
@@ -29,12 +31,13 @@ public class SoundStream {
 	private AudioInputStream _in;
 	private AudioInputStream in;
 	
-	public SoundStream(SoundLoader loader, File f, int lBuffSize) throws UnsupportedAudioFileException, IOException {
+	public SoundStream(SoundLoader loader, String path, InputStream dataIn, int lBuffSize) throws UnsupportedAudioFileException, IOException {
 		
 		finished = false;
 		
-		_in = AudioSystem.getAudioInputStream(f);
-		String[] split = f.getName().split("\\.");
+		dataIn = new BufferedInputStream(dataIn);
+		_in = AudioSystem.getAudioInputStream(dataIn);
+		String[] split = path.split("\\.");
 		String ext = "";
 		if(split.length > 1)
 			ext = split[split.length-1];

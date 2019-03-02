@@ -45,7 +45,7 @@ public class Map {
 		
 		File dir = new File("LegoRR0/" + cfg.getValue("SurfaceMap")).getParentFile();
 		System.out.println(dir);
-		data = MapData.getMapData(dir);
+		data = MapData.getMapData(am, cfg);
 		w = data.width;
 		h = data.height;
 		utilBuffer = new boolean[h][w];

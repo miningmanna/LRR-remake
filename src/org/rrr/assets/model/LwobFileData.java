@@ -3,6 +3,7 @@ package org.rrr.assets.model;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.LinkedList;
 
@@ -17,10 +18,15 @@ public class LwobFileData {
 	public Surface[] surfs;
 	
 	public static LwobFileData getLwobFileData(File f) throws IOException {
+		FileInputStream in = new FileInputStream(f);
+		LwobFileData res = getLwobFileData(in);
+		in.close();
+		return res;
+	}
+	
+	public static LwobFileData getLwobFileData(InputStream in) throws IOException {
 		
 		LwobFileData res = new LwobFileData();
-		
-		FileInputStream in = new FileInputStream(f);
 		
 		byte[] abuff = new byte[8];
 		in.read(abuff, 0, 8);
@@ -33,7 +39,6 @@ public class LwobFileData {
 		int flength = seg.getInt();
 		abuff = new byte[flength];
 		in.read(abuff, 0, flength);
-		in.close();
 		int offset = 4;
 		if(!new String(abuff, 0, 4).equals("LWOB")) {
 			System.out.println("Invalid LWOB format!");

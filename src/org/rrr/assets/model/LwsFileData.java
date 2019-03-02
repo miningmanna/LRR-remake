@@ -4,11 +4,14 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.LinkedList;
 
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
+import org.rrr.Input;
 
 public class LwsFileData {
 	
@@ -21,11 +24,11 @@ public class LwsFileData {
 	public int frameStep = 0;
 	public float framesPerSecond = 0;
 	
-	public static LwsFileData getLwsFileData(File f) throws IOException {
+	public static LwsFileData getLwsFileData(InputStream in) throws IOException {
 		
 		LwsFileData res = new LwsFileData();
-		
-		BufferedReader br = new BufferedReader(new FileReader(f));
+		System.out.println("LWS INPUTSTREAM: " + in);
+		BufferedReader br = new BufferedReader(new InputStreamReader(in));
 		String line;
 		
 		LinkedList<ObjectAlphaKeyFrames> _objAlphaFrames = new LinkedList<>();
