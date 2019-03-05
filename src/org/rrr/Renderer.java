@@ -65,7 +65,7 @@ public class Renderer {
 				s.setUniFloat("ambient", 0.5f);
 			}
 			s.setUniFloat("texRot", map.mesh.tRotation[i]);
-			glBindTexture(GL_TEXTURE_2D, map.mesh.texs[map.mesh.tex[i]].getTextureID());
+			glBindTexture(GL_TEXTURE_2D, map.mesh.split.texs[map.mesh.tex[i]].getTextureID());
 			glDrawElements(GL_TRIANGLES, 4*3, GL_UNSIGNED_INT, 4*4*3*i);
 		}
 		

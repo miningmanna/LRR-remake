@@ -43,9 +43,11 @@ public class Cursor {
 		LinkedList<CursorAnimation> anims = new LinkedList<>();
 		// getBMP
 		for(String key : cfg.getValueKeys()) {
-			
-			if(key.equals("Pointer_Blank")) {
-				base = am.getTexture(cfg.getValue(key).replaceAll("\\\\", "/"));
+			System.out.println("POINTER CFG: " + key);
+			if(key.equalsIgnoreCase("Pointer_Blank")) {
+				System.out.println("GETTING BLANK POINTER: " + cfg.getValue(key));
+				base = am.getTexture(cfg.getValue(key));
+				System.out.println(base);
 				base.setTextureFilter(GL_NEAREST);
 				continue;
 			}

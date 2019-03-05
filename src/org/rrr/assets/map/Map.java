@@ -5,7 +5,9 @@ import java.util.ArrayList;
 
 import org.joml.Matrix4x3f;
 import org.joml.Vector2f;
+import org.joml.Vector2i;
 import org.joml.Vector3f;
+import org.joml.Vector3i;
 import org.rrr.assets.AssetManager;
 import org.rrr.assets.LegoConfig.Node;
 import org.rrr.assets.model.MapMesh;
@@ -17,6 +19,7 @@ public class Map {
 	public int h;
 	public MapData data;
 	public MapMesh mesh;
+	public SurfaceTypeDescription sTypes;
 	public int[] cliffTypes;
 	private boolean[][] utilBuffer;
 	
@@ -43,14 +46,15 @@ public class Map {
 				1, 2, 3, 4
 		};
 		
-		File dir = new File("LegoRR0/" + cfg.getValue("SurfaceMap")).getParentFile();
-		System.out.println(dir);
+		sTypes = am.getSurfaceTypeDescription(cfg.getOptValue("SurfaceTypeDefenition", "Standard"));
+		System.out.println("STYPES: " + sTypes);
 		data = MapData.getMapData(am, cfg);
 		w = data.width;
 		h = data.height;
 		utilBuffer = new boolean[h][w];
 		mesh = new MapMesh();
-		am.getTexSplit(this, cfg.getOptValue("TextureSet", "Rock"));
+		mesh.split = am.getTexSplit(cfg.getOptValue("TextureSet", "Rock"));
+		System.out.println("MESH SPLIT: " + mesh.split);
 		initMapMesh();
 		am.getMLoader().loadMapMeshIntoVao(mesh);
 		
@@ -144,11 +148,11 @@ public class Map {
 				
 				if(isCave) {
 					if(isAtGroundlevel(x, z))
-						setY(x, z, 0, height*40);
+						setY(x, z, 0, height*unitDist);
 					else
-						setY(x, z, 0, 40+height*40); // TODO: load roofheight
+						setY(x, z, 0, unitDist+height*unitDist); // TODO: load roofheight
 				} else {
-					setY(x, z, 0, 40+height*40); // TODO: load roofheight
+					setY(x, z, 0, unitDist+height*unitDist); // TODO: load roofheight
 				}
 			}
 		}
@@ -158,22 +162,18 @@ public class Map {
 				
 				boolean zeroTwo = true;
 				
+				if(x == 9 && z == 5)
+					System.out.println("NINE FIVE MUDDAFUGGA CAVE: " + (data.maps[MapData.DUGG][z][x] == 1));
 				if(data.maps[MapData.DUGG][z][x] == 1) {
-					// TODO: remove hardcode
-					switch(surf[z][x]) {
-					case 1:
-					case 2:
-					case 3:
-					case 4:
-						mesh.tex[z*w+x] = 6-surf[z][x];
-						break;
-					case 5:
-						mesh.tex[z*w+x] = 0;
-						break;
-					default:
-						mesh.tex[z*w+x] = 56;
-						break;
-					}
+					
+					if(x == 6 && z == 5)
+						System.out.println("EIGHT FIVE MUDDAFUGGA");
+					Vector3i tAtlasPos = sTypes.getAtlasPos(x, z, data);
+					int tex = mesh.split.toIndex(tAtlasPos.x, tAtlasPos.y);
+					System.out.println("Texture index: "  + tex);
+					mesh.tRotation[z*w+x] = (float) (tAtlasPos.z*(Math.PI/2));
+					System.out.println("TROT: " + tAtlasPos.z);
+					mesh.tex[z*w+x] = tex;
 					
 					boolean[] groundLevels = new boolean[] {
 							isAtGroundlevel(x, z),
@@ -191,7 +191,6 @@ public class Map {
 						}
 					}
 					
-					mesh.tRotation[z*w+x] = 0;
 					switch(groundPoints) {
 					case 0:
 						break;
@@ -203,16 +202,13 @@ public class Map {
 						System.out.println(firstAfterZero == 0 || firstAfterZero == 2);
 					case 2:
 						zeroTwo = firstAfterZero == 0 || firstAfterZero == 2;
-						if(groundLevels[(firstAfterZero+1)%4]) {
-							mesh.tRotation[z*w+x] = (float) ((Math.PI+firstAfterZero*(Math.PI/2))%(2*Math.PI));
-						}
 						break;
 					case 3:
 						zeroTwo = (firstAfterZero+1)%4 == 0 || (firstAfterZero+1)%4 == 2;
 						break;
 					}
 				} else {
-					mesh.tex[z*w+x] = 56;
+					mesh.tex[z*w+x] = mesh.split.toIndex(sTypes.roof);
 				}
 				
 				triangulateTile(x, z, zeroTwo);

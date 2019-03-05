@@ -28,8 +28,40 @@ public class WadStream extends InputStream {
 	}
 	
 	@Override
+	public int read(byte[] b) throws IOException {
+		if(prog >= len)
+			return -1;
+		raf.seek(start+prog);
+		if(b.length > available()) {
+			int l = raf.read(b, 0, available());
+			prog += l;
+			return l;
+		} else {
+			int l = raf.read(b);
+			prog += l;
+			return l;
+		}
+	}
+	
+	@Override
+	public int read(byte[] b, int off, int len) throws IOException {
+		if(prog >= this.len)
+			return -1;
+		raf.seek(start+prog);
+		if(b.length > available()) {
+			int l = raf.read(b, 0, available());
+			prog += l;
+			return l;
+		} else {
+			int l = raf.read(b, 0, len);
+			prog += l;
+			return l;
+		}
+	}
+	
+	@Override
 	public int available() throws IOException {
-		return (int) (len-prog-1);
+		return (int) (len-prog);
 	}
 	
 	@Override

@@ -1,9 +1,12 @@
 package org.rrr.assets.wad;
 
+import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.RandomAccessFile;
 
 import javax.imageio.ImageIO;
@@ -138,9 +141,9 @@ public class WadFile {
 	public static void main(String[] args) {
 		
 		try {
-			WadFile wad = WadFile.getWadFile(new File("LegoRR0.wad"));
-			WadStream in = wad.getStream("Interface\\Pointers\\Azoom.bmp");
-			FileOutputStream out = new FileOutputStream("C:/Users/User/Desktop/img.bmp");
+			WadFile wad = WadFile.getWadFile(new File("test2.wad"));
+			WadStream in = wad.getStream("Interface\\FrontEnd\\Rock_wipe\\RockWipe.lws");
+			FileOutputStream out = new FileOutputStream("rockWipe.lws");
 			byte[] buff = new byte[2048];
 			int len = -1;
 			while((len = in.read(buff)) != -1) {
@@ -149,6 +152,12 @@ public class WadFile {
 			}
 			out.close();
 			in.close();
+			in = wad.getStream("Interface\\FrontEnd\\Rock_wipe\\RockWipe.lws");
+			BufferedReader br = new BufferedReader(new InputStreamReader(in));
+			String line;
+			while((line = br.readLine()) != null)
+				System.out.println(line);
+			br.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

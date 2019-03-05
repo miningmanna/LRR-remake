@@ -67,7 +67,11 @@ public class RockRaidersRemake {
 	
 	private Level currentLevel;
 	
+	private long nano = 0, _nano = 0;
+	
 	public void start() {
+		
+		nano = System.nanoTime();
 		
 		init();
 		run();
@@ -254,7 +258,6 @@ public class RockRaidersRemake {
 		
 		float speed = 1.0f;
 		float delta = 0;
-		long nano = 0, _nano = 0;
 		boolean drawMenu = true;
 		int scale = 2;
 		while(!glfwWindowShouldClose(window)) {
@@ -328,7 +331,6 @@ public class RockRaidersRemake {
 			_nano = System.nanoTime();
 			delta = (float) (_nano - nano) / 1000000000;
 			nano = _nano;
-			
 			if(delta < 1.0f) {
 				eng.step(delta*speed);
 				for(Entity e : entities) {

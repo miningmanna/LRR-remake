@@ -76,6 +76,23 @@ public class MapData {
 		
 	}
 	
+	private void loadData(int mapType, File f) throws Exception {
+		
+		InputStream in = new FileInputStream(f);
+		int[][] data = loadMapDataStream(in);
+		in.close();
+		if(width == 0 && height == 0) {
+			height = data.length;
+			width = data[0].length;
+		} else {
+			if(data.length != height || data[0].length != width)
+				throw new Exception("Different map sizes!");
+		}
+		
+		maps[mapType] = data;
+		
+	}
+	
 	private void ensureAllData() {
 		for(int i = 0; i < 9; i++) {
 			if(maps[i] == null)
@@ -159,6 +176,19 @@ public class MapData {
 		}
 		
 		return res;
+		
+	}
+	
+	public static void main(String[] args) {
+		
+		File f = new File("Surf.map");
+		int[][] vals = loadMapDataFile(f);
+		for(int z = 0; z < vals.length; z++) {
+			for(int x = 0; x < vals[z].length; x++) {
+				System.out.print(vals[z][x] + " ");
+			}
+			System.out.println();
+		}
 		
 	}
 	

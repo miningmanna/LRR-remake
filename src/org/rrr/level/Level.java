@@ -16,6 +16,7 @@ import org.rrr.RockRaidersRemake;
 import org.rrr.Shader;
 import org.rrr.assets.LegoConfig.Node;
 import org.rrr.assets.map.Map;
+import org.rrr.assets.map.MapData;
 import org.rrr.assets.model.MapMesh;
 import org.rrr.gui.Cursor;
 
@@ -108,10 +109,12 @@ public class Level {
 		cursor.y = (int) input.mouse.y;
 		
 		Vector3f unprojOrig = new Vector3f(),
-				unprojDir	= new Vector3f();
+				 unprojDir	= new Vector3f();
 		camera.combined.unprojectRay(input.mouse.x, par.getHeight()-input.mouse.y, new int[] {0,0,(int) par.getWidth(),(int) par.getHeight()},  unprojOrig, unprojDir);
 		
 		Vector2f mapPos = map.getTileHit(unprojOrig, unprojDir);
+//		if(mapPos.x != -1 && mapPos.y != -1)
+//			System.out.println("CAVE " + mapPos + ": " + map.data.maps[MapData.DUGG][(int) mapPos.y][(int) mapPos.x]);
 		
 		if(input.mouseJustPressed[0]) {
 			System.out.println("PRESSED");

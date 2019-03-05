@@ -1,6 +1,6 @@
 package org.rrr.assets.model;
 
-import org.newdawn.slick.opengl.Texture;
+import org.rrr.assets.map.TextureSplit;
 
 public class MapMesh {
 	
@@ -13,7 +13,7 @@ public class MapMesh {
 	
 	public float[]	 tRotation;
 	public int[]	 tex;
-	public Texture[] texs;
+	public TextureSplit split;
 	
 	public int[]	inds;
 	public int 	indCount;

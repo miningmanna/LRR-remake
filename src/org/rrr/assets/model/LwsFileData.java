@@ -87,6 +87,7 @@ public class LwsFileData {
 				for(int i = 0; i < lframes; i++) {
 					
 					line = br.readLine();
+					System.out.println("LINE: " + line);
 					line = line.substring(2);
 					String[] s = line.split(" ");
 					if(s.length > linfo) {

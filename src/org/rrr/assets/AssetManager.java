@@ -25,6 +25,8 @@ import org.rrr.Shader;
 import org.rrr.assets.sound.SoundStream;
 import org.rrr.assets.LegoConfig.Node;
 import org.rrr.assets.map.Map;
+import org.rrr.assets.map.SurfaceTypeDescription;
+import org.rrr.assets.map.TextureSplit;
 import org.rrr.assets.model.LwsAnimation;
 import org.rrr.assets.model.ModelLoader;
 import org.rrr.assets.model.ModelPathConverter;
@@ -47,6 +49,8 @@ public class AssetManager {
 	private Node splits;
 	
 	private HashMap<String, Asset> assets;
+	
+	private SurfaceTypeDescription standardSTypes;
 	
 	private String mShared;
 	
@@ -129,6 +133,7 @@ public class AssetManager {
 		tLoader = new TexLoader();
 		sLoader = new SoundLoader((Node) cfg.get("Lego*/Samples"), this);
 		splits = (Node) cfg.get("Lego*/Textures");
+		standardSTypes = getSurfaceTypeDescription("Standard");
 	}
 	
 	public LegoConfig getConfig() {
@@ -307,7 +312,10 @@ public class AssetManager {
 		return res;
 	}
 	
-	public void getTexSplit(Map map, String split) {
+	public TextureSplit getTexSplit(String split) {
+		
+		TextureSplit res = new TextureSplit();
+		
 		if(split.contains("::"))
 			split = split.split("::")[1];
 		System.out.println("GETTING SPLIT: " + split);
@@ -317,18 +325,32 @@ public class AssetManager {
 		String baseName = splitCfg.getValue("texturebasename");
 		System.out.println("CHECKING WITH BASE: " + baseName);
 		
-		map.mesh.texs = new Texture[sw*sh];
+		res.w = sw;
+		res.h = sh;
+		res.texs = new Texture[sw*sh];
 		for(int x = 0; x < sw; x++) {
 			for(int y = 0; y < sh; y++) {
-				String path = baseName + y + x + ".bmp";
+				String path = baseName + x + y + ".bmp";
 				if(exists(path)) {
 					int i = y*sw+x;
 					System.out.println("FOUND TEX: " + path);
-					map.mesh.texs[i] = getTexture(path);
+					res.texs[i] = getTexture(path);
 				}
 			}
 		}
 		
+		return res;
+	}
+	
+	public SurfaceTypeDescription getSurfaceTypeDescription(String name) {
+		
+		Node n = (Node) cfg.get("Lego*/SurfaceTypeDefenitions/" + name);
+		if(n == null)
+			return standardSTypes;
+		
+		SurfaceTypeDescription sType = new SurfaceTypeDescription(n, this);
+		
+		return sType;
 	}
 	
 	public Texture getTexture(String tPath) {

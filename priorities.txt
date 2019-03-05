@@ -1,3 +1,2 @@
-LegoRR%.wad
+test%.wad
 Data
-LegoRR%
