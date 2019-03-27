@@ -86,7 +86,6 @@ public class ModelLoader {
 	
 	// Offset in points
 	public void updateMapMesh(MapMesh mesh, int off, int l) {
-		System.out.println("UPDATING MAP MESH: " + off + " " + l);
 		float[] vCopy = new float[l*3];
 		System.arraycopy(mesh.verts, off*3, vCopy, 0, l*3);
 		float[] nCopy = new float[l*3];
@@ -120,8 +119,6 @@ public class ModelLoader {
 		}
 		String uvPath = assetPath.substring(0, assetPath.length()-3) + "UV";
 		boolean hasUv = am.exists(uvPath);
-		
-		System.out.println("Converted: " + assetPath);
 		
 		InputStream lwobIn = am.getAsset(assetPath);
 		LwobFileData lfd = LwobFileData.getLwobFileData(lwobIn);
@@ -220,8 +217,7 @@ public class ModelLoader {
 				String prefix = path.substring(0, path.length()-(4+lzeros));
 				boolean getTexs = true;
 				for(int j = 0; j < 9999; j++) {
-					File texFile = new File(prefix + String.format("%0" + lzeros + "d", texOffset) + "." + extension);
-					if(texFile.exists()) {
+					if(am.exists(prefix + String.format("%0" + lzeros + "d", texOffset+texNum) + "." + extension)) {
 						break;
 					}
 					texOffset++;
@@ -229,11 +225,11 @@ public class ModelLoader {
 				if(texOffset == 9999)
 					System.out.println("over 9000?????");
 				while(getTexs) {
-					File texFile = new File(prefix + String.format("%0" + lzeros + "d", texOffset+texNum) + "." + extension);
-					if(!texFile.exists()) {
+					String texFile = prefix + String.format("%0" + lzeros + "d", texOffset+texNum) + "." + extension;
+					if(!am.exists(texFile)) {
 						break;
 					}
-					_texs.add(am.geTLoader().getTexture(extension, texFile));
+					_texs.add(am.getTexture(texFile));
 					texNum++;
 				}
 				ctm.texs[i] = new Texture[texNum];
@@ -245,7 +241,6 @@ public class ModelLoader {
 				ctm.texs[i] = new Texture[1];
 				InputStream tIn = am.getAsset(path);
 				Texture t = null;
-				System.out.println("TEXTURE INPUTSREAM: " + tIn + " " + path + " " + extension);
 				if(tIn != null) {
 					t = am.geTLoader().getTexture(extension, tIn, path);
 					in.close();
@@ -264,8 +259,9 @@ public class ModelLoader {
 				
 				int aind = Integer.parseInt(fName.substring(1, 4));
 				
-				ctm.alpha[i] = am.geTLoader().getColorFromBMPPalet(new File(path), aind);
-				
+				InputStream bmpIn = am.getAsset(path);
+				ctm.alpha[i] = am.geTLoader().getColorFromBMPPalet(bmpIn, aind);
+				bmpIn.close();
 			}
 			
 		}
@@ -402,8 +398,6 @@ public class ModelLoader {
 				rgb |= (0xFF & bpalette[i+2]) << 16;
 				rgb |= (0xFF & bpalette[i+1]) << 8;
 				rgb |= (0xFF & bpalette[i]);
-				System.out.println(i%paletteSize + ", " + Math.floorDiv(i, paletteSize));
-				System.out.println(i + "/" + bpalette.length);
 				img.setRGB((i/4)%paletteSize, Math.floorDiv(i/4, paletteSize), rgb);
 			}
 			in.close();

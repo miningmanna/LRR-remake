@@ -45,48 +45,32 @@ public class Entity {
 			return null;
 		
 		Entity e = new Entity();
-		System.out.println(e);
 		e.bd = bd;
 		e.anims = new LwsAnimation[bd.animFiles.length];
-		//for(int i = 0; i < e.anims.length; i++)
-		//	e.anims[i] = am.getAnimation(bd.animFiles[i]);
+		for(int i = 0; i < e.anims.length; i++)
+			e.anims[i] = am.getAnimation(bd.animFiles[i]);
 		
 		return e;
 	}
 	
-	public static void loadEntity(File dir, String name) {
-		
+	public static void loadEntity(String dir, String name) {
 		BaseData bd = new BaseData();
-		
-		int lFiles = 0;
-		LinkedList<File> files = new LinkedList<>();
-		for(File f : dir.listFiles()) {
-			
-			String fName = f.getName();
-			if(fName.length() < 5)
-				continue;
-			fName = fName.substring(fName.length()-3, fName.length());
-			if(!fName.equalsIgnoreCase("lws"))
-				continue;
-			
-			System.out.println("Adding: " + f.getName());
-			files.add(f);
-			lFiles++;
-			
-		}
-		
 		bd.name = name;
-		bd.animFiles = new File[lFiles];
-		for(int i = 0; i < lFiles; i++)
-			bd.animFiles[i] = files.pop();
-		
+		String[] dirFiles = am.getAllSubFiles(dir);
+		LinkedList<String> _animFiles = new LinkedList<>();
+		for(String f : dirFiles)
+			if(f.endsWith("LWS"))
+				_animFiles.add(f);
+		bd.animFiles = new String[_animFiles.size()];
+		for(int i = 0; i < bd.animFiles.length; i++)
+			bd.animFiles[i] = _animFiles.pop();
 		bds.put(name, bd);
 		
 	}
 	
 	public static class BaseData {
 		public String name;
-		public File[] animFiles;
+		public String[] animFiles;
 	}
 
 }

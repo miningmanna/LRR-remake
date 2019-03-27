@@ -43,11 +43,8 @@ public class Cursor {
 		LinkedList<CursorAnimation> anims = new LinkedList<>();
 		// getBMP
 		for(String key : cfg.getValueKeys()) {
-			System.out.println("POINTER CFG: " + key);
 			if(key.equalsIgnoreCase("Pointer_Blank")) {
-				System.out.println("GETTING BLANK POINTER: " + cfg.getValue(key));
 				base = am.getTexture(cfg.getValue(key));
-				System.out.println(base);
 				base.setTextureFilter(GL_NEAREST);
 				continue;
 			}
@@ -82,7 +79,6 @@ public class Cursor {
 			} else {
 				anim.usesBaseTex = false;
 				anim.stillFrame = true;
-				System.out.println("GETTING FILE: " + path);
 				anim.tex = am.getTexture(path);
 				anim.w = anim.tex.getImageWidth();
 				anim.h = anim.tex.getImageHeight();
@@ -93,13 +89,10 @@ public class Cursor {
 			
 		}
 		
-		System.out.println("CURSOR CREATED!");
 		
 		animations = new CursorAnimation[lanims];
-		for(int i = 0; i < lanims; i++) {
+		for(int i = 0; i < lanims; i++)
 			animations[i] = anims.pop();
-			System.out.println(i + ": " + animations[i].name);
-		}
 		
 	}
 	
@@ -124,7 +117,6 @@ public class Cursor {
 	
 	public void update(float dt) {
 		if(!animations[curAnimation].stillFrame) {
-			System.out.println("Stepping!");
 			animations[curAnimation].anim.step(dt);
 		}
 	}

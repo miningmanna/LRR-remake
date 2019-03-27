@@ -42,8 +42,6 @@ public class Menu {
 		AssetManager am = par.getAssetManager();
 		overlaySource = par.getAudioSystem().getSource();
 		
-		System.out.println("CFG PATH: " + cfg.getPath());
-		
 		this.par = par;
 		this.cfg = cfg;
 		String coords = cfg.getValue("Position");
@@ -74,13 +72,11 @@ public class Menu {
 		canScroll		= cfg.getOptBoolean("CanScroll", false);
 		playRandom		= cfg.getOptBoolean("PlayRandom", false);
 		queueNewOverlay = playRandom;
-		System.out.println("Playrandom " + playRandom);
 		
 		LinkedList<Overlay> _anims = new LinkedList<>();
 		// TODO: hard limit overlay count :(
 		for(int i = 1; i <= 10; i++) {
 			String key = "!Overlay" + i;
-			System.out.println(i + " Overlay: " + key);
 			String val = cfg.getValue(key);
 			if(val == null)
 				break;
@@ -92,7 +88,6 @@ public class Menu {
 			o.anim = am.getFLHAnimation(overlaySplit[0]);
 			
 			o.sound = par.getAssetManager().getSample(overlaySplit[1]);
-			System.out.println(overlaySplit[1] + " = " + o.sound);
 			_anims.add(o);
 		}
 		
@@ -119,7 +114,6 @@ public class Menu {
 				String triggerBindKey = (cfg.getPath() + ":" + key).replaceAll("\\/", ":");
 				item = new TriggerItem(key, cfgStr, this);
 				((TriggerItem) item).func = triggers.getOptValue(triggerBindKey, "");
-				System.out.println("TRIGGER: " + triggerBindKey + " = " + ((TriggerItem) item).func);
 				break;
 			case 'S':
 				item = new SliderItem(key, cfgStr, this);
@@ -195,7 +189,6 @@ public class Menu {
 					overlaySource.play(overlays[curOverlay].sound);
 				}
 			});
-			System.out.println("QUEUED NEW OVERLAY: " + overlayDelayAction.timeLeft);
 			queueNewOverlay = false;
 		} else {
 			if(curOverlay != -1) {

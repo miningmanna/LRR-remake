@@ -5,15 +5,13 @@ import java.util.LinkedList;
 import org.joml.Vector2i;
 import org.joml.Vector3i;
 import org.joml.Vector4f;
-import org.lwjglx.util.vector.Matrix2f;
-import org.newdawn.slick.opengl.Texture;
 import org.rrr.assets.AssetManager;
 import org.rrr.assets.LegoConfig.Node;
 
 public class SurfaceTypeDescription {
 	
-	public static int[] CLIFF_PERM_TYPE = new int[] { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 1, -1, -1, -1, 1, -1, -1, -1, -1, -1, -1, 1, 1, -1, -1, -1, -1, -1, -1, -1, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 1, -1, -1, -1, 1, -1, -1, -1, -1, -1, -1, 1, 1, -1, -1, -1, -1, -1, -1, 1, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 1, 1, -1, 3, 1, 1, 1, 3, -1, -1, -1, -1, -1, -1, 1, 1, -1, -1, -1, -1, 1, 1, 0, 2, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 1, -1, -1, -1, 1, -1, -1, -1, -1, -1, -1, 1, 1, -1, -1, -1, 1, -1, -1, -1, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 1, -1, -1, -1, -1, -1, -1, 1, 1, -1, -1, -1, 1, -1, -1, 1, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 1, -1, -1, -1, 1, 1, 1, -1, 1, 1, 1, 3, 3, -1, 1, -1, 0, -1, 1, -1, 2, -1, -1, -1, -1, -1, -1, -1, -1, 1, 1, -1, 3, 1, 1, 1, 3, 1, 1, -1, 1, 1, 1, 3, 3, 3, 3, -1, 2, 3, 3, 2, -1};
-	public static int[] CLIFF_PERM_ROT = new int[] { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0, -1, -1, -1, 0, -1, -1, -1, -1, -1, -1, 3, 3, -1, -1, -1, -1, -1, -1, -1, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0, -1, -1, -1, 0, -1, -1, -1, -1, -1, -1, 3, 3, -1, -1, -1, -1, -1, -1, 3, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 1, 1, -1, 0, 1, 1, 1, 0, -1, -1, -1, -1, -1, -1, 3, 3, -1, -1, -1, -1, 1, 1, 3, 0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0, -1, -1, -1, 0, -1, -1, -1, -1, -1, -1, 3, 3, -1, -1, -1, 0, -1, -1, -1, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0, -1, -1, -1, -1, -1, -1, 3, 3, -1, -1, -1, 0, -1, -1, 3, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0, -1, -1, -1, 0, 2, 2, -1, 2, 2, 2, 2, 2, -1, 2, -1, 0, -1, 2, -1, 3, -1, -1, -1, -1, -1, -1, -1, -1, 1, 1, -1, 0, 1, 1, 1, 0, 2, 2, -1, 2, 2, 2, 2, 2, 1, 1, -1, 1, 1, 1, 2, -1 };
+	public int[] CLIFF_PERM_TYPE = new int[] { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 1, -1, -1, -1, 1, -1, -1, -1, -1, -1, -1, 1, 1, -1, -1, -1, -1, -1, -1, -1, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 1, -1, -1, -1, 1, -1, -1, -1, -1, -1, -1, 1, 1, -1, -1, -1, -1, -1, -1, 1, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 1, 1, -1, 3, 1, 1, 1, 3, -1, -1, -1, -1, -1, -1, 1, 1, -1, -1, -1, -1, 1, 1, 0, 2, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 1, -1, -1, -1, 1, -1, -1, -1, -1, -1, -1, 1, 1, -1, -1, -1, 1, -1, -1, -1, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 1, -1, -1, -1, 1, -1, -1, -1, -1, -1, -1, 1, 1, -1, -1, -1, 1, -1, -1, 1, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 1, -1, -1, -1, 1, 1, 1, -1, 1, 1, 1, 3, 3, -1, 1, -1, 0, -1, 1, -1, 2, -1, -1, -1, -1, -1, -1, -1, -1, 1, 1, -1, 3, 1, 1, 1, 3, 1, 1, -1, 1, 1, 1, 3, 3, 3, 3, -1, 2, 3, 3, 2, -1 };
+	public int[] CLIFF_PERM_ROT = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 0, 3, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 3, 3, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 2, 2, 2, 1, 1, 0, 2, 0, 0, 0, 2, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 0, 3, 3, 3, 3, 3, 2, 2, 0, 2, 2, 2, 1, 1, 2, 2, 0, 3, 2, 2, 2, 0 };
 	
 	public static final String[] CONNECT_CASES = new String[] {
 		"XConnect",
@@ -37,6 +35,14 @@ public class SurfaceTypeDescription {
 	private Vector3i v3;
 	
 	public SurfaceTypeDescription(Node cfg, AssetManager am) {
+		
+		// TODO: Apply changes to static arrays
+		for(int i = 0; i < CLIFF_PERM_ROT.length; i++) {
+			CLIFF_PERM_ROT[i] = (4-CLIFF_PERM_ROT[i])%4;
+			if(CLIFF_PERM_TYPE[i] == 3)
+				CLIFF_PERM_ROT[i] = (CLIFF_PERM_ROT[i]+3)%4;
+		}
+		
 		
 		v3 = new Vector3i();
 		
@@ -142,66 +148,64 @@ public class SurfaceTypeDescription {
 	}
 	
 	public Vector3i getAtlasPos(int x, int z, MapData data) {
-		
-		Surface[][] region = getNeighbours(x, z, data);
 		boolean[][] isCliff = getNeighboursIsCave(x, z, data);
-		System.out.println("ISCAVE:");
-		print(isCliff);
-		for(int i = 0; i < 3; i++)
+		Surface[][] neighbours = getNeighbours(x, z, data);
+		for(int i = 0; i < 3; i++) {
 			for(int j = 0; j < 3; j++) {
-				System.out.println("CAVE: " + isCliff[i][j]);
-				System.out.println("SURF: " + region[i][j].name + ": " + region[i][j].atRoofHeight);
-				isCliff[i][j] = !isCliff[i][j] || region[i][j].atRoofHeight;
+				isCliff[i][j] = !isCliff[i][j] || neighbours[i][j].atRoofHeight;
 			}
-		System.out.println("ISROOFHEIGHT:");
-		print(isCliff);
+		}
+		Surface tile = neighbours[1][1];
 		
-		Surface tile = region[1][1];
-		System.out.println("Surface: " + tile.name);
-		if(tile.atRoofHeight) {
-			print(isCliff);
-			print(isCliff);
+		if(data.maps[MapData.DUGG][z][x] == 0) {
+			
 			Vector2i v = getCliffCaseRot(isCliff);
-			System.out.println("CASE: " + v);
+			if(v.x == -1)
+				return v3.set(roof, 0);
 			return v3.set(tile.texCases[v.x], (v.y+3)%4);
 			// TODO: Wall, insideCorner, outsideCorner, Diagonal
 		} else {
+			return v3.set(tile.texCases[5], 0);
 			// TODO: Connect cases
 		}
-		
-		return new Vector3i(roof, 0);
 	}
 	
+	private Vector2i getCliffCaseRot(boolean[][] isCliff) {
+		int pow = 0, sum = 0;
+		for(int i = 0; i < 3; i++) {
+			for(int j = 0; j < 3; j++) {
+				if(i != 1 || j != 1) {
+					if(isCliff[i][j])
+						sum += (int) Math.pow(2, pow);
+					pow++;
+				}
+			}
+		}
+		return new Vector2i(CLIFF_PERM_TYPE[sum], CLIFF_PERM_ROT[sum]);
+	}
+	
+	private static int getCliffCaseIndex(boolean[][] isCliff) {
+		int pow = 0, sum = 0;
+		for(int i = 0; i < 3; i++) {
+			for(int j = 0; j < 3; j++) {
+				if(i != 1 || j != 1) {
+					if(isCliff[i][j])
+						sum += (int) Math.pow(2, pow);
+					pow++;
+				}
+			}
+		}
+		return sum;
+	}
+	
+	@SuppressWarnings("unused")
 	private static void print(boolean[][] r) {
-		System.out.println("---------");
 		for(int i = 0; i < 3; i++) {
 			for(int j = 0; j < 3; j++) {
 				System.out.print(r[i][j] + " ");
 			}
 			System.out.println();
 		}
-	}
-	
-	private static Vector2i getCliffCaseRot(boolean[][] r) {
-		int sum = 0, pow = 0;
-		for(int i = 0; i < 3; i++) {
-			for(int j = 0; j < 3; j++) {
-				if(i != 1 || j != 1) {
-					if(r[i][j]) {
-						System.out.println(j + " " + i + "   pow: " + pow);
-						sum += Math.pow(2, pow);
-					}
-					pow++;
-				}
-			}
-		}
-		print(r);
-		System.out.println(sum);
-		int cVal = CLIFF_PERM_TYPE[sum];
-		if(cVal != -1)
-			return new Vector2i(cVal, CLIFF_PERM_ROT[sum]);
-		
-		return new Vector2i(3, 0);
 	}
 	
 	private Surface[][] getNeighbours(int x, int z, MapData data) {
@@ -227,8 +231,9 @@ public class SurfaceTypeDescription {
 			return defaultSurface;
 		
 		for(Surface s : surfaces)
-			if(s.surfaceValue == surf[z][x] && s.pathValue == path[z][x])
+			if(s.surfaceValue == surf[z][x] && s.pathValue == path[z][x]) {
 				return s;
+			}
 		
 		return defaultSurface;
 	}
@@ -276,5 +281,21 @@ public class SurfaceTypeDescription {
 			if(str.equals(s))
 				return true;
 		return false;
+	}
+
+	public Vector2i getCasePos(int x, int z, MapData data) {
+		boolean[][] isCliff = getNeighboursIsCave(x, z, data);
+		Surface[][] neighbours = getNeighbours(x, z, data);
+		for(int i = 0; i < 3; i++) {
+			for(int j = 0; j < 3; j++) {
+				isCliff[i][j] = !isCliff[i][j] || neighbours[i][j].atRoofHeight;
+			}
+		}
+		
+		if(data.maps[MapData.DUGG][z][x] == 0) {
+			return new Vector2i(0, getCliffCaseIndex(isCliff));
+		} else {
+			return new Vector2i(1, getCliffCaseIndex(isCliff));
+		}
 	}
 }

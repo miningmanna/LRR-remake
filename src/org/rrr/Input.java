@@ -133,6 +133,7 @@ public class Input {
 			if(button == -1)
 				return;
 			if(action == GLFW_PRESS) {
+				System.out.println("Just pressed: " + button);
 				mouseJustPressed[button] = true;
 				mouseIsDown[button] = true;
 			} else if(action == GLFW_RELEASE) {

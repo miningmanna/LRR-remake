@@ -1,2 +1,17 @@
-test%.wad
+;;;;;;;;;;;;;;;;;;;;;
+;;; Priority list ;;;
+;;;;;;;;;;;;;;;;;;;;;
+; Define the asset priority here
+; The least important (furthest at the top) will be overwritten by the bottom ones.
+; Meaning that: "
+; Data
+; LegoRR%.wad
+; " means that if, as example, Lego.cfg is found in "Data", that it will be replaced by the next file "LegoRR%.wad"
+; The "%" indicates a number. So it would search for LegoRR0.wad (with the least priority), LegoRR1.wad (higher priority than LegoRR0.wad but less than LegoRR2.wad) and so on.
+; You can add a directory in front as int "Wads/LegoRR%.wad". It will seach in the "Wads" folder for files fitting the format "LegoRR%.wad".
+; The numbering doesnt work on these parent directories though, so: "Data%/MyWad.wad" would be invalid.
+; It will work on any final name though (directories, wads and so forth. Anything thats supported)
+; Meaning: "Wad%ModName.wad" works.
+
+LegoRR%.wad
 Data

@@ -55,7 +55,6 @@ public class LwsAnimation {
 		res.loop = true;
 		
 		if(!bds.containsKey(path)) {
-			System.out.println("LOADING LWS: " + path);
 			InputStream lwsIn = am.getAsset(path);
 			LwsFileData lws = LwsFileData.getLwsFileData(lwsIn);
 			lwsIn.close();

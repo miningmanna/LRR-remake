@@ -15,7 +15,6 @@ public class DelayedProcessor {
 			Action a = actions.get(i);
 			a.timeLeft -= delta;
 			if(a.timeLeft < 0) {
-				System.out.println("DPROCESSOR: " + i + " " + actions.size());
 				actions.remove(a);
 				i--;
 				a.r.run();

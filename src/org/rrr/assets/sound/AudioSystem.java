@@ -54,7 +54,6 @@ public class AudioSystem {
 	}
 	
 	public void playPublic(SoundClip clip) {
-		System.out.println("PUBLIC PLAY " + clip);
 		publicSource.play(clip);
 	}
 	

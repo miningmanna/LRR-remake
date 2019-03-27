@@ -17,6 +17,7 @@ import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
 import org.newdawn.slick.opengl.Texture;
 import org.newdawn.slick.opengl.TextureLoader;
+import org.rrr.Input;
 import org.rrr.assets.LegoConfig.Node;
 import org.rrr.assets.map.Map;
 
@@ -52,7 +53,6 @@ public class TexLoader {
 	}
 	
 	public FLHAnimation getAnimation(String path, InputStream in) {
-		System.out.println("FLH: " + path);
 		if(flhAnims.containsKey(path))
 			return new FLHAnimation(flhAnims.get(path), 25);
 		
@@ -82,7 +82,6 @@ public class TexLoader {
 	
 	public Texture getTexture(String format, InputStream in, String path) throws IOException {
 		if(texs.containsKey(path)) {
-			System.out.println("GETTING LOADED TEXTURE: " + path);
 			return texs.get(path);
 		} else {
 			Texture t = TextureLoader.getTexture(format, in);
@@ -182,15 +181,13 @@ public class TexLoader {
 		return img;
 	}
 	
-	public Vector3f getColorFromBMPPalet(File file, int aind) throws IOException {
-		RandomAccessFile raf = new RandomAccessFile(file, "r");
-		raf.seek(54+aind*4);
+	public Vector3f getColorFromBMPPalet(InputStream in, int aind) throws IOException {
+		in.skip(54+aind*4);
 		byte[] bc = new byte[4];
-		raf.read(bc);
+		in.read(bc);
 		int r = 0x000000FF&bc[2];
 		int g = 0x000000FF&bc[1];
 		int b = 0x000000FF&bc[0];
-		raf.close();
 		Vector3f c = new Vector3f();
 		c.x = r/255.0f;
 		c.y = g/255.0f;

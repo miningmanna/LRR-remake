@@ -54,7 +54,6 @@ public class WadFile {
 		}
 		
 		int lentries = getIntLE(buff, 4);
-		System.out.println(lentries);
 		
 		int cases = 0;
 		
@@ -147,7 +146,6 @@ public class WadFile {
 			byte[] buff = new byte[2048];
 			int len = -1;
 			while((len = in.read(buff)) != -1) {
-				System.out.println("READ: " + len);
 				out.write(buff, 0, len);
 			}
 			out.close();

@@ -44,14 +44,12 @@ public class SoundLoader {
 			if(val.contains(","))
 				val = val.split(",")[0]; // TODO Use all listed files
 			String str = null;
-			System.out.println("CHECK FOR SAMPLE: " + key + " = " + val);
 			for(String ext : EXTENSIONS) {
 				if(am.exists(val + "." + ext)) {
 					str = val + "." + ext;
 					break;
 				}
 			}
-			System.out.println("PUTTING: " + key + " = " + str);
 			sounds.put(key, str);
 		}
 	}
@@ -65,8 +63,6 @@ public class SoundLoader {
 	
 	public String getSample(String key) {
 		key = key.toUpperCase();
-		String val = sounds.get(key);
-		System.out.println("GETTING SOUND: " + key + " " + val);
 		return sounds.get(key);
 	}
 	
@@ -87,9 +83,6 @@ public class SoundLoader {
 		AudioInputStream in = AudioSystem.getAudioInputStream(dataIn);
 		AudioFormat enc = new AudioFormat(in.getFormat().getSampleRate(), 16, 2, true, false);
 		in = AudioSystem.getAudioInputStream(enc, in);
-		System.out.println("BIG_ENDIAN: " + in.getFormat().isBigEndian());
-		System.out.println("CHANNELS:   " + in.getFormat().getChannels());
-		System.out.println("BITS:       " + in.getFormat().getSampleSizeInBits());
 		
 		if(in.getFormat().isBigEndian()) {
 			System.err.println("Invalid format!");
@@ -139,16 +132,11 @@ public class SoundLoader {
 		
 		if(size < 0)
 			size = 44100*4*5;
-		System.out.println(size);
-		System.out.println((int) size);
 		byte[] b = new byte[(int) size];
 		int read = 0, l = 0;
 		while((l = in.read(b, read, b.length-read)) != -1) {
-			System.out.println("read: " + l);
 			read += l;
 		}
-		System.out.println("Avaliable: " + in.available());
-		System.out.println("Framesize: " + in.getFrameLength());
 		ByteBuffer buff = BufferUtils.createByteBuffer((int) size).put(b);
 		buff.flip();
 		
@@ -156,7 +144,6 @@ public class SoundLoader {
 		buffers.add(buffer);
 		alBufferData(buffer, openAlFormat, buff, (int) in.getFormat().getSampleRate());
 		int realSize = alGetBufferi(buffer, AL_SIZE);
-		System.out.println("REAL BUFFER SIZE: " + realSize + "/" + size);
 		SoundClip c = new SoundClip();
 		c.buffer = buffer;
 		

@@ -42,7 +42,6 @@ public class SoundStream {
 		if(split.length > 1)
 			ext = split[split.length-1];
 		if(ext.equalsIgnoreCase("ogg")) {
-			System.out.println("CONVERTING SREAM FOR OGG");
 			AudioFormat base = _in.getFormat();
 			AudioFormat target = new AudioFormat(
 					AudioFormat.Encoding.PCM_SIGNED,
@@ -56,10 +55,6 @@ public class SoundStream {
 		} else {
 			in = _in;
 		}
-		System.out.println(in.getFormat());
-		System.out.println("BIG_ENDIAN: " + in.getFormat().isBigEndian());
-		System.out.println("CHANNELS:   " + in.getFormat().getChannels());
-		System.out.println("BITS:       " + in.getFormat().getSampleSizeInBits());
 		curBuff = 0;
 		buffs = new int[2];
 		for(int i = 0; i < buffs.length; i++)
@@ -149,10 +144,8 @@ public class SoundStream {
 	}
 	
 	public void close() {
-		System.out.println("CLOSE!=!=!=!");
 		try {
 			if(in != null) {
-				System.out.println("CLOSING STREAM");
 				finished = true;
 				_in.close();
 			}

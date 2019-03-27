@@ -1,4 +1,8 @@
 -- NERP to Lua compatibility functions
+-- This file shouldnt be messed with. Its purpose is to make the converted nerp scripts
+-- (NERP -> Lua) compatible with the game. Since registers (and NERP function modifying them) are not part of the new scripts.
+-- They are reimplimented here, to be able to run them anyways.
+-- It is encouraged to use Lua for new level scripts, but you can use NERP if you want.
 
 r1 = 0
 r2 = 0

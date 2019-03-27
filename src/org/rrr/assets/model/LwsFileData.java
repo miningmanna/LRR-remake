@@ -27,7 +27,6 @@ public class LwsFileData {
 	public static LwsFileData getLwsFileData(InputStream in) throws IOException {
 		
 		LwsFileData res = new LwsFileData();
-		System.out.println("LWS INPUTSTREAM: " + in);
 		BufferedReader br = new BufferedReader(new InputStreamReader(in));
 		String line;
 		
@@ -87,7 +86,6 @@ public class LwsFileData {
 				for(int i = 0; i < lframes; i++) {
 					
 					line = br.readLine();
-					System.out.println("LINE: " + line);
 					line = line.substring(2);
 					String[] s = line.split(" ");
 					if(s.length > linfo) {

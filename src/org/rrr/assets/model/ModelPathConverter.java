@@ -1,8 +1,5 @@
 package org.rrr.assets.model;
 
-import java.io.File;
-import java.util.HashMap;
-
 import org.rrr.assets.AssetManager;
 
 public class ModelPathConverter implements PathConverter {
@@ -26,7 +23,6 @@ public class ModelPathConverter implements PathConverter {
 			String[] split = input.split("[\\\\\\/]");
 			input = split[split.length-1];
 		}
-		System.out.println("Convert Input: " + input);
 		input = input.toUpperCase();
 		if(am.exists(dir + input))
 			return dir+input;

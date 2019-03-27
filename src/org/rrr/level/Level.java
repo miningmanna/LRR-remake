@@ -7,6 +7,7 @@ import java.util.ArrayList;
 
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
+import org.joml.Vector2i;
 import org.joml.Vector3f;
 import org.newdawn.slick.opengl.Texture;
 import org.rrr.Camera;
@@ -17,6 +18,7 @@ import org.rrr.Shader;
 import org.rrr.assets.LegoConfig.Node;
 import org.rrr.assets.map.Map;
 import org.rrr.assets.map.MapData;
+import org.rrr.assets.map.SurfaceTypeDescription;
 import org.rrr.assets.model.MapMesh;
 import org.rrr.gui.Cursor;
 
@@ -74,7 +76,6 @@ public class Level {
 		cursor.curAnimation %= cursor.animations.length;
 		if(!cursor.animations[cursor.curAnimation].stillFrame)
 			cursor.animations[cursor.curAnimation].anim.frame = 0;
-		System.out.println("Cursor: " + cursor.animations[cursor.curAnimation].name);
 	}
 	
 	public void render() {
@@ -117,10 +118,14 @@ public class Level {
 //			System.out.println("CAVE " + mapPos + ": " + map.data.maps[MapData.DUGG][(int) mapPos.y][(int) mapPos.x]);
 		
 		if(input.mouseJustPressed[0]) {
-			System.out.println("PRESSED");
 			if(mapPos.x != -1) {
-				map.setTile((int) mapPos.x, (int) mapPos.y, 5);
-				map.updateMesh();
+//				map.setTile((int) mapPos.x, (int) mapPos.y, 5);
+//				map.updateMesh();
+				Vector2i pos = map.sTypes.getCasePos((int) mapPos.x, (int) mapPos.y, map.data);
+				System.out.println("CasePos: " + pos);
+				if(pos.x != 1) {
+					map.printRot((int) mapPos.x, (int) mapPos.y);
+				}
 			}
 		}
 		

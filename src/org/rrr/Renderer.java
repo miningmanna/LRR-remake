@@ -37,9 +37,7 @@ public class Renderer {
 	private int uiVao;
 	public void init(AssetManager am) {
 		
-		System.out.println("VAO BEFORE: " + uiVao);
 		uiVao = am.getUiModel();
-		System.out.println("VAO AFTER " + uiVao);
 		
 	}
 	

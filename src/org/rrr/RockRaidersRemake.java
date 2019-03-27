@@ -102,11 +102,6 @@ public class RockRaidersRemake {
 		}
 		cfg = am.getConfig();
 		
-		Node legoStar = (Node) cfg.get("Lego*");
-		for(String key : legoStar.getSubNodeKeys()) {
-			System.out.println("SUBNODE: " + key);
-		}
-		
 		triggerCfg = (Node) cfg.get("Lego*/Triggers");
 		
 		renderer = new Renderer();
@@ -219,24 +214,18 @@ public class RockRaidersRemake {
 		curMenu = new Menu(RockRaidersRemake.this, mainMenuCfg, triggerCfg);
 		curMenu.setInput(input);
 		
-		Type[] audioTypes = javax.sound.sampled.AudioSystem.getAudioFileTypes();
-		System.out.println("SUPPORTED FORMATS:");
-		for(Type t : audioTypes) {
-			System.out.println(t.getExtension());
-		}
-		
 		ArrayList<Entity> entities = new ArrayList<>();
 		EntityEngine eng = new EntityEngine();
 		
 		Entity.setAssetManager(am);
-//		Entity.loadEntity(new File("LegoRR0/Mini-Figures/CAPTAIN"), "captain");
+		Entity.loadEntity("Mini-Figures/CAPTAIN", "captain");
 //		Entity.loadEntity(new File("LegoRR0/Buildings/Barracks"), 	"barracks");
 		
-		Node l2cfg = (Node) cfg.get("Lego*/Levels/Level02");
+		Node l2cfg = (Node) cfg.get("Lego*/Levels/Level09");
 		
 		try {
 			currentLevel = new Level(this, l2cfg);
-//			currentLevel.spawn("captain");
+			currentLevel.spawn("captain");
 		} catch (Exception e2) {
 			// TODO Auto-generated catch block
 			e2.printStackTrace();

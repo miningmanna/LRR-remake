@@ -30,7 +30,7 @@ public class LegoConfig {
 	public void printTree() {
 		superNode.printTree();
 	}
-	public static String EXTERN_REGEX = ".*(;#extern:)([\\w\\.]+).*";
+	public static String EXTERN_REGEX = "[\\t ]*(;#extern:)([\\w\\.]+).*";
 	public static void getToNode(String relPath, InputStream in, Node parent, int depth, AssetManager am) throws IOException {
 		
 		BufferedReader br = new BufferedReader(new InputStreamReader(in));
@@ -81,9 +81,13 @@ public class LegoConfig {
 				
 				if(split[1].equals("{")) {
 					depth++;
-					Node n = new Node(split[0].toUpperCase(), currentNode, depth);
-					currentNode.subNodes.put(split[0].toUpperCase(), n);
-					currentNode = n;
+					if(currentNode.subNodes.containsKey(split[0].toUpperCase())) {
+						currentNode = currentNode.getSubNode(split[0].toUpperCase());
+					} else {
+						Node n = new Node(split[0].toUpperCase(), currentNode, depth);
+						currentNode.subNodes.put(split[0].toUpperCase(), n);
+						currentNode = n;
+					}
 				} else {
 					currentNode.values.put(split[0].toUpperCase(), split[1]);
 				}
@@ -93,9 +97,13 @@ public class LegoConfig {
 					currentNode = currentNode.parent;
 				} else if(line.equals("{")) {
 					depth++;
-					Node n = new Node(lastLine.toUpperCase(), currentNode, depth);
-					currentNode.subNodes.put(lastLine.toUpperCase(), n);
-					currentNode = n;
+					if(currentNode.subNodes.containsKey(lastLine.toUpperCase())) {
+						currentNode = currentNode.getSubNode(lastLine.toUpperCase());
+					} else {
+						Node n = new Node(lastLine.toUpperCase(), currentNode, depth);
+						currentNode.subNodes.put(lastLine.toUpperCase(), n);
+						currentNode = n;
+					}
 				}
 			}
 			

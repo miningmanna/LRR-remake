@@ -59,7 +59,6 @@ public class AssetManager {
 		assets = new HashMap<>();
 		
 		String[] priorities = readLines(fPriorities);
-		System.out.println("ASSET PRIORITIES: ");
 		String[] orig = {
 			"\\\\",
 			"\\.",
@@ -83,7 +82,6 @@ public class AssetManager {
 			String priority = priorities[i];
 			for(int j = 0; j < orig.length; j++)
 				priority = priority.replaceAll(orig[j], repl[j]);
-			System.out.println(i + " : " + priorities[i]);
 			File dir = null;
 			if(priority.matches(".+\\/.+")) {
 				String[] split = priority.split("\\/");
@@ -95,7 +93,6 @@ public class AssetManager {
 			} else {
 				dir = new File("./");
 			}
-			System.out.println("CREATING REGEX: " + priority);
 			Pattern regex = Pattern.compile(priority);
 			SortedSet<File> _matches = new TreeSet<>(new Comparator<File>() {
 				public int compare(File o1, File o2) {
@@ -115,14 +112,9 @@ public class AssetManager {
 			
 			File[] matches = new File[_matches.size()];
 			_matches.toArray(matches);
-			for(File f : matches) {
-				System.out.println(priority + " matched: " + f);
+			for(File f : matches)
 				registerAssets(f);
-			}
 		}
-		
-		for(String key : assets.keySet())
-			System.out.println("KEY: " + key);
 		
 		InputStream cfgIn = getAsset("Lego.cfg");
 		cfg = LegoConfig.getConfig(cfgIn, "", this);
@@ -140,13 +132,31 @@ public class AssetManager {
 		return cfg;
 	}
 	
+	public String[] getAllSubFiles(String dir) {
+		
+		dir = dir.toUpperCase();
+		
+		LinkedList<String> _files = new LinkedList<>();
+		
+		for(String key : assets.keySet())
+			if(key.startsWith(dir))
+				_files.add(key);
+		
+		String[] files = new String[_files.size()];
+		for(int i = 0; i < files.length; i++)
+			files[i] = _files.pop();
+		return files;
+		
+	}
+	
 	private static String[] readLines(File f) {
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(f));
 			LinkedList<String> _lines = new LinkedList<>();
 			String line;
 			while((line = br.readLine()) != null)
-				_lines.add(line);
+				if(!line.startsWith(";") && !line.equals(""))
+					_lines.add(line);
 			br.close();
 			int size = _lines.size();
 			String[] lines = new String[size];
@@ -180,7 +190,6 @@ public class AssetManager {
 		String[] entries = wad.getEntries();
 		for(int i = 0; i < entries.length; i++) {
 			String e = entries[i];
-			System.out.println("ENTRY: " + e);
 			Asset a = new Asset();
 			a.isWad = true;
 			a.path = e;
@@ -192,7 +201,6 @@ public class AssetManager {
 	private void regDir(String prePath, File dir) {
 		for(File f : dir.listFiles()) {
 			if(f.isDirectory()) {
-				System.out.println(prePath + " -> " + f.getName());
 				if(prePath == null) 
 					regDir(f.getName()+"/", f);
 				else
@@ -200,7 +208,6 @@ public class AssetManager {
 			} else {
 				Asset a = new Asset();
 				a.path = f.getName();
-				System.out.println("REGISTERING FILE: " + a.path.toUpperCase());
 				a.dir = dir;
 				String key;
 				if(prePath == null)
@@ -264,13 +271,11 @@ public class AssetManager {
 	
 	public boolean exists(String path) {
 		path = toAssetPath(path);
-		System.out.println("CHECKING FOR ASSET: " + path);
 		return assets.containsKey(path.toUpperCase());
 	}
 	
 	public BitMapFont getFont(String path) {
 		path = toAssetPath(path);
-		System.out.println("GETTING FONT: " + path);
 		InputStream in = getAsset(path);
 		BitMapFont font = BitMapFont.getFont(in, tLoader);
 		try {
@@ -318,12 +323,10 @@ public class AssetManager {
 		
 		if(split.contains("::"))
 			split = split.split("::")[1];
-		System.out.println("GETTING SPLIT: " + split);
 		Node splitCfg = splits.getSubNode(split);
 		int sw = splitCfg.getInteger("surftextwidth");
 		int sh = splitCfg.getInteger("surftextheight");
 		String baseName = splitCfg.getValue("texturebasename");
-		System.out.println("CHECKING WITH BASE: " + baseName);
 		
 		res.w = sw;
 		res.h = sh;
@@ -333,7 +336,6 @@ public class AssetManager {
 				String path = baseName + x + y + ".bmp";
 				if(exists(path)) {
 					int i = y*sw+x;
-					System.out.println("FOUND TEX: " + path);
 					res.texs[i] = getTexture(path);
 				}
 			}
@@ -344,7 +346,7 @@ public class AssetManager {
 	
 	public SurfaceTypeDescription getSurfaceTypeDescription(String name) {
 		
-		Node n = (Node) cfg.get("Lego*/SurfaceTypeDefenitions/" + name);
+		Node n = (Node) cfg.get("Lego*/SurfaceTypeDefinitions/" + name);
 		if(n == null)
 			return standardSTypes;
 		
@@ -360,7 +362,6 @@ public class AssetManager {
 		Texture res = null;
 		try {
 			InputStream in = getAsset(tPath);
-			System.out.println(in);
 			res = tLoader.getTexture(ext, in, tPath);
 			in.close();
 		} catch (IOException e) {
@@ -372,9 +373,7 @@ public class AssetManager {
 	public SoundClip getSound(String path) {
 		String ext = path;
 		String[] split = ext.split("\\.");
-		System.out.println(split.length);
 		ext = split[split.length-1];
-		System.out.println(ext);
 		SoundClip res = null;
 		InputStream in = null;
 		try {
@@ -399,7 +398,6 @@ public class AssetManager {
 			return null;
 		
 		String path = sLoader.getSample(name);
-		System.out.println("SAMPLE: " + name + " = " + path);
 		if(path == null)
 			return null;
 		else

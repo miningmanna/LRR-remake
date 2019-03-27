@@ -1,15 +1,13 @@
 package org.rrr.assets.map;
 
-import java.io.File;
 import java.util.ArrayList;
 
-import org.joml.Matrix4x3f;
 import org.joml.Vector2f;
-import org.joml.Vector2i;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
 import org.rrr.assets.AssetManager;
 import org.rrr.assets.LegoConfig.Node;
+import org.rrr.assets.map.SurfaceTypeDescription.Surface;
 import org.rrr.assets.model.MapMesh;
 import org.rrr.assets.model.ModelLoader;
 
@@ -17,10 +15,10 @@ public class Map {
 	
 	public int w;
 	public int h;
+	public Surface[][] surfaces;
 	public MapData data;
 	public MapMesh mesh;
 	public SurfaceTypeDescription sTypes;
-	public int[] cliffTypes;
 	private boolean[][] utilBuffer;
 	
 	private ModelLoader mLoader;
@@ -29,35 +27,23 @@ public class Map {
 		
 		mLoader = am.getMLoader();
 		
-//		float[][] test = new float[][] {
-//				{1, -1, 1},
-//				{1, 0, 0},
-//				{0, 0, 1},
-//				{0, 3, 0}
-//		};
-//		System.out.println("GAUS SOLVING:");
-//		float[] res = solveEquations3by3(test);
-//		System.out.println("RESULT:");
-//		for(int i = 0; i < 3; i++)
-//			System.out.print(res[i] + " ");
-//		System.out.println();
-		
-		cliffTypes = new int[] {
-				1, 2, 3, 4
-		};
-		
-		sTypes = am.getSurfaceTypeDescription(cfg.getOptValue("SurfaceTypeDefenition", "Standard"));
-		System.out.println("STYPES: " + sTypes);
+		sTypes = am.getSurfaceTypeDescription(cfg.getOptValue("SurfaceTypeDefinition", "Standard"));
 		data = MapData.getMapData(am, cfg);
 		w = data.width;
 		h = data.height;
 		utilBuffer = new boolean[h][w];
 		mesh = new MapMesh();
 		mesh.split = am.getTexSplit(cfg.getOptValue("TextureSet", "Rock"));
-		System.out.println("MESH SPLIT: " + mesh.split);
 		initMapMesh();
 		am.getMLoader().loadMapMeshIntoVao(mesh);
 		
+	}
+	
+	public void updateRot(int x, int z) {
+		Vector3i tAtlasPos = sTypes.getAtlasPos(x, z, data);
+		int tex = mesh.split.toIndex(tAtlasPos.x, tAtlasPos.y);
+		mesh.tRotation[z*w+x] = (float) (tAtlasPos.z*(Math.PI/2));
+		mesh.tex[z*w+x] = tex;
 	}
 	
 	private void initMapMesh() {
@@ -79,11 +65,6 @@ public class Map {
 		
 		float unitDist = 40;
 		int[][] high = data.maps[MapData.HIGH];
-		int[][] surf = data.maps[MapData.SURF];
-		int[][] cave = data.maps[MapData.DUGG];
-		
-		System.out.println("SURF DIMS: " + w + " " + h);
-		System.out.println("HIGH DIMS: " + high[0].length + " " + high.length);
 		
 		mesh.inds = new int[w * h * baseVerts.length/3];
 		mesh.verts = new float[mesh.inds.length*3];
@@ -115,6 +96,7 @@ public class Map {
 			}
 		}
 		
+		fillDirt();
 		generateMeshDetails();
 	}
 	
@@ -122,8 +104,6 @@ public class Map {
 		
 		float unitDist = 40;
 		int[][] high = data.maps[MapData.HIGH];
-		int[][] surf = data.maps[MapData.SURF];
-		int[][] cave = data.maps[MapData.DUGG];
 		
 		expandCaves();
 		
@@ -143,7 +123,7 @@ public class Map {
 				}
 				boolean isCave = false;
 				if(x != w && z != h) {
-					isCave = data.maps[MapData.DUGG][z][x] == 1;
+					isCave = data.maps[MapData.DUGG][z][x] != 2;
 				}
 				
 				if(isCave) {
@@ -162,17 +142,11 @@ public class Map {
 				
 				boolean zeroTwo = true;
 				
-				if(x == 9 && z == 5)
-					System.out.println("NINE FIVE MUDDAFUGGA CAVE: " + (data.maps[MapData.DUGG][z][x] == 1));
-				if(data.maps[MapData.DUGG][z][x] == 1) {
+				if(data.maps[MapData.DUGG][z][x] != 2) {
 					
-					if(x == 6 && z == 5)
-						System.out.println("EIGHT FIVE MUDDAFUGGA");
 					Vector3i tAtlasPos = sTypes.getAtlasPos(x, z, data);
 					int tex = mesh.split.toIndex(tAtlasPos.x, tAtlasPos.y);
-					System.out.println("Texture index: "  + tex);
 					mesh.tRotation[z*w+x] = (float) (tAtlasPos.z*(Math.PI/2));
-					System.out.println("TROT: " + tAtlasPos.z);
 					mesh.tex[z*w+x] = tex;
 					
 					boolean[] groundLevels = new boolean[] {
@@ -195,11 +169,6 @@ public class Map {
 					case 0:
 						break;
 					case 1:
-						System.out.println("ONE POINT AT GROUND");
-						for(int i = 0; i < 4; i++)
-							System.out.println("   " + groundLevels[i]);
-						System.out.println(firstAfterZero);
-						System.out.println(firstAfterZero == 0 || firstAfterZero == 2);
 					case 2:
 						zeroTwo = firstAfterZero == 0 || firstAfterZero == 2;
 						break;
@@ -231,18 +200,17 @@ public class Map {
 	// Returns true if surf of coordinate is a cliff
 	private boolean isCliff(int x, int z) {
 		if(x >= 0 && x < w && z >= 0 && z < h) {
-			return contains(cliffTypes, data.maps[MapData.SURF][z][x]);
+			if(data.maps[MapData.DUGG][z][x] == 2)
+				return true;
+			return contains(sTypes.cliffTypes, data.maps[MapData.SURF][z][x]);
 		}
 		return true;
 	}
 	
 	private boolean contains(int[] a, int j) {
 		for(int i = 0; i < a.length; i++) {
-			if(a[i] > j)
-				break;
-			else
-				if(a[i] == j)
-					return true;
+			if(a[i] == j)
+				return true;
 		}
 		return false;
 	}
@@ -286,7 +254,6 @@ public class Map {
 	}
 	
 	private void setY(int x, int z, int i, float height) {
-		System.out.println("Setting " + x + " " + z + " " + i + " to " + height);
 		switch(i) {
 		case 0:
 			setSafeSingleVertY(x, z,	0, height);
@@ -355,7 +322,6 @@ public class Map {
 	public void setTile(int x, int z, int val) {
 		
 		int[][] surf = data.maps[MapData.SURF];
-		int[][] high = data.maps[MapData.HIGH];
 		surf[z][x] = val;
 		
 		generateMeshDetails();
@@ -383,37 +349,45 @@ public class Map {
 		int[][] cave = data.maps[MapData.DUGG];
 		int[][] surf = data.maps[MapData.SURF];
 		
+		ArrayList<Point> todo = new ArrayList<>();
+		
 		resetUtilBuffer(false);
-		int sx = -1, sz = -1;
-		for(int z = 0; z < h && sz == -1; z++) {
+		for(int z = 0; z < h; z++) {
 			for(int x = 0; x < w; x++) {
-				if(cave[z][x] == 1 && !contains(cliffTypes, surf[z][x])) {
-					sx = x;
-					sz = z;
+				if(cave[z][x] == 1 && !contains(sTypes.cliffTypes, surf[z][x])) {
 					utilBuffer[z][x] = true;
-					break;
+					todo.add(new Point(x, z));
 				}
 			}
 		}
 		
-		System.out.println("EXPANDING CAVES WITH START: " + sz + " " + sx);
-		ArrayList<Point> todo = new ArrayList<>();
-		todo.add(new Point(sx, sz));
 		while(todo.size() > 0) {
 			Point p = todo.get(0);
 			todo.remove(0);
 			for(int i = -1; i < 2; i++) {
 				for(int j = -1; j < 2; j++) {
-					if((p.x+i) >= 0 && (p.x+i) < w && (p.z+j) >= 0 && (p.z+j) < h && !(i == 0 && j == 0)) {
-						if(!utilBuffer[p.z+j][p.x+i]) {
-							System.out.println("CHECKING NEIGHBOUR OF " + p + ": " + (p.z+j) + ", " + (p.x+i));;
-							cave[p.z+j][p.x+i] = 1;
-							utilBuffer[p.z+j][p.x+i] = true;
-							if(!contains(cliffTypes, surf[p.z+j][p.x+i])) {
-								todo.add(new Point(p.x+i, p.z+j));
-							}
+					if((p.x+j < w) && (p.x+j >= 0) && (p.z+i < h) && (p.z+i >= 0) && !(i == 0 && j == 0)) {
+						if(!utilBuffer[p.z+i][p.x+j] && !contains(sTypes.cliffTypes, surf[p.z+i][p.x+j])) {
+							cave[p.z+i][p.x+j] = 1;
+							utilBuffer[p.z+i][p.x+j] = true;
+							todo.add(new Point(p.x+j, p.z+i));
 						}
 					}
+				}
+			}
+		}
+	}
+	private void fillDirt() {
+		
+		int[][] cave = data.maps[MapData.DUGG];
+		int[][] surf = data.maps[MapData.SURF];
+		int[][] path = data.maps[MapData.PATH];
+		
+		for(int z = 0; z < h; z++) {
+			for(int x = 0; x < w; x++) {
+				if(cave[z][x] != 1 && !contains(sTypes.cliffTypes, surf[z][x])) {
+					surf[z][x] = 4;
+					path[z][x] = 0;
 				}
 			}
 		}
@@ -607,6 +581,10 @@ public class Map {
 		
 		
 		return res;
+	}
+	
+	public void printRot(int x, int z) {
+		System.out.println("(" + x + ", " + z + "): " + sTypes.getAtlasPos(x, z, data));
 	}
 	
 }
