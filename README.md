@@ -1,7 +1,7 @@
 # Import
 This is an Eclipse Project. The libraries used in the project are in the 'lib' folder.
-When you import the project to eclipse, change the buildpath for the libs.
-**IMPORTANT:** do not forget to change the path for the lwjgl.jar`s natives.
 
-# Assets
-You need to copy the LegoRR0/World/Shared folder into the base folder of the project. Then just copy the folder of the model you want to display, and pick the lws file. 
+# Running the game
+There are 2 things you need to make sure to do, in order to run the game.
+1. Include the original assets in the folder as either WAD files or as folder/folders.
+2. Add the proper path to priorities.txt (read the comments aswell). It is important to use the config file in the Data directory, since there are some slight additions. In the priorities "Data" should be the last specified. So your own assets must be specified any line above that.
