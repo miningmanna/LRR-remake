@@ -6,4 +6,5 @@ public abstract class MenuItem {
 	public int x, y, w, h;
 	public String banner;
 	public boolean hover;
+	public boolean fixed;
 }

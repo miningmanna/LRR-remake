@@ -14,6 +14,8 @@ public class CycleItem extends MenuItem {
 	
 	public CycleItem(String key, String cfgStr, Menu menu) {
 		
+		fixed = true;
+		
 		this.name = key;
 		
 		String[] split = cfgStr.split(":");

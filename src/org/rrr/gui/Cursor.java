@@ -1,12 +1,7 @@
 package org.rrr.gui;
 
-import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL11.GL_NEAREST;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.LinkedList;
 
 import org.newdawn.slick.opengl.Texture;
@@ -16,8 +11,6 @@ import org.rrr.assets.LegoConfig.Node;
 import org.rrr.assets.sound.SoundClip;
 import org.rrr.assets.sound.Source;
 import org.rrr.assets.tex.FLHAnimation;
-import org.rrr.assets.tex.FLHFile;
-import org.rrr.assets.tex.TexLoader;
 
 public class Cursor {
 	

@@ -13,5 +13,5 @@
 ; It will work on any final name though (directories, wads and so forth. Anything thats supported)
 ; Meaning: "Wad%ModName.wad" works.
 
-LegoRR%.wad
+test%.wad
 Data

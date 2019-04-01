@@ -258,6 +258,8 @@ public class Renderer {
 		glDepthFunc(GL_ALWAYS);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		
+		Vector3f parentTranslate = new Vector3f(transWidth(menu.scrollOffset.x), transHeight(menu.scrollOffset.y), 0);
+		s.setUniVector3f("parentTranslate", parentTranslate);
 		
 		s.setUniMatrix4f("trans", new Matrix4f().identity());
 		Vector2f scale = new Vector2f(	transWidth(menu.bgImage.getImageWidth()),
@@ -294,6 +296,19 @@ public class Renderer {
 			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		}
 		
+		for(MenuItem item : menu.items) {
+			if(item.fixed)
+				continue;
+			if(item instanceof NextItem) {
+				drawNextItem(menu, (NextItem) item, s);
+			} else if (item instanceof TriggerItem) {
+				drawTriggerItem(menu, (TriggerItem) item, s);
+			}
+		}
+		
+		parentTranslate.set(0);
+		s.setUniVector3f("parentTranslate", parentTranslate);
+		
 		if(menu.displayTitle) {
 			drawString(s, menu.x-(menu.menuFont.getPixLength(menu.fullName)/2), menu.y, menu.loFont, menu.fullName, 1);
 		}
@@ -303,6 +318,8 @@ public class Renderer {
 		glBindVertexArray(0);
 		
 		for(MenuItem item : menu.items) {
+			if(!item.fixed)
+				continue;
 			if(item instanceof NextItem) {
 				drawNextItem(menu, (NextItem) item, s);
 			} else if (item instanceof TriggerItem) {
@@ -352,11 +369,37 @@ public class Renderer {
 	}
 	
 	private void drawTriggerItem(Menu menu, TriggerItem item, Shader s) {
-		
-		if(item.hover)
-			drawString(s, item.x, item.y, menu.hiFont, item.banner, 1);
-		else
-			drawString(s, item.x, item.y, menu.loFont, item.banner, 1);
+		if(!item.isImage) {
+			if(item.hover)
+				drawString(s, item.x, item.y, menu.hiFont, item.banner, 1);
+			else
+				drawString(s, item.x, item.y, menu.loFont, item.banner, 1);
+		} else {
+			s.setUniMatrix4f("trans", new Matrix4f().identity());
+			Vector2f scale = new Vector2f(	transWidth(item.normTex.getImageWidth()),
+											transHeight(item.normTex.getImageHeight()));
+			s.setUniVector2f("scale", scale);
+			Vector2f texScale = new Vector2f(item.normTex.getWidth(), item.normTex.getHeight());
+			s.setUniVector2f("texScale", texScale);
+			Vector2f texPos = new Vector2f(0, 0);
+			s.setUniVector2f("texOffset", texPos);
+			Vector3f translate = new Vector3f(transWidth(item.x)-1, 1-transHeight(item.y), 0);
+			s.setUniVector3f("translate", translate);
+			
+			glDisable(GL_CULL_FACE);
+			glBindVertexArray(uiVao);
+			glEnableVertexAttribArray(0);
+			glEnableVertexAttribArray(1);
+			if(item.hover)
+				glBindTexture(GL_TEXTURE_2D, item.hiTex.getTextureID());
+			else
+				glBindTexture(GL_TEXTURE_2D, item.normTex.getTextureID());
+			
+			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+			glDisableVertexAttribArray(0);
+			glDisableVertexAttribArray(1);
+			glBindVertexArray(0);
+		}
 	}
 	
 	public void drawString(Shader s, int x, int y, BitMapFont f, String str, float scalef) {

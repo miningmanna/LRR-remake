@@ -16,6 +16,8 @@ public class NextItem extends MenuItem {
 	
 	public NextItem(String key, String cfgStr, Menu menu) {
 		
+		fixed = true;
+		
 		name = key;
 		
 		String[] split = cfgStr.split(":");
@@ -24,9 +26,6 @@ public class NextItem extends MenuItem {
 		y = menu.y + Integer.parseInt(split[2]);
 		
 		banner = split[3].trim().replace("_", " ");
-		
-		if(menu.autoCenter)
-			x = x - (menu.menuFont.getPixLength(banner)/2);
 		
 		if(split.length != 5) {
 			isImage = true;
@@ -44,6 +43,9 @@ public class NextItem extends MenuItem {
 			h = menu.menuFont.blockLengthY;
 		}
 		menuLink = split[split.length-1];
+		
+		if(menu.autoCenter)
+			x = x - (w/2);
 		
 	}
 	

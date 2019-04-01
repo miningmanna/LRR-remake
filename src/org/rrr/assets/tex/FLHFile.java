@@ -128,7 +128,7 @@ public class FLHFile {
 		int w = flh.width;
 		
 		offset += 1;
-		
+		System.out.println(res);
 		while((len-offset) > 0) {
 			byte repeat = seg[offset];
 			if(repeat < 0) {
@@ -299,7 +299,7 @@ public class FLHFile {
 	public static void main(String[] args) {
 		
 		try {
-			FileInputStream fin = new FileInputStream("LegoRR0/avi/Sandwich.flh");
+			FileInputStream fin = new FileInputStream("LMS.flh");
 			FLHFile f = getFLHFile(fin);
 			fin.close();
 			

@@ -13,6 +13,8 @@ public class SliderItem extends MenuItem {
 	
 	public SliderItem(String key, String cfgStr, Menu menu) {
 		
+		fixed = true;
+		
 		name = key;
 		
 		String[] split = cfgStr.split(":");

@@ -151,14 +151,6 @@ public class Input {
 		
 	}
 	
-	public int getMouseAbsX() {
-		return (int) (mouse.x + par.getWidth()/2);
-	}
-	
-	public int getMouseAbsY() {
-		return (int) (mouse.y + par.getHeight()/2);
-	}
-	
 	private static float clamp(float val, float min, float max) {
 		if(val < min)
 			return min;

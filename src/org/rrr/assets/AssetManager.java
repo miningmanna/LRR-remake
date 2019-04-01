@@ -174,7 +174,15 @@ public class AssetManager {
 			regDir(null, f);
 		} else if(f.getName().toUpperCase().endsWith(".WAD")) {
 			regWad(f);
+		} else if(f.getName().toUpperCase().endsWith(".ZIP")) {
+			regZip(f);
 		}
+	}
+	
+	private void regZip(File f) {
+		
+		// TODO: load entries of the zip file
+		
 	}
 	
 	private void regWad(File f) {
@@ -347,6 +355,7 @@ public class AssetManager {
 	public SurfaceTypeDescription getSurfaceTypeDescription(String name) {
 		
 		Node n = (Node) cfg.get("Lego*/SurfaceTypeDefinitions/" + name);
+		System.out.println("STANDARD STYPES: " + n);
 		if(n == null)
 			return standardSTypes;
 		

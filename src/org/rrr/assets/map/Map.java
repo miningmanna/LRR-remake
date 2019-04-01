@@ -109,17 +109,16 @@ public class Map {
 		
 		for(int z = 0; z <= h; z++) {
 			for(int x = 0; x <= w; x++) {
-				float height;
-				if(x == w) {
-					if(z == h) {
-						height = high[z-1][x-1]/7.0f;
-					} else {
-						height = high[z][x-1]/7.0f;
-					}
-				} else if(z == h) {
-					height = high[z-1][x]/7.0f;
+				float height = 0; // Get the height for tile -1 on X axis because im retarded
+				int hx = x-1, hz = z;
+				if(hx == -1 || hx == w-1) {
+					height = 0;
 				} else {
-					height = high[z][x]/7.0f;
+					if(z == h) {
+						height = 0;
+					} else {
+						height = high[hz][hx]/7.0f;
+					}
 				}
 				boolean isCave = false;
 				if(x != w && z != h) {

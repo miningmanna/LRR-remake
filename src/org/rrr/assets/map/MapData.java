@@ -59,6 +59,8 @@ public class MapData {
 	private void loadData(int mapType, String path, AssetManager am) throws Exception {
 		
 		InputStream in = am.getAsset(path);
+		if(in == null)
+			return;
 		int[][] data = loadMapDataStream(in);
 		in.close();
 		if(width == 0 && height == 0) {

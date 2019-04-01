@@ -7,12 +7,18 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Set;
+
+import org.luaj.vm2.Globals;
+import org.luaj.vm2.LuaValue;
+import org.luaj.vm2.lib.OneArgFunction;
+import org.luaj.vm2.lib.TwoArgFunction;
+import org.luaj.vm2.lib.jse.JsePlatform;
 
 public class LegoConfig {
 	
 	private Node superNode;
-	private AssetManager am;
 	
 	public LegoConfig() {
 		superNode = new Node(null, null, 0);
@@ -21,7 +27,38 @@ public class LegoConfig {
 	public static LegoConfig getConfig(InputStream in, String relPath, AssetManager am) throws IOException {
 		LegoConfig cfg = new LegoConfig();
 		
-		getToNode(relPath, in, cfg.superNode, 0, am);
+		LinkedList<String> scripts = new LinkedList<String>();
+		getToNode(relPath, in, cfg.superNode, 0, am, scripts);
+		
+		Globals globals = JsePlatform.standardGlobals();
+		globals.set("setValue", new TwoArgFunction() {
+			@Override
+			public LuaValue call(LuaValue arg0, LuaValue arg1) {
+				String path = arg0.tojstring();
+				path.replace('\\', '/');
+				String nodePath = path.substring(0, path.lastIndexOf('/'));
+				Node n = (Node) cfg.get(nodePath);
+				if(n == null)
+					return LuaValue.FALSE;
+				
+				String valName = path.substring(path.lastIndexOf('/')+1).toUpperCase();
+				n.values.put(valName, arg1.tojstring());
+				return LuaValue.TRUE;
+			}
+		});
+		globals.set("getValue", new OneArgFunction() {
+			@Override
+			public LuaValue call(LuaValue arg0) {
+				Object o = cfg.get(arg0.tojstring());
+				if(o instanceof String)
+					return LuaValue.valueOf((String) o);
+				return LuaValue.NIL;
+			}
+		});
+		
+		for(String script : scripts) {
+			globals.load(script).call();
+		}
 		
 		return cfg;
 		
@@ -31,7 +68,9 @@ public class LegoConfig {
 		superNode.printTree();
 	}
 	public static String EXTERN_REGEX = "[\\t ]*(;#extern:)([\\w\\.]+).*";
-	public static void getToNode(String relPath, InputStream in, Node parent, int depth, AssetManager am) throws IOException {
+	public static String SCRIPT_START_REGEX = "[\\t ]*(;#runAfter).*";
+	public static String SCRIPT_END_REGEX = "[\\t ]*(;#endRunAfter).*";
+	public static void getToNode(String relPath, InputStream in, Node parent, int depth, AssetManager am, LinkedList<String> scripts) throws IOException {
 		
 		BufferedReader br = new BufferedReader(new InputStreamReader(in));
 		String line;
@@ -39,17 +78,34 @@ public class LegoConfig {
 		
 		Node currentNode = parent;
 		
+		boolean isScript = false;
+		String curScript = "";
 		while((line = br.readLine()) != null) {
+			if(isScript) {
+				if(line.matches(SCRIPT_END_REGEX)) {
+					isScript = false;
+					scripts.add(curScript);
+					curScript = "";
+					continue;
+				}
+				curScript += line.substring(line.lastIndexOf(';')+1) + "\n";
+				continue;
+			}
 			if(line.matches(EXTERN_REGEX)) {
 				try {
 					String path = relPath + line.split(":")[1];
 					File f = new File(path);
 					InputStream extIn = am.getAsset(path);
-					getToNode(f.getParent(), extIn, currentNode, depth, am);
+					System.out.println(path + " : " + extIn);
+					getToNode(f.getParent(), extIn, currentNode, depth, am, scripts);
 					extIn.close();
 				} catch(Exception e) {
 					e.printStackTrace();
 				}
+				continue;
+			} else if(line.matches(SCRIPT_START_REGEX)) {
+				isScript = true;
+				continue;
 			}
 			
 			if(line.contains(";")) {

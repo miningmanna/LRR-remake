@@ -10,8 +10,11 @@ import org.rrr.assets.LegoConfig.Node;
 
 public class SurfaceTypeDescription {
 	
-	public int[] CLIFF_PERM_TYPE = new int[] { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 1, -1, -1, -1, 1, -1, -1, -1, -1, -1, -1, 1, 1, -1, -1, -1, -1, -1, -1, -1, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 1, -1, -1, -1, 1, -1, -1, -1, -1, -1, -1, 1, 1, -1, -1, -1, -1, -1, -1, 1, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 1, 1, -1, 3, 1, 1, 1, 3, -1, -1, -1, -1, -1, -1, 1, 1, -1, -1, -1, -1, 1, 1, 0, 2, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 1, -1, -1, -1, 1, -1, -1, -1, -1, -1, -1, 1, 1, -1, -1, -1, 1, -1, -1, -1, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 1, -1, -1, -1, 1, -1, -1, -1, -1, -1, -1, 1, 1, -1, -1, -1, 1, -1, -1, 1, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 1, -1, -1, -1, 1, 1, 1, -1, 1, 1, 1, 3, 3, -1, 1, -1, 0, -1, 1, -1, 2, -1, -1, -1, -1, -1, -1, -1, -1, 1, 1, -1, 3, 1, 1, 1, 3, 1, 1, -1, 1, 1, 1, 3, 3, 3, 3, -1, 2, 3, 3, 2, -1 };
-	public int[] CLIFF_PERM_ROT = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 0, 3, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 3, 3, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 2, 2, 2, 1, 1, 0, 2, 0, 0, 0, 2, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 0, 3, 3, 3, 3, 3, 2, 2, 0, 2, 2, 2, 1, 1, 2, 2, 0, 3, 2, 2, 2, 0 };
+	public static final int[] CLIFF_PERM_TYPE = { -1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,1 ,-1 ,-1 ,-1 ,1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,1 ,1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,3 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,1 ,-1 ,-1 ,-1 ,1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,1 ,1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,1 ,3 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,1 ,1 ,-1 ,3 ,1 ,1 ,1 ,3 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,1 ,1 ,-1 ,-1 ,-1 ,-1 ,1 ,1 ,0 ,2 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,1 ,-1 ,-1 ,-1 ,1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,1 ,1 ,-1 ,-1 ,-1 ,1 ,-1 ,-1 ,-1 ,3 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,1 ,-1 ,-1 ,-1 ,1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,1 ,1 ,-1 ,-1 ,-1 ,1 ,-1 ,-1 ,1 ,3 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,1 ,-1 ,-1 ,-1 ,1 ,1 ,1 ,-1 ,1 ,1 ,1 ,3 ,3 ,-1 ,1 ,-1 ,0 ,-1 ,1 ,-1 ,2 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,1 ,1 ,-1 ,3 ,1 ,1 ,1 ,3 ,1 ,1 ,-1 ,1 ,1 ,1 ,3 ,3 ,3 ,3 ,-1 ,2 ,3 ,3 ,2 ,-1};
+	public static final int[] CLIFF_PERM_ROT = { 0 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,2 ,2 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,2 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,2 ,2 ,3 ,3 ,3 ,3 ,3 ,3 ,2 ,2 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,0 ,0 ,3 ,3 ,0 ,0 ,0 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,2 ,2 ,3 ,3 ,3 ,3 ,0 ,0 ,2 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,2 ,2 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,2 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,2 ,2 ,3 ,3 ,3 ,3 ,3 ,3 ,2 ,2 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,1 ,1 ,3 ,1 ,1 ,1 ,1 ,1 ,3 ,1 ,3 ,3 ,3 ,1 ,3 ,2 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,0 ,0 ,3 ,3 ,0 ,0 ,0 ,3 ,1 ,1 ,3 ,1 ,1 ,1 ,1 ,1 ,0 ,0 ,3 ,0 ,0 ,0 ,1 ,3};
+
+	public static final int[] CONNECT_PERM_TYPE = { 5 ,4 ,4 ,2 ,4 ,2 ,3 ,1 ,4 ,3 ,2 ,1 ,2 ,1 ,1 ,0};
+	public static final int[] CONNECT_PERM_ROT = { 0 ,0 ,1 ,1 ,3 ,0 ,3 ,1 ,2 ,0 ,2 ,2 ,3 ,0 ,3 ,0};
 	
 	public static final String[] CONNECT_CASES = new String[] {
 		"XConnect",
@@ -35,14 +38,6 @@ public class SurfaceTypeDescription {
 	private Vector3i v3;
 	
 	public SurfaceTypeDescription(Node cfg, AssetManager am) {
-		
-		// TODO: Apply changes to static arrays
-		for(int i = 0; i < CLIFF_PERM_ROT.length; i++) {
-			CLIFF_PERM_ROT[i] = (4-CLIFF_PERM_ROT[i])%4;
-			if(CLIFF_PERM_TYPE[i] == 3)
-				CLIFF_PERM_ROT[i] = (CLIFF_PERM_ROT[i]+3)%4;
-		}
-		
 		
 		v3 = new Vector3i();
 		
@@ -80,7 +75,7 @@ public class SurfaceTypeDescription {
 			s.atRoofHeight = subNode.getOptBoolean("AtRoofHeight", false);
 			s.surfaceValue = subNode.getOptInteger("SurfaceValue", 0);
 			s.pathValue = subNode.getOptInteger("PathValue", 0);
-			s.connects = subNode.getOptValue("ConnectsStr", "").toUpperCase().split(",");
+			s.connects = subNode.getOptValue("Connects", "").toUpperCase().split(",");
 			
 			String waveStr = subNode.getOptValue("Wave", "0,1,0,0");
 			String[] waveSplit = waveStr.split(",");
@@ -148,26 +143,40 @@ public class SurfaceTypeDescription {
 	}
 	
 	public Vector3i getAtlasPos(int x, int z, MapData data) {
-		boolean[][] isCliff = getNeighboursIsCave(x, z, data);
+		
 		Surface[][] neighbours = getNeighbours(x, z, data);
-		for(int i = 0; i < 3; i++) {
-			for(int j = 0; j < 3; j++) {
-				isCliff[i][j] = !isCliff[i][j] || neighbours[i][j].atRoofHeight;
-			}
-		}
 		Surface tile = neighbours[1][1];
 		
-		if(data.maps[MapData.DUGG][z][x] == 0) {
-			
+		if(data.maps[MapData.DUGG][z][x] == 0 || tile.atRoofHeight) {
+			boolean[][] isCliff = getNeighboursIsCave(x, z, data);
+			for(int i = 0; i < 3; i++) {
+				for(int j = 0; j < 3; j++) {
+					isCliff[i][j] = !isCliff[i][j] || neighbours[i][j].atRoofHeight;
+				}
+			}
 			Vector2i v = getCliffCaseRot(isCliff);
 			if(v.x == -1)
 				return v3.set(roof, 0);
-			return v3.set(tile.texCases[v.x], (v.y+3)%4);
-			// TODO: Wall, insideCorner, outsideCorner, Diagonal
+			return v3.set(tile.texCases[v.x], v.y);
 		} else {
-			return v3.set(tile.texCases[5], 0);
-			// TODO: Connect cases
+			boolean[][] shouldConnect = getNeightboursConnect(x, z, neighbours);
+			Vector2i v = getGroundCaseRot(shouldConnect);
+			return v3.set(tile.texCases[v.x], v.y);
 		}
+	}
+	
+	private Vector2i getGroundCaseRot(boolean[][] shouldConnect) {
+		int pow = 0, sum = 0;
+		for(int i = 0; i < 3; i++) {
+			for(int j = 0; j < 3; j++) {
+				if(!(i == 1 && j == 1) && (i == 1 || j == 1)) {
+					if(shouldConnect[i][j])
+						sum += Math.pow(2, pow);
+					pow++;
+				}
+			}
+		}
+		return new Vector2i(CONNECT_PERM_TYPE[sum], CONNECT_PERM_ROT[sum]);
 	}
 	
 	private Vector2i getCliffCaseRot(boolean[][] isCliff) {
@@ -230,10 +239,11 @@ public class SurfaceTypeDescription {
 		if(x < 0 || x >= surf[0].length || z < 0 || z >= surf.length)
 			return defaultSurface;
 		
-		for(Surface s : surfaces)
+		for(Surface s : surfaces) {
 			if(s.surfaceValue == surf[z][x] && s.pathValue == path[z][x]) {
 				return s;
 			}
+		}
 		
 		return defaultSurface;
 	}
@@ -262,6 +272,18 @@ public class SurfaceTypeDescription {
 		return cave[z][x] == 1;
 	}
 	
+	private boolean[][] getNeightboursConnect(int x, int z, Surface[][] neighbours) {
+		boolean[][] res = new boolean[3][3];
+		for(int i = 0; i < 3; i++) {
+			for(int j = 0; j < 3; j++) {
+				if((i == 1 || j == 1) && !(i == 1 && j == 1)) {
+					res[i][j] = neighbours[1][1].shouldConnect(neighbours[i][j]);
+				}
+			}
+		}
+		return res;
+	}
+	
 	public static class Surface {
 		public int surfaceValue, pathValue;
 		public String[] connects;
@@ -277,9 +299,11 @@ public class SurfaceTypeDescription {
 	
 	private static boolean containsString(String[] a, String str) {
 		str = str.toUpperCase();
-		for(String s : a)
-			if(str.equals(s))
+		for(String s : a) { 
+			if(str.equals(s)) {
 				return true;
+			}
+		}
 		return false;
 	}
 

@@ -7,12 +7,9 @@ import static org.lwjgl.system.MemoryStack.*;
 import static org.lwjgl.system.MemoryUtil.*;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
-
-import javax.sound.sampled.AudioFileFormat.Type;
 
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -23,12 +20,9 @@ import org.lwjgl.system.MemoryStack;
 import org.rrr.assets.AssetManager;
 import org.rrr.assets.LegoConfig;
 import org.rrr.assets.LegoConfig.Node;
-import org.rrr.assets.model.CTexModel;
 import org.rrr.assets.model.LwsAnimation;
 import org.rrr.assets.sound.AudioSystem;
 import org.rrr.assets.sound.SoundClip;
-import org.rrr.assets.sound.SoundStream;
-import org.rrr.assets.sound.Source;
 import org.rrr.gui.BitMapFont;
 import org.rrr.gui.Cursor;
 import org.rrr.gui.Menu;
@@ -221,7 +215,7 @@ public class RockRaidersRemake {
 		Entity.loadEntity("Mini-Figures/CAPTAIN", "captain");
 //		Entity.loadEntity(new File("LegoRR0/Buildings/Barracks"), 	"barracks");
 		
-		Node l2cfg = (Node) cfg.get("Lego*/Levels/Level09");
+		Node l2cfg = (Node) cfg.get("Lego*/Levels/Level22");
 		
 		try {
 			currentLevel = new Level(this, l2cfg);
@@ -265,8 +259,13 @@ public class RockRaidersRemake {
 			if(input.justReleased[GLFW_KEY_M])
 				drawMenu = !drawMenu;
 			
-			if(input.justReleased[GLFW_KEY_UP])
-				currentLevel.incrementIndex();
+//			if(input.justReleased[GLFW_KEY_UP])
+//				currentLevel.incrementIndex();
+			
+			if(input.isDown[GLFW_KEY_UP])
+				curMenu.scroll(0, -10);
+			if(input.isDown[GLFW_KEY_DOWN])
+				curMenu.scroll(0, 10);
 			
 			if(input.justReleased[GLFW_KEY_1])
 				rockAnim.time = 0;
@@ -359,6 +358,11 @@ public class RockRaidersRemake {
 				curMenu.setInput(input);
 			}
 		});
+	}
+	
+	public void setLevel(Node cfg) {
+		currentLevel = new Level(this, cfg);
+		currentLevel.spawn("captain");
 	}
 	
 	public static void main(String[] args) {
