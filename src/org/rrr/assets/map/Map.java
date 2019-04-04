@@ -42,8 +42,6 @@ public class Map {
 	public void updateRot(int x, int z) {
 		Vector3i tAtlasPos = sTypes.getAtlasPos(x, z, data);
 		int tex = mesh.split.toIndex(tAtlasPos.x, tAtlasPos.y);
-		mesh.tRotation[z*w+x] = (float) (tAtlasPos.z*(Math.PI/2));
-		mesh.tex[z*w+x] = tex;
 	}
 	
 	private void initMapMesh() {
@@ -70,8 +68,6 @@ public class Map {
 		mesh.verts = new float[mesh.inds.length*3];
 		mesh.nVerts = new float[mesh.inds.length*3];
 		mesh.tVerts = new float[mesh.inds.length*2];
-		mesh.tex = new int[w * h];
-		mesh.tRotation = new float[w * h];
 		
 		for(int i = 0; i < mesh.inds.length; i++)
 			mesh.inds[i] = i;
@@ -144,9 +140,7 @@ public class Map {
 				if(data.maps[MapData.DUGG][z][x] != 2) {
 					
 					Vector3i tAtlasPos = sTypes.getAtlasPos(x, z, data);
-					int tex = mesh.split.toIndex(tAtlasPos.x, tAtlasPos.y);
-					mesh.tRotation[z*w+x] = (float) (tAtlasPos.z*(Math.PI/2));
-					mesh.tex[z*w+x] = tex;
+					applyTextureFromAtlas(x, z, tAtlasPos.x, tAtlasPos.y, tAtlasPos.z);
 					
 					boolean[] groundLevels = new boolean[] {
 							isAtGroundlevel(x, z),
@@ -176,7 +170,7 @@ public class Map {
 						break;
 					}
 				} else {
-					mesh.tex[z*w+x] = mesh.split.toIndex(sTypes.roof);
+					applyTextureFromAtlas(x, z, sTypes.roof.x, sTypes.roof.y, 0);
 				}
 				
 				triangulateTile(x, z, zeroTwo);
@@ -233,6 +227,31 @@ public class Map {
 //		}
 //		return getSafeSingleVertY(x, z, i);
 //	}
+	
+	private void applyTextureFromAtlas(int x, int z, int tx, int ty, int rot) {
+		int off = (z*w+x)*24;
+		
+		Vector2f glScale = mesh.split.toGLPos(1, 1);
+		Vector2f glOffset = mesh.split.toGLPos(tx, ty);
+		
+		float[] temp = new float[24];
+		System.arraycopy(mesh.tVerts, off, temp, 0, 24);
+		int j = rot*3;
+		for(int i = 0; i < 12; i++) {
+			mesh.tVerts[off+2*j] = temp[i*2];
+			mesh.tVerts[off+2*j+1] = temp[i*2+1];
+			if(i%3 == 1) {
+				i++;
+				j++;
+			}
+			j++;
+			j %= 12;
+		}
+		for(int i = 0; i < 12; i++) {
+			mesh.tVerts[off+i*2]	= mesh.tVerts[off+i*2]*glScale.x + glOffset.x;
+			mesh.tVerts[off+i*2+1]	= mesh.tVerts[off+i*2+1]*glScale.y + glOffset.y;
+		}
+	}
 	
 	private void setMidY(int x, int z, float height) {
 		for(int i = 0; i < 4; i++)

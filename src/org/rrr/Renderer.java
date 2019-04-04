@@ -56,18 +56,15 @@ public class Renderer {
 		glActiveTexture(GL_TEXTURE0);
 		s.setUniBoolean("lines", false);
 		
-		for(int i = 0; i < map.w*map.h; i++) {
-			int x = i%map.w;
-			int z = Math.floorDiv(i, map.w);
-			if(Math.floor(special.x) == x && Math.floor(special.y) == z) {
-				s.setUniFloat("ambient", 0.9f);
-			} else {
-				s.setUniFloat("ambient", 0.5f);
-			}
-			s.setUniFloat("texRot", map.mesh.tRotation[i]);
-			glBindTexture(GL_TEXTURE_2D, map.mesh.split.texs[map.mesh.tex[i]].getTextureID());
-			glDrawElements(GL_TRIANGLES, 4*3, GL_UNSIGNED_INT, 4*4*3*i);
-		}
+		glBindTexture(GL_TEXTURE_2D, map.mesh.split.atlas.getTextureID());
+		
+		int after = (int) (map.w*map.h-(special.y*map.w+special.x)), before = map.w*map.h-after;
+		s.setUniFloat("ambient", 0.25f);
+		glDrawElements(GL_TRIANGLES, 4*3*before, GL_UNSIGNED_INT, 0);
+		s.setUniFloat("ambient", 0.5f);
+		glDrawElements(GL_TRIANGLES, 4*3, GL_UNSIGNED_INT, 4*4*3*before);
+		s.setUniFloat("ambient", 0.25f);
+		glDrawElements(GL_TRIANGLES, 4*3*after, GL_UNSIGNED_INT, 4*4*3*(before+1));
 		
 		glDisableVertexAttribArray(0);
 		glDisableVertexAttribArray(1);

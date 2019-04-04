@@ -46,7 +46,6 @@ public class AssetManager {
 	private SoundLoader sLoader;
 	
 	private LegoConfig cfg;
-	private Node splits;
 	
 	private HashMap<String, Asset> assets;
 	
@@ -124,7 +123,6 @@ public class AssetManager {
 		mLoader = new ModelLoader();
 		tLoader = new TexLoader();
 		sLoader = new SoundLoader((Node) cfg.get("Lego*/Samples"), this);
-		splits = (Node) cfg.get("Lego*/Textures");
 		standardSTypes = getSurfaceTypeDescription("Standard");
 	}
 	
@@ -326,29 +324,8 @@ public class AssetManager {
 	}
 	
 	public TextureSplit getTexSplit(String split) {
-		
 		TextureSplit res = new TextureSplit();
-		
-		if(split.contains("::"))
-			split = split.split("::")[1];
-		Node splitCfg = splits.getSubNode(split);
-		int sw = splitCfg.getInteger("surftextwidth");
-		int sh = splitCfg.getInteger("surftextheight");
-		String baseName = splitCfg.getValue("texturebasename");
-		
-		res.w = sw;
-		res.h = sh;
-		res.texs = new Texture[sw*sh];
-		for(int x = 0; x < sw; x++) {
-			for(int y = 0; y < sh; y++) {
-				String path = baseName + x + y + ".bmp";
-				if(exists(path)) {
-					int i = y*sw+x;
-					res.texs[i] = getTexture(path);
-				}
-			}
-		}
-		
+		res.genAtlas(split, this);
 		return res;
 	}
 	

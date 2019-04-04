@@ -13,8 +13,6 @@ public class MapMesh {
 	public float[]	wave;
 	public float[]	t;
 	
-	public float[]	tRotation;
-	public int[]	tex;
 	public TextureSplit split;
 	
 	public int[]	inds;
