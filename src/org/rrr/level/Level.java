@@ -30,7 +30,6 @@ public class Level {
 	
 	private ArrayList<Entity> entities;
 	private Input input;
-	private MapMesh mapMesh;
 	public Camera camera;
 	private Cursor cursor;
 	private RockRaidersRemake par;

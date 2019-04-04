@@ -3,11 +3,14 @@
 layout(location = 0) in vec3 pos;
 layout(location = 1) in vec3 norm;
 layout(location = 2) in vec2 texPos;
+layout(location = 2) in vec4 wave;
+layout(location = 2) in float t;
 
 out vec3 mPos;
 out vec3 mNorm;
 out vec2 mTexPos;
-out float mSurfType;
+out vec4 mWave;
+out float mt;
 
 uniform mat4 cam;
 uniform mat4 mapTrans;
@@ -25,6 +28,8 @@ void main() {
 	
 	mPos = (mapTrans * vec4(pos, 1)).xyz;
 	mNorm = norm;
+	mt = t;
+	mWave = wave;
 	vec2 tOrig = vec2(0.5);
 	mat2 tRot;
 	tRot[0] = vec2(cos(texRot), -sin(texRot));

@@ -10,9 +10,11 @@ public class MapMesh {
 	public float[]	verts;
 	public float[]	nVerts;
 	public float[]	tVerts;
+	public float[]	wave;
+	public float[]	t;
 	
-	public float[]	 tRotation;
-	public int[]	 tex;
+	public float[]	tRotation;
+	public int[]	tex;
 	public TextureSplit split;
 	
 	public int[]	inds;

@@ -3,6 +3,8 @@
 in vec3 mPos;
 in vec3 mNorm;
 in vec2 mTexPos;
+in vec4 mWave;
+in float mt;
 
 out vec4 outColor;
 

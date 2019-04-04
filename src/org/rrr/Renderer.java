@@ -50,6 +50,8 @@ public class Renderer {
 		glEnableVertexAttribArray(0);
 		glEnableVertexAttribArray(1);
 		glEnableVertexAttribArray(2);
+		glEnableVertexAttribArray(3);
+		glEnableVertexAttribArray(4);
 		s.setUniVector3f("pos", new Vector3f(0));
 		glActiveTexture(GL_TEXTURE0);
 		s.setUniBoolean("lines", false);
