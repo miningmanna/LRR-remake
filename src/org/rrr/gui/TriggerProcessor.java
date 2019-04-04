@@ -19,7 +19,7 @@ public class TriggerProcessor {
 		} else if(func.matches(SETLEVEL_REGEX)) {
 			String levelName = func.substring(func.indexOf('(')+1, func.indexOf(')'));
 			System.out.println("CHANGING LEVEL: " + levelName);
-			Node cfg = (Node) par.getCfg().get("Lego*/Levels/" + levelName);
+			Node cfg = (Node) par.getAssetManager().getConfig().get("Lego*/Levels/" + levelName);
 			if(cfg != null)
 				par.setLevel(cfg);
 			else

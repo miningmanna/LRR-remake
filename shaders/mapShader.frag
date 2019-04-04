@@ -1,5 +1,7 @@
 #version 400 core
 
+#define M_PI 3.1415926535897932384626433832795
+
 in vec3 mPos;
 in vec3 mNorm;
 in vec2 mTexPos;
@@ -11,8 +13,9 @@ out vec4 outColor;
 uniform mat4 cam;
 uniform mat4 mapTrans;
 uniform sampler2D tex;
-uniform float texRot;
 uniform float ambient;
+uniform float unit;
+uniform vec2 atlasCellSize;
 uniform bool lines;
 uniform vec3 lightDirect = normalize(vec3(-1,-1,-1));
 uniform float lightDirectI = 0.3;
@@ -25,8 +28,26 @@ float dist2(vec3 v1, vec3 v2) {
 }
 
 void main() {
+	vec2 newMTexPos = mTexPos;
+	if(mWave.x != 0) {
+		float angle = (M_PI/180.0)*(mWave.z+90);
+		vec2 dir = vec2(cos(angle)*atlasCellSize.x, sin(angle)*atlasCellSize.y);
+		vec2 axis = vec2(
+		vec2 rel = vec2(mod(mTexPos.x, atlasCellSize.x), mod(mTexPos.y, atlasCellSize.y));
+		vec2 off = mTexPos - rel;
+		rel += dir*sin(2*M_PI*((length(rel/atlasCellSize)/(mWave.x)) + (unit*mWave.z)))*mWave.y;
+		rel.x = mod(rel.x/atlasCellSize.x, 1)*atlasCellSize.x;
+		rel.y = mod(rel.y/atlasCellSize.y, 1)*atlasCellSize.y;
+		if(rel.x < 0)
+			rel.x += atlasCellSize.x;
+		if(rel.y < 0)
+			rel.y += atlasCellSize.y;
+		
+		newMTexPos = off+rel;
+		
+	}
 	
-	vec4 color = texture(tex, mTexPos);
+	vec4 color = texture(tex, newMTexPos);
 	
 	mat3 normalMatrix = transpose(inverse(mat3(mapTrans)));
 	vec3 tNorm = normalize(normalMatrix * mNorm);

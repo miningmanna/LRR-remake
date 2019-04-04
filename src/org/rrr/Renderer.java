@@ -42,8 +42,9 @@ public class Renderer {
 	}
 	
 	// TODO - reimplement
-	public void render(Map map, Shader s, Vector2f special) {
-		
+	float absTime = 0;
+	public void render(Map map, Shader s, Vector2f special, float dt) {
+		absTime += dt;
 		glCullFace(GL_BACK);
 		
 		glBindVertexArray(map.mesh.vao);
@@ -55,6 +56,8 @@ public class Renderer {
 		s.setUniVector3f("pos", new Vector3f(0));
 		glActiveTexture(GL_TEXTURE0);
 		s.setUniBoolean("lines", false);
+		s.setUniVector2f("atlasCellSize", map.mesh.split.toGLPos(1, 1));
+		s.setUniFloat("unit", absTime);
 		
 		glBindTexture(GL_TEXTURE_2D, map.mesh.split.atlas.getTextureID());
 		
@@ -69,6 +72,8 @@ public class Renderer {
 		glDisableVertexAttribArray(0);
 		glDisableVertexAttribArray(1);
 		glDisableVertexAttribArray(2);
+		glDisableVertexAttribArray(3);
+		glDisableVertexAttribArray(4);
 		glBindVertexArray(0);
 		
 		glCullFace(GL_FRONT);

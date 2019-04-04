@@ -71,6 +71,8 @@ public class ModelLoader {
 		mesh.vertVbo  = loadVertexIntoVBO(0, mesh.verts, 3,  GL_DYNAMIC_DRAW);
 		mesh.nVertVbo = loadVertexIntoVBO(1, mesh.nVerts, 3, GL_DYNAMIC_DRAW);
 		mesh.tVertVbo = loadVertexIntoVBO(2, mesh.tVerts, 2, GL_DYNAMIC_DRAW);
+		mesh.waveVbo  = loadVertexIntoVBO(3, mesh.wave, 4,   GL_DYNAMIC_DRAW);
+		mesh.waveVbo  = loadVertexIntoVBO(4, mesh.t, 1,      GL_DYNAMIC_DRAW);
 		
 		int indVbo = glGenBuffers();
 		vbos.add(indVbo);

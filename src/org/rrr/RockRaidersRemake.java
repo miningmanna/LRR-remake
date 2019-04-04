@@ -70,6 +70,10 @@ public class RockRaidersRemake {
 		init();
 		run();
 		
+		entityShader.destroy();
+		mapShader.destroy();
+		uiShader.destroy();
+		
 		am.destroy();
 		audioSystem.destroy();
 		
@@ -299,7 +303,7 @@ public class RockRaidersRemake {
 				curMenu.update(delta);
 			
 			currentLevel.step(delta);
-			currentLevel.render();
+			currentLevel.render(delta);
 			
 			uiShader.start();
 			renderer.render(cursor, uiShader);
@@ -376,35 +380,31 @@ public class RockRaidersRemake {
 	public Renderer getRenderer() {
 		return renderer;
 	}
-
-	public LegoConfig getCfg() {
-		return cfg;
-	}
-
+	
 	public Input getInput() {
 		return input;
 	}
-
+	
 	public Cursor getCursor() {
 		return cursor;
 	}
-
+	
 	public Shader getEntityShader() {
 		return entityShader;
 	}
-
+	
 	public Shader getMapShader() {
 		return mapShader;
 	}
-
+	
 	public Shader getUiShader() {
 		return uiShader;
 	}
-
+	
 	public Level getCurrentLevel() {
 		return currentLevel;
 	}
-
+	
 	public AssetManager getAssetManager() {
 		return am;
 	}

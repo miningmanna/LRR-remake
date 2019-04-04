@@ -322,4 +322,9 @@ public class SurfaceTypeDescription {
 			return new Vector2i(1, getCliffCaseIndex(isCliff));
 		}
 	}
+	
+	public Vector4f getWave(int x, int z, MapData data) {
+		Surface s = getSurfaceAt(x, z, data);
+		return s.wave;
+	}
 }

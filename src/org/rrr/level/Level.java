@@ -25,7 +25,7 @@ import org.rrr.gui.Cursor;
 public class Level {
 	
 	
-	private Shader mapShader, uiShader, entityShader;
+	private Shader mapShader, entityShader;
 	private Renderer renderer;
 	
 	private ArrayList<Entity> entities;
@@ -44,7 +44,6 @@ public class Level {
 		this.par = par;
 		this.renderer = par.getRenderer();
 		this.mapShader = par.getMapShader();
-		this.uiShader = par.getUiShader();
 		this.entityShader = par.getEntityShader();
 		this.cursor = par.getCursor();
 		this.input = par.getInput();
@@ -77,7 +76,7 @@ public class Level {
 			cursor.animations[cursor.curAnimation].anim.frame = 0;
 	}
 	
-	public void render() {
+	public void render(float dt) {
 		
 		Vector3f move = new Vector3f(0, 0, 0);
 		if(input.isDown[GLFW_KEY_W])
@@ -137,7 +136,7 @@ public class Level {
 		mapShader.setUniMatrix4f("mapTrans", m);
 		mapShader.setUniVector3f("lightDirect", new Vector3f(camera.right).mul(-1).add(0, -1, 0).normalize());
 		// Todo - mapmesh fix
-		renderer.render(map, mapShader, mapPos);
+		renderer.render(map, mapShader, mapPos, dt);
 		mapShader.stop();
 		
 		entityShader.start();

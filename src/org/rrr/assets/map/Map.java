@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
+import org.joml.Vector4f;
 import org.rrr.assets.AssetManager;
 import org.rrr.assets.LegoConfig.Node;
 import org.rrr.assets.map.SurfaceTypeDescription.Surface;
@@ -68,6 +69,8 @@ public class Map {
 		mesh.verts = new float[mesh.inds.length*3];
 		mesh.nVerts = new float[mesh.inds.length*3];
 		mesh.tVerts = new float[mesh.inds.length*2];
+		mesh.wave = new float[mesh.inds.length*4];
+		mesh.t = new float[mesh.inds.length];
 		
 		for(int i = 0; i < mesh.inds.length; i++)
 			mesh.inds[i] = i;
@@ -138,6 +141,15 @@ public class Map {
 				boolean zeroTwo = true;
 				
 				if(data.maps[MapData.DUGG][z][x] != 2) {
+					Vector4f wave = sTypes.getWave(x, z, data);
+					int off = (z*w+x)*12*4;
+					for(int i = 0; i < 12; i++) {
+						mesh.wave[off+i*4]		= wave.x;
+						mesh.wave[off+i*4+1]	= wave.y;
+						mesh.wave[off+i*4+2]	= wave.z;
+						mesh.wave[off+i*4+3]	= wave.w;
+					}
+					// TODO: fix map shader to work with an angled wave (dist from orthagonal line to point)
 					
 					Vector3i tAtlasPos = sTypes.getAtlasPos(x, z, data);
 					applyTextureFromAtlas(x, z, tAtlasPos.x, tAtlasPos.y, tAtlasPos.z);
@@ -179,6 +191,12 @@ public class Map {
 				
 			}
 		}
+	}
+	
+	private void updateWaves(float dt) {
+		
+		// TODO: update time in VBO
+		
 	}
 	
 	private float getSingleY(int x, int z, int i) {
