@@ -47,6 +47,7 @@ public class RockRaidersRemake {
 	private DelayedProcessor dProcessor;
 	private LegoConfig cfg;
 	private Node triggerCfg;
+	private EntityEngine eng;
 	
 	private SoundClip menuTransition;
 	private LwsAnimation rockAnim;
@@ -213,10 +214,11 @@ public class RockRaidersRemake {
 		curMenu.setInput(input);
 		
 		ArrayList<Entity> entities = new ArrayList<>();
-		EntityEngine eng = new EntityEngine();
+		eng = new EntityEngine(this);
 		
 		Entity.setAssetManager(am);
 		Entity.loadEntity("Mini-Figures/CAPTAIN", "captain");
+		Entity.loadEntity("Creatures/TinyIM", "tinyIM");
 //		Entity.loadEntity(new File("LegoRR0/Buildings/Barracks"), 	"barracks");
 		
 		Node l2cfg = (Node) cfg.get("Lego*/Levels/Level22");
@@ -224,8 +226,11 @@ public class RockRaidersRemake {
 		try {
 			currentLevel = new Level(this, l2cfg);
 			currentLevel.spawn("captain");
+			Entity im = currentLevel.spawn("tinyIM");
+			eng.bindScript(im, "dt = delta()\n"
+							 + "move(0, 0, dt*10)\n"
+							 + "turn(0.05)");
 		} catch (Exception e2) {
-			// TODO Auto-generated catch block
 			e2.printStackTrace();
 		}
 		
@@ -391,6 +396,10 @@ public class RockRaidersRemake {
 	
 	public Shader getEntityShader() {
 		return entityShader;
+	}
+	
+	public EntityEngine getEntityEngine() {
+		return eng;
 	}
 	
 	public Shader getMapShader() {

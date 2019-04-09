@@ -1,6 +1,5 @@
 package org.rrr.level;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -24,6 +23,7 @@ public class Entity {
 	public LwsAnimation[] anims;
 	public LuaValue script;
 	public LuaTable mVars;
+	public float colRadius, colHeight;
 	
 	public Entity() {
 		pos = new Vector3f();

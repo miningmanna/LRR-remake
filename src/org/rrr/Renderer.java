@@ -28,6 +28,7 @@ import static org.lwjgl.opengl.GL30.*;
 
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
+import org.joml.Vector2i;
 import org.joml.Vector3f;
 
 public class Renderer {
@@ -43,7 +44,7 @@ public class Renderer {
 	
 	// TODO - reimplement
 	float absTime = 0;
-	public void render(Map map, Shader s, Vector2f special, float dt) {
+	public void render(Map map, Shader s, Vector2i special, float dt) {
 		absTime += dt;
 		glCullFace(GL_BACK);
 		
@@ -60,15 +61,17 @@ public class Renderer {
 		s.setUniFloat("unit", absTime);
 		
 		glBindTexture(GL_TEXTURE_2D, map.mesh.split.atlas.getTextureID());
-		
-		int after = (int) (map.w*map.h-(special.y*map.w+special.x)), before = map.w*map.h-after;
-		s.setUniFloat("ambient", 0.25f);
-		glDrawElements(GL_TRIANGLES, 4*3*before, GL_UNSIGNED_INT, 0);
-		s.setUniFloat("ambient", 0.5f);
-		glDrawElements(GL_TRIANGLES, 4*3, GL_UNSIGNED_INT, 4*4*3*before);
-		s.setUniFloat("ambient", 0.25f);
-		glDrawElements(GL_TRIANGLES, 4*3*after, GL_UNSIGNED_INT, 4*4*3*(before+1));
-		
+		s.setUniFloat("ambient", 0);
+		if(special != null) {
+			int after = (int) (map.w*map.h-(special.y*map.w+special.x)), before = map.w*map.h-after;
+			glDrawElements(GL_TRIANGLES, 4*3*before, GL_UNSIGNED_INT, 0);
+			s.setUniFloat("ambient", 0.1f);
+			glDrawElements(GL_TRIANGLES, 4*3, GL_UNSIGNED_INT, 4*4*3*before);
+			s.setUniFloat("ambient", 0);
+			glDrawElements(GL_TRIANGLES, 4*3*after, GL_UNSIGNED_INT, 4*4*3*(before+1));
+		} else {
+			glDrawElements(GL_TRIANGLES, map.mesh.inds.length, GL_UNSIGNED_INT, 0);
+		}
 		glDisableVertexAttribArray(0);
 		glDisableVertexAttribArray(1);
 		glDisableVertexAttribArray(2);

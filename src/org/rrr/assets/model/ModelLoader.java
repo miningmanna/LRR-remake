@@ -72,7 +72,7 @@ public class ModelLoader {
 		mesh.nVertVbo = loadVertexIntoVBO(1, mesh.nVerts, 3, GL_DYNAMIC_DRAW);
 		mesh.tVertVbo = loadVertexIntoVBO(2, mesh.tVerts, 2, GL_DYNAMIC_DRAW);
 		mesh.waveVbo  = loadVertexIntoVBO(3, mesh.wave, 4,   GL_DYNAMIC_DRAW);
-		mesh.waveVbo  = loadVertexIntoVBO(4, mesh.t, 1,      GL_DYNAMIC_DRAW);
+		mesh.tVbo     = loadVertexIntoVBO(4, mesh.t, 1,      GL_DYNAMIC_DRAW);
 		
 		int indVbo = glGenBuffers();
 		vbos.add(indVbo);
@@ -458,6 +458,17 @@ public class ModelLoader {
 		
 		return res;
 		
+	}
+
+	public void updateMapTVOB(MapMesh mesh, int start, int stop) {
+		FloatBuffer buff = BufferUtils.createFloatBuffer((stop-start)*12);
+		buff.put(mesh.t, start*12, (stop-start)*12);
+		buff.flip();
+		glBindVertexArray(mesh.vao);
+		glBindBuffer(GL_ARRAY_BUFFER, mesh.tVbo);
+		glBufferSubData(GL_ARRAY_BUFFER, start*12*4, buff);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindVertexArray(0);
 	}
 	
 }

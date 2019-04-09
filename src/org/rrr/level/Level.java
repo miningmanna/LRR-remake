@@ -111,30 +111,28 @@ public class Level {
 				 unprojDir	= new Vector3f();
 		camera.combined.unprojectRay(input.mouse.x, par.getHeight()-input.mouse.y, new int[] {0,0,(int) par.getWidth(),(int) par.getHeight()},  unprojOrig, unprojDir);
 		
-		Vector2f mapPos = map.getTileHit(unprojOrig, unprojDir);
+		Vector3f hitPos = map.getHit(unprojOrig, unprojDir);
+		
+		Vector2i mapPos = null;
+		if(hitPos != null) {
+			mapPos = map.getTileUnderPoint(hitPos);
+			hitPos.y += map.unitDist;
+		}
 //		if(mapPos.x != -1 && mapPos.y != -1)
 //			System.out.println("CAVE " + mapPos + ": " + map.data.maps[MapData.DUGG][(int) mapPos.y][(int) mapPos.x]);
 		
-		if(input.mouseJustPressed[0]) {
-			if(mapPos.x != -1) {
-//				map.setTile((int) mapPos.x, (int) mapPos.y, 5);
-//				map.updateMesh();
-				Vector2i pos = map.sTypes.getCasePos((int) mapPos.x, (int) mapPos.y, map.data);
-				System.out.println("CasePos: " + pos);
-				if(pos.x != 1) {
-					map.printRot((int) mapPos.x, (int) mapPos.y);
-				}
-			}
-		}
 		
 		mapShader.start();
 		mapShader.setUniVector3f("lightDirect", camera.right);
 		mapShader.setUniFloat("texRot", tRot);
 		mapShader.setUniMatrix4f("cam", camera.combined);
+		mapShader.setUniVector3f("camPos", camera.position);
 		Matrix4f m = new Matrix4f() ;
 		m.identity();
 		mapShader.setUniMatrix4f("mapTrans", m);
 		mapShader.setUniVector3f("lightDirect", new Vector3f(camera.right).mul(-1).add(0, -1, 0).normalize());
+		if(hitPos != null)
+			mapShader.setUniVector3f("lightPoint", hitPos);
 		// Todo - mapmesh fix
 		renderer.render(map, mapShader, mapPos, dt);
 		mapShader.stop();
@@ -145,23 +143,27 @@ public class Level {
 		
 		for(int i = 0; i < entities.size(); i++) {
 			renderer.render(entities.get(i), entityShader);
+			if(entities.get(i).script != null)
+				par.getEntityEngine().call(entities.get(i));
 		}
 		
 		entityShader.stop();
 		
 	}
 	
-	public void spawn(String name) {
-		
+	public Entity spawn(String name) {
 		try {
-			entities.add(Entity.getEntity(name));
+			Entity ent = Entity.getEntity(name);
+			entities.add(ent);
+			return ent;
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
+		return null;
 	}
 	
 	public void step(float delta) {
+		map.update(delta);
 		if(cursor != null)
 			cursor.update(delta);
 		for(Entity e : entities)
@@ -169,4 +171,23 @@ public class Level {
 		
 	}
 	
+	public Vector2i toMapPos(Vector3f pos) {
+		return map.getTileUnderPoint(pos);
+	}
+	
+	public Path pathFind(int sx, int sz, int dx, int dy) {
+		Path res = new Path();
+		
+		// TODO: A star pathfinding
+		
+		return res;
+	}
+	
+	public Path pathFindDijkstra(int sx, int sz, int dx, int dy) {
+		Path res = new Path();
+		
+		// TODO: Dijkstra pathfinding
+		
+		return res;
+	}
 }

@@ -14,13 +14,6 @@ out float mt;
 
 uniform mat4 cam;
 uniform mat4 mapTrans;
-uniform sampler2D tex;
-uniform float texRot;
-uniform bool lines;
-uniform vec3 lightDirect;
-uniform float lightDirectI;
-uniform vec3 lightPoint;
-uniform float lightPointI;
 
 void main() {
 	
@@ -30,10 +23,5 @@ void main() {
 	mNorm = norm;
 	mt = t;
 	mWave = wave;
-	vec2 tOrig = vec2(0.5);
-	mat2 tRot;
-	tRot[0] = vec2(cos(texRot), -sin(texRot));
-	tRot[1] = vec2(sin(texRot),  cos(texRot));
-	mTexPos = tOrig + (tRot * (texPos-tOrig));
-	
+	mTexPos = texPos;
 }

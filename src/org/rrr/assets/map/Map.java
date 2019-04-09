@@ -3,6 +3,7 @@ package org.rrr.assets.map;
 import java.util.ArrayList;
 
 import org.joml.Vector2f;
+import org.joml.Vector2i;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
 import org.joml.Vector4f;
@@ -20,6 +21,7 @@ public class Map {
 	public MapData data;
 	public MapMesh mesh;
 	public SurfaceTypeDescription sTypes;
+	public float unitDist = 40;
 	private boolean[][] utilBuffer;
 	
 	private ModelLoader mLoader;
@@ -62,7 +64,6 @@ public class Map {
 				0.5f, 0, 0.5f
 		};
 		
-		float unitDist = 40;
 		int[][] high = data.maps[MapData.HIGH];
 		
 		mesh.inds = new int[w * h * baseVerts.length/3];
@@ -194,9 +195,30 @@ public class Map {
 	}
 	
 	private void updateWaves(float dt) {
-		
-		// TODO: update time in VBO
-		
+		int start = -1, stop = -1;
+		for(int z = 0; z < h; z++) {
+			for(int x = 0; x < w; x++) {
+				int tPos = (z*w+x)*12;
+				if(mesh.wave[tPos*4] != 0) {
+					if(start == -1) {
+						start = z*w+x;
+						stop = z*w+x+1;
+					} else {
+						if(stop < z*w+x+1) {
+							stop = z*w+x+1;
+						}
+					}
+					float newT = mesh.t[tPos];
+					newT += dt;
+					newT %= (1.0f/mesh.wave[tPos*4+3]);
+					for(int i = 0; i < 12; i++) {
+						mesh.t[tPos+i] = newT;
+					}
+				}
+			}
+		}
+		if(start != -1)
+			mLoader.updateMapTVOB(mesh, start, stop);
 	}
 	
 	private float getSingleY(int x, int z, int i) {
@@ -344,15 +366,8 @@ public class Map {
 		}
 	}
 	
-	public void update(float val) {
-//		
-//		int off = 0, l = 12;
-//		
-//		setY(0, 0, 0, getSingleY(0, 0, 0)+val);
-//		calcNormals(0, 0);
-//		
-//		mLoader.updateMapMesh(mesh, off, l);
-//		
+	public void update(float dt) {
+		updateWaves(dt);
 	}
 	
 	public void setTile(int x, int z, int val) {
@@ -429,8 +444,31 @@ public class Map {
 		}
 	}
 	
-	public Vector2f getTileHit(Vector3f o, Vector3f d) {
-		Vector2f res = new Vector2f(-1);
+	public Vector3f getHit(Vector3f o, Vector3f d) {
+		Vector3f res = null;
+		float minDist = Float.MAX_VALUE;
+		for(int z = 0; z < h; z++) {
+			for(int x = 0; x < w; x++) {
+				Vector3f hit = hitsTile(o, d, x, z);
+				if(hit != null) {
+					float dist = o.distance(hit);
+					if(dist < minDist)
+						res = hit;
+				}
+			}
+		}
+		return res;
+	}
+	
+	public Vector2i getTileUnderPoint(Vector3f pos) {
+		Vector2i res = new Vector2i();
+		res.x = (int) Math.floor(pos.x/unitDist);
+		res.y = (int) Math.floor(pos.z/unitDist);
+		return res;
+	}
+	
+	public Vector2i getTileHit(Vector3f o, Vector3f d) {
+		Vector2i res = new Vector2i(-1);
 		
 //		o = new Vector3f(10.2f*40.0f, 1000, 10.5f*40.0f);
 //		d = new Vector3f(0, -1, 0);
