@@ -17,11 +17,11 @@ public class Map {
 	
 	public int w;
 	public int h;
-	public Surface[][] surfaces;
 	public MapData data;
 	public MapMesh mesh;
 	public SurfaceTypeDescription sTypes;
 	public float unitDist = 40;
+	public int[][] surfaces;
 	private boolean[][] utilBuffer;
 	
 	private ModelLoader mLoader;

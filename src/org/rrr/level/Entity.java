@@ -24,6 +24,9 @@ public class Entity {
 	public LuaValue script;
 	public LuaTable mVars;
 	public float colRadius, colHeight;
+	public int[] walkables;
+	public Path curPath;
+	public int curPathStep;
 	
 	public Entity() {
 		pos = new Vector3f();

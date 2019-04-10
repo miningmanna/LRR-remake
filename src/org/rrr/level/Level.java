@@ -4,12 +4,13 @@ import static org.lwjgl.glfw.GLFW.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.PriorityQueue;
 
 import org.joml.Matrix4f;
-import org.joml.Vector2f;
 import org.joml.Vector2i;
 import org.joml.Vector3f;
-import org.newdawn.slick.opengl.Texture;
 import org.rrr.Camera;
 import org.rrr.Input;
 import org.rrr.Renderer;
@@ -17,9 +18,7 @@ import org.rrr.RockRaidersRemake;
 import org.rrr.Shader;
 import org.rrr.assets.LegoConfig.Node;
 import org.rrr.assets.map.Map;
-import org.rrr.assets.map.MapData;
 import org.rrr.assets.map.SurfaceTypeDescription;
-import org.rrr.assets.model.MapMesh;
 import org.rrr.gui.Cursor;
 
 public class Level {
@@ -34,7 +33,9 @@ public class Level {
 	private Cursor cursor;
 	private RockRaidersRemake par;
 	
-	private Map map;
+	public Map map;
+	
+	private long[][] costBuffer;
 	
 	private float speed = 1.0f;
 	private float tRot = 0;
@@ -66,7 +67,8 @@ public class Level {
 		} catch (Exception e2) {
 			e2.printStackTrace();
 		}
-		
+		if(map != null)
+			costBuffer = new long[map.h][map.w];
 	}
 	
 	public void incrementIndex() { // TODO: remove test function
@@ -175,10 +177,99 @@ public class Level {
 		return map.getTileUnderPoint(pos);
 	}
 	
-	public Path pathFind(int sx, int sz, int dx, int dy) {
-		Path res = new Path();
+	private boolean containsInt(int[] a, int v) {
+		for(int i = 0; i < a.length; i++)
+			if(a[i] == v)
+				return true;
+		return false;
+	}
+	
+	public Path pathFind(int sx, int sz, int dx, int dz, int[] walkables) {
 		
-		// TODO: A star pathfinding
+		boolean[][] walkable = new boolean[map.h][map.w];
+		for(int z = 0; z < map.h; z++)
+			for(int x = 0; x < map.w; x++)
+				walkable[z][x] = containsInt(walkables, map.sTypes.getSurfaceIndex(x, z, map.data));
+		
+		// The long represents the F-cost, G-cost and coords and originTile
+		// the originTile specifies which tile one came from to get to this one
+		// It is organized in the following fashion:
+		// [F-cost][G-cost][x][z]
+		// F-cost is an short
+		// G-cost is a short
+		// x is a byte
+		// z is a byte
+		// origX is a byte
+		// origZ is a byte
+		// This should mean, that it prioritizes F-cost, then G-cost, x, z, origX, origZ
+		PriorityQueue<Long> nextNodes = new PriorityQueue<>(new Comparator<Long>() {
+			@Override
+			public int compare(Long o1, Long o2) {
+				int res = Long.compareUnsigned(o1, o2);
+				if(res == 0)
+					return 0;
+				else if(res < 0)
+					return -1;
+				else
+					return 1;
+			}
+		});
+		
+		for(int i = 0; i < costBuffer.length; i++)
+			for(int j = 0; j < costBuffer[i].length; j++)
+				costBuffer[i][j] = -1;
+		
+		costBuffer[sz][sx] = 0L	| (((long) Math.abs(dx-sx)+Math.abs(dz-sz)) << 6*8)
+								| (sx << 3*8) | (sz << 2*8) | (sx << 8) | (sz);
+		
+		nextNodes.add(costBuffer[sz][sx]);
+		
+		boolean foundPath = false;
+		while(!nextNodes.isEmpty() && !foundPath) {
+			long node = nextNodes.poll();
+			int cx = (int) ((node & (0x00FFL << 3*8)) >> 3*8);
+			int cz = (int) ((node & (0x00FFL << 2*8)) >> 2*8);
+			int cGCost = (int) ((node & (0x00FFFFL << 4*8)) >> 4*8);
+			for(int z = -1; z < 2 && !foundPath; z++) {
+				for(int x = ((2+z)%2)-1; x < 2 && !foundPath; x += 2) {
+					if((cx+x) < 0 || (cx+x) >= map.w || (cz+z) < 0 || (cz+z) >= map.h)
+						continue;
+					if(!walkable[cz+z][cx+x])
+						continue;
+					if((cx+x) == dx && (cz+z) == dz) {
+						foundPath = true;
+					}
+					
+					int newGCost = cGCost+1;
+					long neighbourNode = costBuffer[cz+z][cx+x];
+					if(neighbourNode != -1) {
+						if(newGCost >= (int) ((node & (0x00FFFFL << 4*8)) >> 4*8))
+							continue;
+						nextNodes.remove(neighbourNode);
+					}
+					int fCost = newGCost + Math.abs(dx-(cx+x))+Math.abs(dz-(cz+z));
+					neighbourNode =  0L	| ((0x00FFFFL & fCost) << 6*8) | ((0x00FFFFL & newGCost) << 4*8)
+										| ((0x00FFL & (cx+x)) << 3*8) | ((0x00FFL & (cz+z)) << 2*8) | ((0x00FFL & cx) << 8) | (0x00FFL & cz);
+					costBuffer[cz+z][cx+x] = neighbourNode;
+					nextNodes.add(neighbourNode);
+				}
+			}
+		}
+		
+		Path res = null; 
+		if(foundPath) {
+			res = new Path();
+			res.tiles = new ArrayList<>();
+			int x = dx, z = dz;
+			while(x != sx || z != sz) {
+				Vector2i v = new Vector2i(x, z);
+				res.tiles.add(v);
+				long cTile = costBuffer[z][x];
+				x = (int) ((cTile & (0x00FFL << 8)) >> 8);
+				z = (int) (cTile & 0x00FFL);
+			}
+			Collections.reverse(res.tiles);
+		}
 		
 		return res;
 	}
@@ -189,5 +280,9 @@ public class Level {
 		// TODO: Dijkstra pathfinding
 		
 		return res;
+	}
+
+	public SurfaceTypeDescription getSTypes() {
+		return map.sTypes;
 	}
 }

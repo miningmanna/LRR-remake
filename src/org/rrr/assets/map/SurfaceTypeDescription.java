@@ -248,6 +248,21 @@ public class SurfaceTypeDescription {
 		return defaultSurface;
 	}
 	
+	public int getSurfaceIndex(int x, int z, MapData data) {
+		
+		int[][] surf = data.maps[MapData.SURF],
+				path = data.maps[MapData.PATH];
+		
+		if(x < 0 || x >= surf[0].length || z < 0 || z >= surf.length)
+			return -1;
+		
+		for(int i = 0; i < surfaces.length; i++)
+			if(surfaces[i].surfaceValue == surf[z][x] && surfaces[i].pathValue == path[z][x])
+				return i;
+		
+		return -1;
+	}
+	
 	private boolean[][] getNeighboursIsCave(int x, int z, MapData data) {
 		boolean[][] res = new boolean[3][3];
 		int dx = -1, dz = 1;

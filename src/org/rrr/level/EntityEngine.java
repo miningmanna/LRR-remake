@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 
+import javax.print.attribute.standard.Finishings;
+
 import org.joml.Vector2i;
 import org.joml.Vector3f;
 import org.luaj.vm2.Globals;
@@ -61,13 +63,97 @@ public class EntityEngine {
 				return null;
 			}
 		});
+		globals.set("translate", new ThreeArgFunction() {
+			@Override
+			public LuaValue call(LuaValue arg0, LuaValue arg1, LuaValue arg2) {
+				entity.pos.add(arg0.tofloat(), arg1.tofloat(), arg2.tofloat());
+				return null;
+			}
+		});
+		globals.set("hasPath", new TwoArgFunction() {
+			@Override
+			public LuaValue call(LuaValue arg0, LuaValue arg1) {
+				if(entity.curPath != null)
+					return LuaValue.TRUE;
+				else
+					return LuaValue.FALSE;
+			}
+		});
+		globals.set("removePath", new TwoArgFunction() {
+			@Override
+			public LuaValue call(LuaValue arg0, LuaValue arg1) {
+				entity.curPath = null;
+				return null;
+			}
+		});
 		globals.set("pathFind", new TwoArgFunction() {
 			@Override
 			public LuaValue call(LuaValue arg0, LuaValue arg1) {
 				Level l = par.getCurrentLevel();
 				Vector2i mapPos = l.toMapPos(entity.pos);
-				l.pathFind(mapPos.x, mapPos.y, arg0.toint(), arg1.toint());
+				entity.curPath = l.pathFind(mapPos.x, mapPos.y, arg0.toint(), arg1.toint(), entity.walkables);
 				return null;
+			}
+		});
+		globals.set("getNextPathStep", new ZeroArgFunction() {
+			@Override
+			public LuaValue call() {
+				Vector2i v = entity.curPath.tiles.get(entity.curPathStep);
+				entity.curPathStep++;
+				if(entity.curPathStep >= entity.curPath.tiles.size()) {
+					entity.curPath = null;
+					entity.curPathStep = 0;
+				}
+				LuaTable t = new LuaTable();
+				t.set("x", (v.x + 0.5f)*40.0f); // TODO: remove hardcoded unit distance
+				t.set("y", 90);
+				t.set("z", (v.y + 0.5f)*40.0f);
+				return t;
+			}
+		});
+		globals.set("getCurrentPathStep", new ZeroArgFunction() {
+			@Override
+			public LuaValue call() {
+				Vector2i v = entity.curPath.tiles.get(entity.curPathStep);
+				LuaTable t = new LuaTable();
+				t.set("x", (v.x + 0.5f)*40.0f); // TODO: remove hardcoded unit distance
+				t.set("y", 90);
+				t.set("z", (v.y + 0.5f)*40.0f);
+				return t;
+			}
+		});
+		globals.set("finishedPathStep", new ZeroArgFunction() {
+			@Override
+			public LuaValue call() {
+				Vector2i v = entity.curPath.tiles.get(entity.curPathStep);
+				Vector3f stepPos = new Vector3f((v.x + 0.5f)*40.0f, 90, (v.y + 0.5f)*40.0f);
+				if(entity.pos.distance(stepPos) < 0.5f) {
+					return LuaValue.TRUE;
+				} else {
+					return LuaValue.FALSE;
+				}
+			}
+		});
+		globals.set("getNormalizedDifference", new TwoArgFunction() {
+			@Override
+			public LuaValue call(LuaValue v1, LuaValue v2) {
+				if(v1.istable() && v2.istable()) {
+					LuaTable t1 = (LuaTable) v1;
+					LuaTable t2 = (LuaTable) v2;
+					LuaTable t = new LuaTable();
+					Vector3f diff = new Vector3f(	t2.get("x").tofloat()-t1.get("x").tofloat(),
+													t2.get("y").tofloat()-t1.get("y").tofloat(),
+													t2.get("z").tofloat()-t1.get("z").tofloat());
+					if(diff.x == 0 && diff.y == 0 && diff.z == 0)
+						return LuaValue.NIL;
+					diff.normalize();
+					t.set("x", diff.x);
+					t.set("y", diff.y);
+					t.set("z", diff.z);
+					return t;
+				} else {
+					return LuaValue.NIL;
+				}
 			}
 		});
 		globals.set("delta", new ZeroArgFunction() {

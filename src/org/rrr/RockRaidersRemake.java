@@ -10,8 +10,10 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
+import java.util.LinkedList;
 
 import org.joml.Matrix4f;
+import org.joml.Vector2i;
 import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
@@ -20,6 +22,7 @@ import org.lwjgl.system.MemoryStack;
 import org.rrr.assets.AssetManager;
 import org.rrr.assets.LegoConfig;
 import org.rrr.assets.LegoConfig.Node;
+import org.rrr.assets.map.SurfaceTypeDescription;
 import org.rrr.assets.model.LwsAnimation;
 import org.rrr.assets.sound.AudioSystem;
 import org.rrr.assets.sound.SoundClip;
@@ -29,6 +32,7 @@ import org.rrr.gui.Menu;
 import org.rrr.level.Entity;
 import org.rrr.level.EntityEngine;
 import org.rrr.level.Level;
+import org.rrr.level.Path;
 
 
 public class RockRaidersRemake {
@@ -222,14 +226,38 @@ public class RockRaidersRemake {
 //		Entity.loadEntity(new File("LegoRR0/Buildings/Barracks"), 	"barracks");
 		
 		Node l2cfg = (Node) cfg.get("Lego*/Levels/Level22");
-		
+		Entity im = null;
 		try {
 			currentLevel = new Level(this, l2cfg);
 			currentLevel.spawn("captain");
-			Entity im = currentLevel.spawn("tinyIM");
-			eng.bindScript(im, "dt = delta()\n"
-							 + "move(0, 0, dt*10)\n"
-							 + "turn(0.05)");
+			im = currentLevel.spawn("tinyIM");
+			SurfaceTypeDescription std = currentLevel.getSTypes();
+			String[] walkableSurfs = new String[] {
+				"DirtFloor",
+				"Lava"
+			};
+			im.walkables = new int[walkableSurfs.length];
+			for(int i = 0; i < walkableSurfs.length; i++) {
+				int index = -1;
+				for(int j = 0; j < std.surfaces.length; j++) {
+					if(std.surfaces[j].name.equalsIgnoreCase(walkableSurfs[i])) {
+						index = j;
+						break;
+					}
+				}
+				im.walkables[i] = index;
+				System.out.println("Walkable: " + walkableSurfs[i] + " is " + im.walkables[i]);
+			}
+			Path p = new Path();
+			p.tiles = new ArrayList<>();
+			p.tiles.add(new Vector2i(0, 0));
+			p.tiles.add(new Vector2i(1, 0));
+			p.tiles.add(new Vector2i(1, 1));
+			p.tiles.add(new Vector2i(0, 1));
+			p.tiles.add(new Vector2i(5, 5));
+			im.curPath = p;
+			im.curPathStep = 0;
+			eng.bindScript(im, new File("TinyIMScript.lua"));
 		} catch (Exception e2) {
 			e2.printStackTrace();
 		}
@@ -284,6 +312,24 @@ public class RockRaidersRemake {
 				scale++;
 			if(input.justReleased[GLFW_KEY_4])
 				scale--;
+			
+			Vector3f unprojOrig = new Vector3f(),
+					 unprojDir	= new Vector3f();
+			currentLevel.camera.combined.unprojectRay(input.mouse.x, getHeight()-input.mouse.y, new int[] {0,0,(int) getWidth(),(int) getHeight()},  unprojOrig, unprojDir);
+			
+			Vector3f hitPos = currentLevel.map.getHit(unprojOrig, unprojDir);
+			
+			Vector2i curPos = null;
+			if(hitPos != null) {
+				curPos = currentLevel.map.getTileUnderPoint(hitPos);
+				hitPos.y += currentLevel.map.unitDist;
+			}
+			
+			if(input.mouseJustPressed[GLFW_MOUSE_BUTTON_1]) {
+				Vector2i mapPos = currentLevel.toMapPos(im.pos);
+				if(curPos != null)
+					im.curPath = currentLevel.pathFind(mapPos.x, mapPos.y, curPos.x, curPos.y, im.walkables);
+			}
 			
 			c.setOrtho(scale*aspect, -scale*aspect, -scale, scale, -100, 100);
 			
