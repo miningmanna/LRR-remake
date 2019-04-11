@@ -134,6 +134,25 @@ public class EntityEngine {
 				}
 			}
 		});
+		globals.set("lookInDirection", new OneArgFunction() {
+			@Override
+			public LuaValue call(LuaValue arg0) {
+				
+				if(!(arg0 instanceof LuaTable))
+					return LuaValue.FALSE;
+				
+				LuaTable t = (LuaTable) arg0;
+				
+				Vector3f dir = new Vector3f(	t.get("x").tofloat(),
+												t.get("y").tofloat(),
+												-t.get("z").tofloat());
+				
+				entity.rot.identity();
+				entity.rot.lookAlong(dir, new Vector3f(0, 1, 0));
+				
+				return LuaValue.TRUE;
+			}
+		});
 		globals.set("getNormalizedDifference", new TwoArgFunction() {
 			@Override
 			public LuaValue call(LuaValue v1, LuaValue v2) {
