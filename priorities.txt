@@ -14,5 +14,5 @@
 ; Meaning: "Wad%ModName.wad" works.
 
 LegoRR%.wad
-test%.wad
+Data/test%.wad
 Data
